@@ -19,15 +19,14 @@ export function Providers({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>("es");
   const [theme, setThemeState] = useState<Theme>("light");
 
-  // Hydrate from localStorage / prefers-color-scheme
+  // Hydrate from localStorage. First-time visitors get LIGHT by default —
+  // we deliberately ignore system preference so the brand experience starts on light.
   useEffect(() => {
     try {
       const storedLang = localStorage.getItem("scn:lang") as Lang | null;
       if (storedLang === "es" || storedLang === "en") setLangState(storedLang);
       const storedTheme = localStorage.getItem("scn:theme") as Theme | null;
-      const prefersDark = window.matchMedia?.("(prefers-color-scheme: dark)").matches;
-      const effective = storedTheme || (prefersDark ? "dark" : "light");
-      setThemeState(effective);
+      setThemeState(storedTheme === "dark" ? "dark" : "light");
     } catch {}
   }, []);
 

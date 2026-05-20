@@ -25,12 +25,14 @@ export const metadata: Metadata = {
   },
 };
 
-// Inline pre-hydration script to avoid theme flash
+// Inline pre-hydration script to avoid theme flash.
+// First-time visitors get LIGHT mode by default; we only honor an explicit
+// saved choice in localStorage. System preference is ignored on purpose.
 const THEME_INIT = `
 (function(){try{
   var l=localStorage.getItem('scn:lang'); if(l==='es'||l==='en'){document.documentElement.lang=l;}
   var t=localStorage.getItem('scn:theme');
-  if(!t){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}
+  if(t!=='dark'&&t!=='light'){t='light';}
   if(t==='dark'){document.documentElement.classList.add('dark');}
   document.documentElement.setAttribute('data-theme',t);
 }catch(e){}})();

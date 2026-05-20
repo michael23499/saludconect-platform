@@ -196,52 +196,48 @@ function ThemeSwitch({ theme, onToggle }: { theme: "light" | "dark"; onToggle: (
       aria-label={isDark ? "Cambiar a tema claro" : "Cambiar a tema oscuro"}
       onClick={onToggle}
       className={cn(
-        "relative inline-flex h-9 w-[68px] items-center rounded-full border border-mist-200 p-0.5 transition-colors duration-300",
-        isDark ? "bg-ink-900" : "bg-white"
+        "relative inline-flex h-9 w-[68px] items-center rounded-full border p-0.5 transition-colors duration-300",
+        isDark ? "border-white/10 bg-ink-900" : "border-mist-200 bg-mist-100"
       )}
     >
-      {/* sun (left) */}
-      <span
-        className={cn(
-          "absolute left-2 top-1/2 -translate-y-1/2 transition-opacity duration-200",
-          isDark ? "opacity-30" : "opacity-100"
-        )}
-        aria-hidden
-      >
-        <svg className="h-3.5 w-3.5 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-          <circle cx="12" cy="12" r="4" />
-          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" strokeLinecap="round" />
-        </svg>
-      </span>
-      {/* moon (right) */}
-      <span
-        className={cn(
-          "absolute right-2 top-1/2 -translate-y-1/2 transition-opacity duration-200",
-          isDark ? "opacity-100" : "opacity-30"
-        )}
-        aria-hidden
-      >
-        <svg className="h-3.5 w-3.5 text-cyan-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-          <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" strokeLinejoin="round" />
-        </svg>
-      </span>
       {/* thumb */}
       <span
         className={cn(
-          "relative z-10 inline-flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br shadow-[0_6px_14px_-6px_rgba(10,22,51,0.5)] transition-transform duration-300 ease-[cubic-bezier(.22,.61,.36,1)]",
+          "relative z-10 inline-flex h-7 w-7 items-center justify-center rounded-full transition-all duration-300 ease-[cubic-bezier(.22,.61,.36,1)]",
           isDark
-            ? "translate-x-9 from-cyan-400 to-brand-500"
-            : "translate-x-0 from-white to-mist-100 border border-mist-200"
+            ? "translate-x-9 bg-ink-700 shadow-[0_4px_12px_-4px_rgba(0,0,0,0.6)]"
+            : "translate-x-0 bg-white shadow-[0_2px_8px_-2px_rgba(10,22,51,0.18)] ring-1 ring-mist-200/70"
         )}
         aria-hidden
       >
         {isDark ? (
-          <svg className="h-3.5 w-3.5 text-white" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+          <svg className="h-3.5 w-3.5 text-mist-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
             <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
           </svg>
         ) : (
-          <svg className="h-3.5 w-3.5 text-amber-500" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-            <circle cx="12" cy="12" r="4" />
+          <svg className="h-3.5 w-3.5 text-ink-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden>
+            <circle cx="12" cy="12" r="3.6" />
+            <path d="M12 3.5v1.5M12 19v1.5M3.5 12h1.5M19 12h1.5M6 6l1.06 1.06M16.94 16.94L18 18M6 18l1.06-1.06M16.94 7.06L18 6" />
+          </svg>
+        )}
+      </span>
+
+      {/* The off-state icon hint on the opposite side */}
+      <span
+        className={cn(
+          "pointer-events-none absolute top-1/2 -translate-y-1/2 transition-opacity duration-200",
+          isDark ? "left-2 opacity-30" : "right-2 opacity-30"
+        )}
+        aria-hidden
+      >
+        {isDark ? (
+          <svg className="h-3 w-3 text-mist-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M12 4v1.5M12 18.5V20M4 12h1.5M18.5 12H20M6 6l1 1M17 17l1 1M6 18l1-1M17 7l1-1" />
+          </svg>
+        ) : (
+          <svg className="h-3 w-3 text-mist-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
           </svg>
         )}
       </span>
