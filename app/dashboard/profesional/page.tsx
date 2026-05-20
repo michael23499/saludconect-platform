@@ -115,7 +115,7 @@ export default function ProfesionalDashboardPage() {
         <div className="rounded-2xl border border-mist-200 bg-white p-6">
           <div className="flex items-center justify-between">
             <div className="text-lg font-semibold tracking-tight text-ink-900">Próximas jornadas</div>
-            <a href="#" className="text-xs font-semibold text-brand-700">Calendario completo →</a>
+            <a href="/dashboard/profesional/calendario" className="text-xs font-semibold text-brand-700 hover:text-brand-800">Calendario completo →</a>
           </div>
           <div className="mt-4 divide-y divide-mist-100">
             {[

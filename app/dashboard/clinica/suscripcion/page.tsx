@@ -1,4 +1,5 @@
 import { DashboardShell, PageHeader } from "@/components/dashboard/Shell";
+import { FreeTrialCTA } from "@/components/dashboard/FreeTrialCTA";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { NAV_CLINICA, USER_CLINICA } from "@/lib/dashboard-nav";
@@ -39,6 +40,9 @@ export default function SuscripcionPage() {
         subtitle="Gestiona tu plan, métodos de pago y descarga tus facturas."
       />
 
+      {/* Free trial activation */}
+      <FreeTrialCTA />
+
       {/* Payment gateways coming soon */}
       <div className="relative mb-6 overflow-hidden rounded-2xl border border-dashed border-brand-300 bg-gradient-to-br from-brand-50 via-cyan-50 to-indigo-50 p-5 dark:border-brand-400/40 dark:from-brand-500/15 dark:via-cyan-500/10 dark:to-indigo-500/15 md:p-6">
         <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-brand-200/40 blur-3xl dark:bg-brand-400/20" />
@@ -78,9 +82,9 @@ export default function SuscripcionPage() {
           </div>
           <div className="flex flex-col gap-2 md:items-end">
             <Button variant="secondary" size="sm">Notificarme cuando esté listo</Button>
-            <a href="#" className="text-xs font-semibold text-brand-700 hover:text-brand-800 dark:!text-cyan-300">
+            <button type="button" className="text-xs font-semibold text-brand-700 hover:text-brand-800 dark:!text-cyan-300">
               Ver hoja de ruta →
-            </a>
+            </button>
           </div>
         </div>
       </div>

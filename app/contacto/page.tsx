@@ -1,6 +1,8 @@
 import { Section } from "@/components/ui/Section";
 import { Badge } from "@/components/ui/Badge";
-import { Field, Input, Textarea, Select, Checkbox } from "@/components/ui/Input";
+import { Field, Input, Textarea } from "@/components/ui/Input";
+import { SelectMenu } from "@/components/ui/SelectMenu";
+import { AnimatedCheckbox } from "@/components/ui/AnimatedCheckbox";
 import { Button } from "@/components/ui/Button";
 
 export const metadata = { title: "Contacto · SaludCoNet" };
@@ -72,23 +74,30 @@ export default function ContactoPage() {
               <Field label="Email"><Input type="email" placeholder="tu@email.com" required /></Field>
               <Field label="Empresa / Clínica" className="md:col-span-2"><Input placeholder="Opcional" /></Field>
               <Field label="¿En qué te ayudamos?" className="md:col-span-2">
-                <Select defaultValue="">
-                  <option value="" disabled>Selecciona…</option>
-                  <option>Soy una clínica interesada</option>
-                  <option>Soy un profesional sanitario</option>
-                  <option>Solicito información sobre planes</option>
-                  <option>Quiero apuntarme a la lista de espera</option>
-                  <option>Soporte técnico</option>
-                  <option>Prensa y partners</option>
-                </Select>
+                <SelectMenu
+                  name="asunto"
+                  placeholder="Selecciona el motivo de tu mensaje…"
+                  options={[
+                    "Soy una clínica interesada",
+                    "Soy un profesional sanitario",
+                    "Solicito información sobre planes",
+                    "Quiero apuntarme a la lista de espera",
+                    "Soporte técnico",
+                    "Prensa y partners",
+                  ]}
+                />
               </Field>
               <Field label="Mensaje" className="md:col-span-2">
                 <Textarea placeholder="Cuéntanos brevemente cómo podemos ayudarte" />
               </Field>
             </div>
-            <label className="mt-4 flex items-start gap-2.5 text-sm text-ink-800">
-              <Checkbox className="mt-0.5" /> Acepto la política de privacidad y el tratamiento de datos
-            </label>
+            <AnimatedCheckbox className="mt-5" name="privacy" required>
+              Acepto la{" "}
+              <a href="/legal/privacidad" className="font-semibold text-brand-700 underline-offset-4 hover:underline">
+                política de privacidad
+              </a>{" "}
+              y el tratamiento de datos
+            </AnimatedCheckbox>
             <Button size="lg" className="mt-5 w-full justify-center">Enviar mensaje</Button>
           </form>
         </div>

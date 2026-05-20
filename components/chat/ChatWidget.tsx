@@ -107,6 +107,25 @@ const initialMessages = (): Message[] => [
   { id: "menu-0", kind: "menu" },
 ];
 
+function DoctorIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <circle cx="12" cy="7" r="3" />
+      <path d="M5 21a7 7 0 0 1 14 0" />
+      <path d="M12 14v3M10.5 15.5h3" />
+    </svg>
+  );
+}
+
 function Icon({ name, className }: { name: string; className?: string }) {
   const props = {
     className,
@@ -290,9 +309,7 @@ export function ChatWidget() {
             <path d="M6 6l12 12M18 6L6 18" />
           </svg>
         ) : (
-          <svg className="relative h-7 w-7" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-            <path d="M12 2C6.48 2 2 6.04 2 11c0 2.62 1.27 4.97 3.3 6.6L4 22l4.7-1.6c1.05.36 2.16.55 3.3.55 5.52 0 10-4.04 10-9S17.52 2 12 2zm-3.6 9.5a1.4 1.4 0 1 1 0-2.8 1.4 1.4 0 0 1 0 2.8zm3.6 0a1.4 1.4 0 1 1 0-2.8 1.4 1.4 0 0 1 0 2.8zm3.6 0a1.4 1.4 0 1 1 0-2.8 1.4 1.4 0 0 1 0 2.8z" />
-          </svg>
+          <DoctorIcon className="relative h-7 w-7" />
         )}
         {unread && !open && (
           <span className="absolute -right-0.5 -top-0.5 h-3.5 w-3.5 rounded-full border-2 border-white bg-rose-500" aria-hidden />
@@ -322,9 +339,7 @@ export function ChatWidget() {
         {/* Header */}
         <div className="flex shrink-0 items-center gap-3 bg-gradient-to-br from-brand-600 to-brand-700 px-4 py-3.5 text-white">
           <div className="relative inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/15">
-            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-              <path d="M12 2a5 5 0 0 1 5 5v1h.5A2.5 2.5 0 0 1 20 10.5v3a2.5 2.5 0 0 1-2.5 2.5H17a5 5 0 0 1-4 4.9V22h-2v-1.1a5 5 0 0 1-4-4.9H6.5A2.5 2.5 0 0 1 4 13.5v-3A2.5 2.5 0 0 1 6.5 8H7V7a5 5 0 0 1 5-5z" />
-            </svg>
+            <DoctorIcon className="h-5 w-5" />
             <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-emerald-400" aria-hidden />
           </div>
           <div className="min-w-0 flex-1">
@@ -366,9 +381,7 @@ export function ChatWidget() {
                 <div key={m.id} className="flex justify-start">
                   <div className="flex max-w-[88%] items-end gap-2">
                     <div className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-100 text-brand-700">
-                      <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-                        <path d="M12 2a5 5 0 0 1 5 5v1h.5A2.5 2.5 0 0 1 20 10.5v3a2.5 2.5 0 0 1-2.5 2.5H17a5 5 0 0 1-4 4.9V22h-2v-1.1a5 5 0 0 1-4-4.9H6.5A2.5 2.5 0 0 1 4 13.5v-3A2.5 2.5 0 0 1 6.5 8H7V7a5 5 0 0 1 5-5z" />
-                      </svg>
+                      <DoctorIcon className="h-4 w-4" />
                     </div>
                     <div className="rounded-2xl rounded-bl-md border border-mist-200 bg-white px-3.5 py-2.5 text-sm leading-relaxed text-ink-800 shadow-sm">
                       {m.text}

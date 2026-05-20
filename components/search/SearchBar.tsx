@@ -116,7 +116,7 @@ export function SearchBar({
                 onChange={(e) => setQ(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") submit(); }}
                 placeholder={t.q.ph}
-                className="block w-full bg-transparent text-[14px] font-medium text-ink-900 placeholder:text-mist-400 outline-none"
+                className="block w-full bg-transparent text-[14px] font-medium text-ink-900 placeholder:text-mist-400 outline-none focus:outline-none focus-visible:shadow-none"
               />
             </SearchField>
           </div>
@@ -242,8 +242,8 @@ function SearchField({
   className?: string;
 }) {
   return (
-    <div className={cn("group relative flex items-center gap-3 rounded-2xl px-4 py-3 transition hover:bg-mist-50", className)}>
-      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-700 transition group-hover:bg-brand-100">
+    <div className={cn("group relative flex items-center gap-3 rounded-2xl px-4 py-3 transition hover:bg-mist-50 focus-within:bg-mist-50", className)}>
+      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-700 transition group-hover:bg-brand-100 group-focus-within:bg-brand-100">
         {icon}
       </span>
       <div className="min-w-0 flex-1">
@@ -309,7 +309,11 @@ function Combobox({
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="group flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left transition hover:bg-mist-50"
+        className={cn(
+          "group flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left transition hover:bg-mist-50",
+          "focus:outline-none focus-visible:bg-mist-50 focus-visible:shadow-none",
+          open && "bg-mist-50"
+        )}
       >
         <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-700 transition group-hover:bg-brand-100">
           {icon}

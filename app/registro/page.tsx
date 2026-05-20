@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { Logo } from "@/components/ui/Logo";
 import { Badge } from "@/components/ui/Badge";
-import { Field, Input, Checkbox } from "@/components/ui/Input";
+import { Field, Input } from "@/components/ui/Input";
 import { SelectMenu } from "@/components/ui/SelectMenu";
+import { AnimatedCheckbox } from "@/components/ui/AnimatedCheckbox";
 import { Button } from "@/components/ui/Button";
+import { RoleTabs } from "@/components/registro/RoleTabs";
 
 export const metadata = { title: "Crear cuenta · SaludCoNet" };
 
@@ -69,43 +71,22 @@ export default async function RegistroPage({
         </aside>
 
         <div className="rounded-3xl border border-mist-200 bg-white p-6 shadow-[var(--shadow-card)] md:p-10">
-          <div className="grid grid-cols-2 gap-2 rounded-2xl bg-mist-100 p-1">
-            <Link
-              href="/registro?rol=clinica"
-              className={
-                rol === "clinica"
-                  ? "rounded-xl bg-white px-4 py-3 text-center text-sm font-semibold text-ink-900 shadow-sm"
-                  : "rounded-xl px-4 py-3 text-center text-sm font-medium text-mist-500 hover:text-ink-800"
-              }
-            >
-              Soy una clínica
-            </Link>
-            <Link
-              href="/registro?rol=profesional"
-              className={
-                rol === "profesional"
-                  ? "rounded-xl bg-white px-4 py-3 text-center text-sm font-semibold text-ink-900 shadow-sm"
-                  : "rounded-xl px-4 py-3 text-center text-sm font-medium text-mist-500 hover:text-ink-800"
-              }
-            >
-              Soy un profesional sanitario
-            </Link>
-          </div>
-
-          {!rol && (
-            <div className="mt-8 rounded-2xl border border-dashed border-mist-300 bg-mist-50/60 p-8 text-center">
-              <div className="mx-auto inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-50 text-brand-700">
-                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-                  <path d="M12 5v14M5 12h14" strokeLinecap="round" />
-                </svg>
+          <RoleTabs
+            initialRole={rol}
+            emptyState={
+              <div className="mt-8 rounded-2xl border border-dashed border-mist-300 bg-mist-50/60 p-8 text-center">
+                <div className="mx-auto inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-50 text-brand-700">
+                  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                    <path d="M12 5v14M5 12h14" strokeLinecap="round" />
+                  </svg>
+                </div>
+                <p className="mt-4 text-[15px] font-medium text-ink-900">¿Cómo te registras?</p>
+                <p className="mt-1 text-sm text-mist-500">Elige arriba si eres una clínica o un profesional sanitario.</p>
               </div>
-              <p className="mt-4 text-[15px] font-medium text-ink-900">¿Cómo te registras?</p>
-              <p className="mt-1 text-sm text-mist-500">Elige arriba si eres una clínica o un profesional sanitario.</p>
-            </div>
-          )}
-
-          {rol === "clinica" && <FormClinica />}
-          {rol === "profesional" && <FormProfesional />}
+            }
+            formClinica={<FormClinica />}
+            formProfesional={<FormProfesional />}
+          />
 
           <div className="mt-8 flex items-center gap-3 text-xs text-mist-400">
             <span className="h-px flex-1 bg-mist-200" />
@@ -164,9 +145,9 @@ function FormClinica() {
         </Field>
         <Field label="Contraseña" className="md:col-span-2"><Input type="password" placeholder="Mínimo 10 caracteres" /></Field>
       </div>
-      <label className="flex items-start gap-2.5 text-sm text-ink-800">
-        <Checkbox className="mt-0.5" /> Quiero empezar mi prueba gratuita de 14 días en el plan Clínica Pro
-      </label>
+      <AnimatedCheckbox name="trial" className="mt-1">
+        Quiero empezar mi prueba gratuita de <strong>14 días</strong> en el plan <strong>Clínica Pro</strong>
+      </AnimatedCheckbox>
       <Button size="lg" className="w-full justify-center">Crear cuenta de clínica</Button>
     </form>
   );
@@ -194,9 +175,9 @@ function FormProfesional() {
         <Field label="Teléfono"><Input type="tel" placeholder="+34 600 00 00 00" /></Field>
         <Field label="Contraseña" className="md:col-span-2"><Input type="password" placeholder="Mínimo 10 caracteres" /></Field>
       </div>
-      <label className="flex items-start gap-2.5 text-sm text-ink-800">
-        <Checkbox className="mt-0.5" /> Acepto que SaludCoNet valide mi documentación profesional
-      </label>
+      <AnimatedCheckbox name="docs_consent" required className="mt-1">
+        Acepto que SaludCoNet valide mi documentación profesional
+      </AnimatedCheckbox>
       <Button size="lg" className="w-full justify-center">Continuar — completar perfil</Button>
     </form>
   );

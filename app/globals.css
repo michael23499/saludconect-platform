@@ -161,9 +161,9 @@ html, body {
     var(--bg);
 }
 
-/* Gradient text */
+/* Gradient text — soft icy blue → cyan (no harsh white intro) */
 .text-gradient {
-  background: linear-gradient(120deg, #ffffff 0%, #a7c5ff 60%, #67e8f9 100%);
+  background: linear-gradient(120deg, #c2dcff 0%, #a7c5ff 35%, #67e8f9 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -297,6 +297,158 @@ html, body {
 }
 .ring-tick { animation: ring-tick 2.4s ease-out infinite; }
 
+/* Animated checkbox */
+@keyframes ac-ripple {
+  0%   { box-shadow: 0 0 0 0 rgba(37, 99, 235, .45); }
+  100% { box-shadow: 0 0 0 12px rgba(37, 99, 235, 0); }
+}
+.ac-ripple { animation: ac-ripple .6s ease-out; }
+
+@keyframes ac-bump {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.18); }
+  70%  { transform: scale(.94); }
+  100% { transform: scale(1); }
+}
+.ac-bump { animation: ac-bump .5s cubic-bezier(.34,1.56,.64,1) both; }
+
+@keyframes ac-tick {
+  from { stroke-dashoffset: 24; }
+  to   { stroke-dashoffset: 0; }
+}
+.ac-tick { animation: ac-tick .35s cubic-bezier(.22,.61,.36,1) both; }
+
+/* Metric strip — light sweep that crosses the strip every few seconds */
+@keyframes metric-sweep {
+  0%   { transform: translateX(0%) skewX(-12deg); opacity: 0; }
+  10%  { opacity: 1; }
+  60%  { opacity: 1; }
+  100% { transform: translateX(450%) skewX(-12deg); opacity: 0; }
+}
+.metric-sweep {
+  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.10) 50%, rgba(255,255,255,0) 100%);
+  animation: metric-sweep 5.5s cubic-bezier(.4,0,.2,1) infinite;
+  animation-delay: 1.2s;
+}
+
+/* Bestseller badge — bright spark that orbits the perimeter
+   We animate the conic-gradient ANGLE (not the element transform),
+   so the pill border stays put and only the bright comet travels. */
+@property --bs-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+@keyframes bestseller-orbit {
+  to { --bs-angle: 360deg; }
+}
+.bestseller-ring {
+  position: relative;
+  isolation: isolate;
+}
+/* Soft static border under the spark — keeps the edge readable */
+.bestseller-ring::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  padding: 2px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.55), rgba(34,211,238,0.35));
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+          mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none;
+  z-index: 0;
+}
+/* Traveling spark — only the gradient angle animates, the element is fixed */
+.bestseller-ring::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  padding: 2px;
+  background: conic-gradient(
+    from var(--bs-angle),
+    transparent 0deg,
+    transparent 240deg,
+    rgba(34, 211, 238, 0.35) 285deg,
+    rgba(103, 232, 249, 0.85) 320deg,
+    #ffffff 348deg,
+    rgba(167, 197, 255, 0.6) 356deg,
+    transparent 360deg
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+          mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  animation: bestseller-orbit 2.4s linear infinite;
+  pointer-events: none;
+  z-index: 1;
+  filter: drop-shadow(0 0 4px rgba(103, 232, 249, 0.7));
+}
+.bestseller-ring > * { position: relative; z-index: 2; }
+
+@keyframes bestseller-glow {
+  0%, 100% { box-shadow: 0 10px 24px -10px rgba(34,211,238,0.55), 0 0 0 0 rgba(34,211,238,0.35); }
+  50%      { box-shadow: 0 14px 30px -10px rgba(34,211,238,0.75), 0 0 0 10px rgba(34,211,238,0); }
+}
+.bestseller-glow { animation: bestseller-glow 2.4s ease-in-out infinite; }
+
+/* Trial CTA — minimalist hover only (no continuous animation) */
+.trial-cta {
+  transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+.trial-cta:hover {
+  transform: translateY(-1px);
+  border-color: var(--color-brand-300);
+  box-shadow: 0 6px 14px -8px rgba(37, 99, 235, 0.25);
+}
+.trial-cta:active {
+  transform: translateY(0);
+  transition-duration: 60ms;
+}
+
+
+/* Free-trial confetti burst */
+@keyframes ft-confetti {
+  0%   { transform: translate(0,0) rotate(0) scale(.6); opacity: 0; }
+  12%  { opacity: 1; transform: translate(0,0) rotate(0) scale(1); }
+  100% { transform: translate(var(--cx,0), var(--cy,0)) rotate(var(--cr,0)) scale(.85); opacity: 0; }
+}
+.ft-confetti {
+  position: absolute;
+  left: 0; top: 0;
+  width: 8px;
+  height: 10px;
+  border-radius: 2px;
+  transform-origin: center;
+  animation: ft-confetti 1.05s cubic-bezier(.22,.61,.36,1) forwards;
+  will-change: transform, opacity;
+}
+
+@keyframes ft-glow {
+  0%   { box-shadow: 0 0 0 0 rgba(16,185,129,.35); }
+  60%  { box-shadow: 0 0 0 22px rgba(16,185,129,0); }
+  100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); }
+}
+.ft-glow { animation: ft-glow 1.4s ease-out 1; }
+
+@keyframes ft-celebrate {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.012); }
+  100% { transform: scale(1); }
+}
+.ft-celebrate { animation: ft-celebrate .7s cubic-bezier(.34,1.56,.64,1) both; }
+
 /* Focus ring — softer halo via box-shadow instead of an offset outline */
 :where(button, a, input, select, textarea):focus-visible {
   outline: none;
@@ -305,6 +457,13 @@ html, body {
 /* Avoid double-stacking for elements that already render their own ring */
 :where(input, textarea, select):focus-visible {
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+/* Visually-hidden inputs (custom checkboxes/radios) must not paint a halo;
+   the visible surrogate handles focus styles via peer-focus-visible. */
+.sr-only:focus,
+.sr-only:focus-visible {
+  box-shadow: none !important;
+  outline: none !important;
 }
 
 /* Scrollbar polish */

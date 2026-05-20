@@ -121,7 +121,7 @@ export default function AdminPage() {
               <div className="text-xs font-semibold uppercase tracking-wider text-mist-500">Pagos recientes</div>
               <div className="text-lg font-semibold tracking-tight text-ink-900">Últimas transacciones</div>
             </div>
-            <a href="#" className="text-xs font-semibold text-brand-700">Ver todas →</a>
+            <button type="button" className="text-xs font-semibold text-brand-700 hover:text-brand-800">Ver todas →</button>
           </div>
           <div className="overflow-hidden">
             <table className="w-full text-sm">
