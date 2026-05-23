@@ -1,0 +1,130 @@
+<!--
+  SaludCoNet — Magic Link (Establecer contraseña)
+  Pegar en: Supabase Dashboard → Authentication → Email Templates → Magic Link
+  Subject sugerido:  Establece tu contraseña en SaludCoNet
+  Variables usadas: {{ .ConfirmationURL }}, {{ .Email }}, {{ .SiteURL }}
+-->
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light only" />
+    <meta name="supported-color-schemes" content="light" />
+    <title>Establece tu contraseña en SaludCoNet</title>
+    <style>
+      /* Reset mínimo */
+      body, table, td { margin: 0; padding: 0; }
+      img { border: 0; line-height: 100%; outline: none; text-decoration: none; }
+      table { border-collapse: collapse; }
+      a { text-decoration: none; }
+
+      /* Mobile */
+      @media only screen and (max-width: 600px) {
+        .container { width: 100% !important; padding: 0 16px !important; }
+        .card { padding: 28px 24px !important; }
+        .h1 { font-size: 22px !important; line-height: 1.3 !important; }
+        .cta { padding: 14px 24px !important; font-size: 15px !important; }
+      }
+    </style>
+  </head>
+  <body style="margin: 0; padding: 0; background-color: #f7f9fc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #0a1633; -webkit-font-smoothing: antialiased;">
+    <!-- Preview text (oculto, aparece en preview del inbox) -->
+    <div style="display: none; max-height: 0; overflow: hidden; mso-hide: all;">
+      Haz click para verificar tu email y establecer tu contraseña en SaludCoNet.
+    </div>
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f7f9fc; padding: 40px 0;">
+      <tr>
+        <td align="center">
+          <!-- Container -->
+          <table role="presentation" class="container" width="560" cellpadding="0" cellspacing="0" border="0" style="width: 560px; max-width: 560px;">
+            <!-- Logo + brand -->
+            <tr>
+              <td align="center" style="padding-bottom: 28px;">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td style="background: linear-gradient(135deg, #1d4ed8 0%, #06b6d4 100%); width: 40px; height: 40px; border-radius: 12px; vertical-align: middle; text-align: center; box-shadow: 0 10px 24px -8px rgba(37,99,235,0.4);">
+                      <span style="display: inline-block; color: #ffffff; font-size: 22px; font-weight: 600; line-height: 40px;">+</span>
+                    </td>
+                    <td style="padding-left: 10px; vertical-align: middle;">
+                      <span style="font-size: 18px; font-weight: 600; letter-spacing: -0.01em; color: #0a1633;">Salud<span style="color: #2563eb;">Co</span>Net</span>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Card principal -->
+            <tr>
+              <td class="card" style="background-color: #ffffff; border-radius: 20px; padding: 40px 44px; box-shadow: 0 4px 20px -4px rgba(10,22,51,0.06), 0 1px 3px rgba(10,22,51,0.04);">
+                <!-- Icono header -->
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td style="background-color: #eaf2ff; width: 48px; height: 48px; border-radius: 12px; text-align: center; vertical-align: middle;">
+                      <span style="font-size: 22px; line-height: 48px;">🔐</span>
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- Heading -->
+                <h1 class="h1" style="margin: 24px 0 8px; font-size: 26px; line-height: 1.25; font-weight: 600; letter-spacing: -0.02em; color: #0a1633;">
+                  Establece tu contraseña
+                </h1>
+
+                <!-- Bajada -->
+                <p style="margin: 0 0 28px; font-size: 15px; line-height: 1.55; color: #6b7793;">
+                  Estás a un click de tener acceso con email + contraseña en tu cuenta de SaludCoNet. Pulsa el botón para verificarte y crear tu nueva contraseña.
+                </p>
+
+                <!-- CTA -->
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin: 0 0 28px;">
+                  <tr>
+                    <td style="background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%); border-radius: 12px; box-shadow: 0 10px 24px -10px rgba(37,99,235,0.6);">
+                      <a href="{{ .ConfirmationURL }}" class="cta" style="display: inline-block; padding: 14px 28px; color: #ffffff; font-size: 15px; font-weight: 600; line-height: 1; letter-spacing: -0.01em;">
+                        Establecer contraseña →
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- Detalles -->
+                <p style="margin: 0 0 8px; font-size: 13px; line-height: 1.5; color: #8a94ab;">
+                  Si el botón no te funciona, copia y pega esta URL en tu navegador:
+                </p>
+                <p style="margin: 0; font-size: 12px; line-height: 1.5; word-break: break-all;">
+                  <a href="{{ .ConfirmationURL }}" style="color: #2563eb;">{{ .ConfirmationURL }}</a>
+                </p>
+
+                <!-- Separador -->
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin: 28px 0 20px;">
+                  <tr>
+                    <td style="height: 1px; background-color: #eef2f8; line-height: 1px;">&nbsp;</td>
+                  </tr>
+                </table>
+
+                <!-- Info de seguridad -->
+                <p style="margin: 0; font-size: 13px; line-height: 1.55; color: #8a94ab;">
+                  Este enlace caduca en <strong style="color: #6b7793;">1 hora</strong>. Si no fuiste tú quien lo solicitó, puedes ignorar este email — tu cuenta sigue segura y nada cambia.
+                </p>
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td align="center" style="padding: 28px 24px 16px;">
+                <p style="margin: 0 0 8px; font-size: 12px; line-height: 1.55; color: #8a94ab;">
+                  Email enviado a <strong style="color: #6b7793;">{{ .Email }}</strong>
+                </p>
+                <p style="margin: 0; font-size: 12px; line-height: 1.55; color: #8a94ab;">
+                  © SaludCoNet · La red profesional sanitaria<br />
+                  <a href="https://app.saludconet.com" style="color: #6b7793;">app.saludconet.com</a>
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

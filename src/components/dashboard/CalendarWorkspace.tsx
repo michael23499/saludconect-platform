@@ -6,7 +6,7 @@ import { Avatar } from "@/components/ui/Avatar";
 import { Sparkline } from "@/components/dashboard/Sparkline";
 import { cn } from "@/lib/cn";
 
-type Role = "profesional" | "clinica";
+type Role = "professional" | "clinic";
 
 type Props = {
   role: Role;
@@ -153,7 +153,7 @@ export function CalendarWorkspace({ role, data, initialDate }: Props) {
   const stats = useMemo(() => monthStats(data, year, month), [data, year, month]);
   const upcoming = useMemo(() => getUpcoming(data, new Date()), [data]);
   const monthLabel = cursor.toLocaleDateString("es", { month: "long", year: "numeric" });
-  const templates = role === "profesional" ? TEMPLATES_PRO : TEMPLATES_CLINICA;
+  const templates = role === "professional" ? TEMPLATES_PRO : TEMPLATES_CLINICA;
   const weekdayLabels = ["L", "M", "X", "J", "V", "S", "D"];
   const maxBar = Math.max(1, ...stats.weekdayHistogram);
 
@@ -229,7 +229,7 @@ export function CalendarWorkspace({ role, data, initialDate }: Props) {
               </select>
             )}
             <button className="hidden h-9 items-center rounded-lg bg-ink-900 px-3 text-xs font-semibold text-white hover:bg-ink-800 md:inline-flex">
-              + {role === "profesional" ? "Nueva jornada" : "Publicar turno"}
+              + {role === "professional" ? "Nueva jornada" : "Publicar turno"}
             </button>
           </div>
         </div>
@@ -272,7 +272,7 @@ export function CalendarWorkspace({ role, data, initialDate }: Props) {
             tone="cyan"
           />
           <SummaryStat
-            label={role === "profesional" ? "Ingresos estimados" : "Gasto estimado"}
+            label={role === "professional" ? "Ingresos estimados" : "Gasto estimado"}
             value={`${Math.round(stats.estimatedEarnings).toLocaleString("es")} €`}
             hint={stats.cancelled ? `${stats.cancelled} cancelaciones excluidas` : "Sin cancelaciones"}
             tone="warning"
@@ -297,7 +297,7 @@ export function CalendarWorkspace({ role, data, initialDate }: Props) {
           {/* Próximas jornadas */}
           <div className="rounded-2xl border border-mist-200 bg-white p-5">
             <div className="flex items-center justify-between">
-              <div className="text-xs font-semibold uppercase tracking-wider text-mist-500">Próximas {role === "profesional" ? "jornadas" : "reservas"}</div>
+              <div className="text-xs font-semibold uppercase tracking-wider text-mist-500">Próximas {role === "professional" ? "jornadas" : "reservas"}</div>
               <Badge tone="brand">{upcoming.length}</Badge>
             </div>
             <div className="mt-4 space-y-3">
@@ -487,7 +487,7 @@ function AgendaList({
                       </div>
                       <div className="flex gap-2">
                         <button className="rounded-lg border border-mist-200 bg-white px-3 py-1.5 text-[11px] font-medium text-ink-800 hover:bg-mist-50">
-                          {role === "profesional" ? "Chat" : "Mensaje"}
+                          {role === "professional" ? "Chat" : "Mensaje"}
                         </button>
                         <button className="rounded-lg bg-brand-600 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-brand-700">
                           Detalles
@@ -648,7 +648,7 @@ function StatsPanel({
           <div>
             <div className="text-xs font-semibold uppercase tracking-wider text-mist-500">Tendencia</div>
             <div className="text-lg font-semibold tracking-tight text-ink-900">
-              {role === "profesional" ? "Ingresos planificados · últimos 12 meses" : "Gasto en coberturas · últimos 12 meses"}
+              {role === "professional" ? "Ingresos planificados · últimos 12 meses" : "Gasto en coberturas · últimos 12 meses"}
             </div>
           </div>
           <div className="text-right">
@@ -695,8 +695,8 @@ function StatsPanel({
         <InsightCard
           icon="★"
           tone="brand"
-          title={role === "profesional" ? "Clínica más activa" : "Profesional top"}
-          value={role === "profesional" ? "Clínica Sanitas Norte" : "Dra. Lucía Martín"}
+          title={role === "professional" ? "Clínica más activa" : "Profesional top"}
+          value={role === "professional" ? "Clínica Sanitas Norte" : "Dra. Lucía Martín"}
           desc="14 reservas en el mes en curso"
           delay="400ms"
         />

@@ -5,30 +5,30 @@ const COLS = [
   {
     title: "Producto",
     links: [
-      { href: "/como-funciona", label: "Cómo funciona" },
-      { href: "/clinicas", label: "Para clínicas" },
-      { href: "/profesionales", label: "Para profesionales" },
-      { href: "/buscar", label: "Buscar talento" },
+      { href: "/how-it-works", label: "Cómo funciona" },
+      { href: "/clinics", label: "Para clínicas" },
+      { href: "/professionals", label: "Para profesionales" },
+      { href: "/search", label: "Buscar talento" },
       { href: "/precios", label: "Planes y precios" },
     ],
   },
   {
     title: "Plataforma",
     links: [
-      { href: "/dashboard/profesional", label: "Área del profesional" },
-      { href: "/dashboard/clinica", label: "Área de la clínica" },
+      { href: "/dashboard/professional", label: "Área del profesional" },
+      { href: "/dashboard/clinic", label: "Área de la clínica" },
       { href: "/admin", label: "Panel de administración" },
-      { href: "/registro", label: "Registro" },
+      { href: "/register", label: "Registro" },
       { href: "/login", label: "Iniciar sesión" },
     ],
   },
   {
     title: "Recursos",
     links: [
-      { href: "/contacto", label: "Contacto" },
-      { href: "/legal/privacidad", label: "Política de privacidad" },
-      { href: "/legal/aviso", label: "Aviso legal" },
-      { href: "/legal/terminos", label: "Términos y condiciones" },
+      { href: "/contact", label: "Contacto" },
+      { href: "/legal/privacy", label: "Política de privacidad" },
+      { href: "/legal/legal-notice", label: "Aviso legal" },
+      { href: "/legal/terms", label: "Términos y condiciones" },
       { href: "/legal/cookies", label: "Política de cookies" },
     ],
   },
@@ -42,7 +42,7 @@ export function Footer() {
           <div>
             <Logo />
             <p className="mt-4 max-w-xs text-sm text-mist-500">
-              La nueva red profesional sanitaria. Conectamos clínicas privadas con profesionales sanitarios verificados en toda España.
+              La nueva red profesional sanitaria. Conectamos clínicas con profesionales sanitarios verificados en toda España.
             </p>
             <ul className="mt-6 space-y-2.5 text-sm text-mist-500">
               <li className="flex items-start gap-2.5">

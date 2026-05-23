@@ -14,23 +14,23 @@ export const DASH_ICONS = {
 };
 
 export const NAV_PRO: NavItem[] = [
-  { href: "/dashboard/profesional", label: "Resumen", icon: DASH_ICONS.home },
-  { href: "/dashboard/profesional/calendario", label: "Calendario", icon: DASH_ICONS.cal },
-  { href: "/dashboard/profesional/reservas", label: "Reservas", icon: DASH_ICONS.inbox, badge: "3" },
-  { href: "/dashboard/profesional/mensajes", label: "Mensajes", icon: DASH_ICONS.chat, badge: "2" },
-  { href: "/dashboard/profesional/documentos", label: "Documentos", icon: DASH_ICONS.doc },
-  { href: "/dashboard/profesional/perfil", label: "Mi perfil", icon: DASH_ICONS.user },
-  { href: "/dashboard/profesional/ajustes", label: "Ajustes", icon: DASH_ICONS.cog },
+  { href: "/dashboard/professional", labelKey: "overview", icon: DASH_ICONS.home },
+  { href: "/dashboard/professional/calendar", labelKey: "calendar", icon: DASH_ICONS.cal },
+  { href: "/dashboard/professional/bookings", labelKey: "bookings", icon: DASH_ICONS.inbox, badge: "3" },
+  { href: "/dashboard/professional/messages", labelKey: "messages", icon: DASH_ICONS.chat, badge: "2" },
+  { href: "/dashboard/professional/documents", labelKey: "documents", icon: DASH_ICONS.doc },
+  { href: "/dashboard/professional/profile", labelKey: "myProfile", icon: DASH_ICONS.user },
+  { href: "/dashboard/professional/settings", labelKey: "settings", icon: DASH_ICONS.cog },
 ];
 
 export const NAV_CLINICA: NavItem[] = [
-  { href: "/dashboard/clinica", label: "Resumen", icon: DASH_ICONS.home },
-  { href: "/dashboard/clinica/calendario", label: "Calendario", icon: DASH_ICONS.cal },
-  { href: "/dashboard/clinica/reservas", label: "Reservas", icon: DASH_ICONS.inbox, badge: "5" },
-  { href: "/dashboard/clinica/mensajes", label: "Mensajes", icon: DASH_ICONS.chat, badge: "3" },
-  { href: "/dashboard/clinica/equipo", label: "Mi equipo", icon: DASH_ICONS.team },
-  { href: "/dashboard/clinica/suscripcion", label: "Suscripción", icon: DASH_ICONS.card },
-  { href: "/dashboard/clinica/ajustes", label: "Ajustes", icon: DASH_ICONS.cog },
+  { href: "/dashboard/clinic", labelKey: "overview", icon: DASH_ICONS.home },
+  { href: "/dashboard/clinic/calendar", labelKey: "calendar", icon: DASH_ICONS.cal },
+  { href: "/dashboard/clinic/bookings", labelKey: "bookings", icon: DASH_ICONS.inbox, badge: "5" },
+  { href: "/dashboard/clinic/messages", labelKey: "messages", icon: DASH_ICONS.chat, badge: "3" },
+  { href: "/dashboard/clinic/team", labelKey: "team", icon: DASH_ICONS.team },
+  { href: "/dashboard/clinic/subscription", labelKey: "subscription", icon: DASH_ICONS.card },
+  { href: "/dashboard/clinic/settings", labelKey: "settings", icon: DASH_ICONS.cog },
 ];
 
 export const USER_PRO = { name: "Dra. Lucía Martín", subtitle: "Cardióloga · Madrid" } as const;

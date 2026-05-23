@@ -24,9 +24,15 @@ export function Field({
   );
 }
 
+// `suppressHydrationWarning`: los gestores de contraseñas / extensiones del
+// navegador inyectan atributos (data-*, autocomplete, iconos) en los campos
+// de formulario ANTES de que React hidrate, lo que dispara un warning de
+// mismatch inofensivo. Suprimirlo en los inputs es la práctica recomendada
+// por Next.js para este caso (el valor lo sigue controlando React igual).
 export function Input({ className, ...props }: ComponentProps<"input">) {
   return (
     <input
+      suppressHydrationWarning
       className={cn(
         "w-full h-11 rounded-xl border border-mist-200 bg-white px-4 text-[15px] text-ink-900 placeholder:text-mist-400",
         "focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 outline-none transition",
@@ -40,6 +46,7 @@ export function Input({ className, ...props }: ComponentProps<"input">) {
 export function Textarea({ className, ...props }: ComponentProps<"textarea">) {
   return (
     <textarea
+      suppressHydrationWarning
       className={cn(
         "w-full min-h-28 rounded-xl border border-mist-200 bg-white px-4 py-3 text-[15px] text-ink-900 placeholder:text-mist-400",
         "focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 outline-none transition resize-y",
@@ -53,6 +60,7 @@ export function Textarea({ className, ...props }: ComponentProps<"textarea">) {
 export function Select({ className, children, ...props }: ComponentProps<"select">) {
   return (
     <select
+      suppressHydrationWarning
       className={cn(
         "w-full h-11 rounded-xl border border-mist-200 bg-white px-3 text-[15px] text-ink-900",
         "focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 outline-none transition",
@@ -69,6 +77,7 @@ export function Checkbox({ className, ...props }: ComponentProps<"input">) {
   return (
     <input
       type="checkbox"
+      suppressHydrationWarning
       className={cn(
         "h-4 w-4 rounded border-mist-300 text-brand-600 focus:ring-brand-500",
         className

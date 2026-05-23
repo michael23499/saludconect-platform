@@ -4,7 +4,7 @@ import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { cn } from "@/lib/cn";
 
-type Role = "profesional" | "clinica";
+type Role = "professional" | "clinic";
 
 export type Message = { from: "me" | "them"; text: string; time: string };
 
@@ -58,7 +58,7 @@ export function MessagesView({ role, threads }: { role: Role; threads: Thread[] 
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder={role === "profesional" ? "Buscar clínica…" : "Buscar profesional…"}
+              placeholder={role === "professional" ? "Buscar clínica…" : "Buscar profesional…"}
               className="h-9 w-full rounded-lg border border-mist-200 bg-white pl-9 pr-3 text-xs text-ink-900 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
             />
             <svg className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-mist-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -154,7 +154,7 @@ export function MessagesView({ role, threads }: { role: Role; threads: Thread[] 
               ))}
               <div className="my-2 flex items-center gap-2 rounded-xl border border-brand-100 bg-brand-50/60 p-3 text-xs text-ink-800">
                 <svg className="h-4 w-4 text-brand-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="5" width="18" height="16" rx="2" /></svg>
-                <span><strong>Reserva acordada:</strong> {role === "profesional" ? "Mié 28 May 2026 · 08:00–14:00 · Cardiología" : "Mié 28 May 2026 · 08:00–14:00"}</span>
+                <span><strong>Reserva acordada:</strong> {role === "professional" ? "Mié 28 May 2026 · 08:00–14:00 · Cardiología" : "Mié 28 May 2026 · 08:00–14:00"}</span>
                 <button className="ml-auto rounded-md bg-white px-2 py-1 text-[11px] font-semibold text-brand-700 hover:bg-brand-50">Ver reserva</button>
               </div>
             </div>
@@ -184,7 +184,7 @@ export function MessagesView({ role, threads }: { role: Role; threads: Thread[] 
               </button>
             </div>
             <div className="mt-2 flex flex-wrap gap-1.5">
-              {(role === "profesional"
+              {(role === "professional"
                 ? ["Confirmo asistencia", "Necesito 5 min más", "Comparte ubicación"]
                 : ["Te confirmamos a las 18 h", "Adjunto detalles del caso", "¿Disponible para mañana?"]
               ).map((q) => (

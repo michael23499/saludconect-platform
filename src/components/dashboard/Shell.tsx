@@ -4,9 +4,12 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Avatar } from "@/components/ui/Avatar";
 import { cn } from "@/lib/cn";
+import { useApp } from "@/components/providers/Providers";
 import type { ReactNode } from "react";
 
-export type NavItem = { href: string; label: string; icon: ReactNode; badge?: string };
+// `labelKey` (key de t.dashboard.nav) tiene prioridad para i18n; `label` queda
+// como fallback para navs aún no migrados (p.ej. admin).
+export type NavItem = { href: string; label?: string; labelKey?: string; icon: ReactNode; badge?: string };
 
 export function DashboardShell({
   role,
@@ -109,11 +112,13 @@ function SidebarBody({
   nav: NavItem[];
   path: string;
 }) {
+  const { t } = useApp();
+  const navDict = t.dashboard.nav;
   return (
     <>
       <div className="border-b border-mist-200 p-5">
         <div className="hidden text-[10px] font-semibold uppercase tracking-[0.18em] text-brand-600 md:block">
-          Área {role}
+          {t.dashboard.shell.areaPrefix} {role}
         </div>
         <div className="mt-2 flex items-center gap-3">
           <Avatar name={user.name} size="md" />
@@ -126,9 +131,12 @@ function SidebarBody({
       <nav className="space-y-0.5 p-3">
         {nav.map((n) => {
           const active = path === n.href;
+          const label = n.labelKey
+            ? (navDict as Record<string, string>)[n.labelKey] ?? n.labelKey
+            : n.label;
           return (
             <Link
-              key={n.href}
+              key={n.labelKey ?? n.label}
               href={n.href}
               className={cn(
                 "flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition",
@@ -139,7 +147,7 @@ function SidebarBody({
                 <span className={cn("flex h-7 w-7 items-center justify-center rounded-lg border", active ? "border-brand-200 bg-white text-brand-700" : "border-mist-200 bg-mist-50 text-ink-700")}>
                   {n.icon}
                 </span>
-                {n.label}
+                {label}
               </span>
               {n.badge && (
                 <span className="rounded-full bg-brand-600 px-1.5 py-0.5 text-[10px] font-semibold text-white">
@@ -151,15 +159,15 @@ function SidebarBody({
         })}
       </nav>
       <div className="m-3 mt-6 rounded-2xl border border-brand-100 bg-gradient-to-br from-brand-50 to-cyan-50 p-4 dark:border-brand-500/30 dark:from-brand-500/15 dark:to-cyan-500/10">
-        <div className="text-xs font-semibold text-brand-700 dark:!text-cyan-300">¿Necesitas ayuda?</div>
+        <div className="text-xs font-semibold text-brand-700 dark:!text-cyan-300">{t.dashboard.shell.needHelp}</div>
         <p className="mt-1 text-xs text-ink-800 dark:!text-slate-100">
-          Nuestro equipo te asiste en menos de 12 h.
+          {t.dashboard.shell.helpDesc}
         </p>
         <Link
-          href="/contacto"
+          href="/contact"
           className="mt-3 inline-flex text-xs font-semibold text-brand-700 hover:text-brand-800 dark:!text-cyan-300 dark:hover:!text-cyan-200"
         >
-          Contactar soporte →
+          {t.dashboard.shell.contactSupport}
         </Link>
       </div>
     </>

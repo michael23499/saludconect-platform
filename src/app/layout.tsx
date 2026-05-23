@@ -5,6 +5,8 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Providers } from "@/components/providers/Providers";
 import { ChatWidget } from "@/components/chat/ChatWidget";
+import { getCurrentUser } from "@backend/auth";
+import { getLang } from "@/lib/i18n-server";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -15,7 +17,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "SaludCoNet · La nueva red profesional sanitaria",
   description:
-    "Conectamos clínicas privadas con profesionales sanitarios verificados. Reserva talento sanitario de forma rápida, segura y profesional.",
+    "Conectamos clínicas con profesionales sanitarios verificados. Reserva talento sanitario de forma rápida, segura y profesional.",
   metadataBase: new URL("https://saludconet.demo"),
   openGraph: {
     title: "SaludCoNet · Talento sanitario bajo demanda",
@@ -28,9 +30,11 @@ export const metadata: Metadata = {
 // Inline pre-hydration script to avoid theme flash.
 // First-time visitors get LIGHT mode by default; we only honor an explicit
 // saved choice in localStorage. System preference is ignored on purpose.
+// El idioma lo fija el servidor desde la cookie (ver getLang). El script solo
+// gestiona el theme para evitar el flash de modo claro/oscuro.
 const THEME_INIT = `
 (function(){try{
-  var l=localStorage.getItem('scn:lang'); if(l==='es'||l==='en'){document.documentElement.lang=l;}
+  document.documentElement.classList.add('js');
   var t=localStorage.getItem('scn:theme');
   if(t!=='dark'&&t!=='light'){t='light';}
   if(t==='dark'){document.documentElement.classList.add('dark');}
@@ -38,15 +42,25 @@ const THEME_INIT = `
 }catch(e){}})();
 `;
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const [current, lang] = await Promise.all([getCurrentUser(), getLang()]);
+  const userForHeader = current
+    ? {
+        fullName: current.profile?.fullName ?? current.auth.fullNameFromProvider ?? current.auth.email ?? "",
+        email: current.auth.email ?? "",
+        avatarUrl: current.profile?.avatarUrl ?? current.auth.avatarUrlFromProvider,
+        role: current.profile?.role ?? null,
+      }
+    : null;
+
   return (
-    <html lang="es" className={inter.variable} suppressHydrationWarning>
+    <html lang={lang} className={inter.variable} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT }} />
       </head>
       <body className="min-h-screen antialiased" suppressHydrationWarning>
-        <Providers>
-          <Header />
+        <Providers initialLang={lang}>
+          <Header user={userForHeader} />
           <main className="min-h-[calc(100vh-4rem)]">{children}</main>
           <Footer />
           <ChatWidget />

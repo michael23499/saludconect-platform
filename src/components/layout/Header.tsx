@@ -7,8 +7,16 @@ import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
 import { useApp } from "@/components/providers/Providers";
 import { DICT } from "@/lib/i18n";
+import { UserMenu } from "@/components/auth/UserMenu";
 
-export function Header() {
+type HeaderUser = {
+  fullName: string;
+  email: string;
+  avatarUrl: string | null;
+  role: "professional" | "clinic" | "admin" | null;
+};
+
+export function Header({ user }: { user: HeaderUser | null }) {
   const [open, setOpen] = useState(false);
   const path = usePathname();
   const { t, lang, setLang, theme, toggleTheme } = useApp();
@@ -16,11 +24,11 @@ export function Header() {
   // Both-language labels so each item reserves the max width
   // between ES and EN, preventing the header from shifting on toggle.
   const NAV = [
-    { href: "/como-funciona", es: DICT.es.nav.how, en: DICT.en.nav.how },
-    { href: "/clinicas", es: DICT.es.nav.clinics, en: DICT.en.nav.clinics },
-    { href: "/profesionales", es: DICT.es.nav.pros, en: DICT.en.nav.pros },
-    { href: "/buscar", es: DICT.es.nav.search, en: DICT.en.nav.search },
-    { href: "/contacto", es: DICT.es.nav.contact, en: DICT.en.nav.contact },
+    { href: "/how-it-works", es: DICT.es.nav.how, en: DICT.en.nav.how },
+    { href: "/clinics", es: DICT.es.nav.clinics, en: DICT.en.nav.clinics },
+    { href: "/professionals", es: DICT.es.nav.pros, en: DICT.en.nav.pros },
+    { href: "/search", es: DICT.es.nav.search, en: DICT.en.nav.search },
+    { href: "/contact", es: DICT.es.nav.contact, en: DICT.en.nav.contact },
   ];
 
   return (
@@ -61,16 +69,27 @@ export function Header() {
 
           <span className="mx-1 h-6 w-px bg-mist-200" />
 
-          {/* Reserve width for the longer label between ES and EN */}
-          <DualLabelButton href="/login" variant="ghost" es={DICT.es.nav.login} en={DICT.en.nav.login} current={lang} />
-          <DualLabelButton
-            href="/registro"
-            variant="primary"
-            es={DICT.es.nav.register}
-            en={DICT.en.nav.register}
-            current={lang}
-            trailingIcon
-          />
+          {user ? (
+            <UserMenu
+              fullName={user.fullName}
+              email={user.email}
+              avatarUrl={user.avatarUrl}
+              role={user.role}
+            />
+          ) : (
+            <>
+              {/* Reserve width for the longer label between ES and EN */}
+              <DualLabelButton href="/login" variant="ghost" es={DICT.es.nav.login} en={DICT.en.nav.login} current={lang} />
+              <DualLabelButton
+                href="/register"
+                variant="primary"
+                es={DICT.es.nav.register}
+                en={DICT.en.nav.register}
+                current={lang}
+                trailingIcon
+              />
+            </>
+          )}
         </div>
         <button
           type="button"
@@ -100,10 +119,21 @@ export function Header() {
               <LangSwitch lang={lang} onChange={setLang} />
               <ThemeSwitch theme={theme} onToggle={toggleTheme} />
             </div>
-            <div className="mt-2 flex gap-2">
-              <Button href="/login" variant="secondary" size="sm" className="flex-1">{t.nav.login}</Button>
-              <Button href="/registro" size="sm" className="flex-1">{t.nav.register}</Button>
-            </div>
+            {user ? (
+              <div className="mt-2">
+                <UserMenu
+                  fullName={user.fullName}
+                  email={user.email}
+                  avatarUrl={user.avatarUrl}
+                  role={user.role}
+                />
+              </div>
+            ) : (
+              <div className="mt-2 flex gap-2">
+                <Button href="/login" variant="secondary" size="sm" className="flex-1">{t.nav.login}</Button>
+                <Button href="/register" size="sm" className="flex-1">{t.nav.register}</Button>
+              </div>
+            )}
           </div>
         </div>
       )}

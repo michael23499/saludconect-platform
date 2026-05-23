@@ -70,7 +70,7 @@ export function SearchBar({
     const params = new URLSearchParams();
     const final = { q, ciudad, profesion, especialidad, turno, ...overrides };
     Object.entries(final).forEach(([k, v]) => { if (v) params.set(k, v); });
-    return `/buscar${params.toString() ? `?${params.toString()}` : ""}`;
+    return `/search${params.toString() ? `?${params.toString()}` : ""}`;
   };
 
   const submit = (overrides?: Record<string, string>) => {
@@ -78,14 +78,14 @@ export function SearchBar({
   };
 
   // Live search: debounced URL push as the user types `q`.
-  // Only auto-navigates when we're already on /buscar (so the home hero
+  // Only auto-navigates when we're already on /search (so the home hero
   // doesn't whisk users away on first keystroke).
   useEffect(() => {
     if (!initializedRef.current) {
       initializedRef.current = true;
       return;
     }
-    if (pathname !== "/buscar") return;
+    if (pathname !== "/search") return;
     const handle = setTimeout(() => {
       startTransition(() => {
         router.replace(buildUrl({ q }));
@@ -97,7 +97,7 @@ export function SearchBar({
 
   const clearAll = () => {
     setQ(""); setCiudad(""); setProfesion(""); setEspecialidad(""); setTurno("");
-    router.push("/buscar");
+    router.push("/search");
   };
 
   const hasAny = q || ciudad || profesion || especialidad || turno;

@@ -199,7 +199,11 @@ html, body {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
-.fade-up { animation: fade-up .6s ease both; }
+/* Default: starts hidden, then reveals when <RevealObserver/> tags the element
+   with `.in` after IntersectionObserver fires. The `html.js` guard means
+   browsers without JS (or before hydration) still see the content. */
+html.js .fade-up { opacity: 0; transform: translateY(10px); }
+html.js .fade-up.in { animation: fade-up .6s cubic-bezier(.22,.61,.36,1) both; }
 
 @keyframes scale-in {
   from { opacity: 0; transform: scale(.96); }
@@ -403,20 +407,23 @@ html, body {
 }
 .bestseller-glow { animation: bestseller-glow 2.4s ease-in-out infinite; }
 
-/* Trial CTA — minimalist hover only (no continuous animation) */
-.trial-cta {
-  transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
-}
-.trial-cta:hover {
-  transform: translateY(-1px);
-  border-color: var(--color-brand-300);
-  box-shadow: 0 6px 14px -8px rgba(37, 99, 235, 0.25);
-}
-.trial-cta:active {
-  transform: translateY(0);
-  transition-duration: 60ms;
-}
+/* Promo de lanzamiento — phase offset for the second card so the orbital
+   highlight doesn't loop in lock-step on both pricing cards. */
+.bestseller-ring.phase-2::before { animation-delay: -1.2s; }
+.bestseller-glow.phase-2         { animation-delay: -1.2s; }
 
+/* Slow drift for decorative blur blobs (Hero, FinalCTA). Two phase classes
+   keep neighbouring blobs out of sync so the background feels alive. */
+@keyframes blob-drift-a {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50%      { transform: translate3d(18px, -14px, 0) scale(1.04); }
+}
+@keyframes blob-drift-b {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50%      { transform: translate3d(-22px, 12px, 0) scale(.97); }
+}
+.blob-drift-a { animation: blob-drift-a 14s ease-in-out infinite; will-change: transform; }
+.blob-drift-b { animation: blob-drift-b 17s ease-in-out infinite; will-change: transform; }
 
 /* Free-trial confetti burst */
 @keyframes ft-confetti {
@@ -475,4 +482,44 @@ html, body {
 .modal-backdrop {
   background: color-mix(in oklab, var(--hero-from) 70%, transparent);
   backdrop-filter: blur(6px);
+}
+
+/* Animaciones — UserMenu y dropdowns */
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.animate-menu-in {
+  animation: menu-in 160ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+/* Spinner inline en inputs — fade-in suave para que no aparezca de golpe.
+   Solo opacity: el `transform` lo deja Tailwind (-translate-y-1/2) intacto. */
+@keyframes spinner-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.animate-spinner-in {
+  animation: spinner-in 160ms ease-out both;
+}
+
+/* Accessibility — respect reduced motion globally. CountUp already opts in via
+   matchMedia, but everything else (orbits, drifts, sweeps, hover lifts, fade-up)
+   needs this fallback so motion-sensitive users get a calm experience. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .fade-up { opacity: 1; transform: none; }
 }

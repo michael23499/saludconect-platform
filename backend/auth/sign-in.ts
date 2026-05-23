@@ -1,0 +1,66 @@
+"use server";
+
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { getUserProfileById } from "../queries/users";
+import { checkEmailStatus } from "./check-email";
+import { dashboardPathForRole } from "./paths";
+import { rateLimit } from "./rate-limit";
+
+export type SignInState =
+  | null
+  | { kind: "error"; message: string }
+  | { kind: "oauth-only"; email: string; providers: string[] }
+  | { kind: "magic-link-sent"; email: string };
+
+/**
+ * Login con email + contraseña.
+ * Si el email pertenece a una cuenta OAuth (sin password), devuelve un
+ * estado especial `oauth-only` para que la UI ofrezca alternativas.
+ */
+export async function signInWithPasswordAction(
+  _prev: SignInState,
+  formData: FormData,
+): Promise<SignInState> {
+  const emailRaw = formData.get("email");
+  const password = formData.get("password");
+
+  if (typeof emailRaw !== "string" || !emailRaw.includes("@")) {
+    return { kind: "error", message: "Introduce un email válido." };
+  }
+  if (typeof password !== "string" || password.length < 1) {
+    return { kind: "error", message: "Introduce tu contraseña." };
+  }
+  const email = emailRaw.trim().toLowerCase();
+
+  // Frena fuerza bruta de contraseñas por IP.
+  const allowed = await rateLimit("signin", 10, 60_000);
+  if (!allowed) {
+    return { kind: "error", message: "Demasiados intentos. Espera un momento e inténtalo de nuevo." };
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+  if (error || !data.user) {
+    // Antes de devolver "credenciales incorrectas", comprobamos si la cuenta es OAuth-only.
+    const status = await checkEmailStatus(email);
+
+    if (status.exists && !status.hasPassword && status.providers.length > 0) {
+      return { kind: "oauth-only", email, providers: status.providers };
+    }
+    if (!status.exists) {
+      return {
+        kind: "error",
+        message: "No hay ninguna cuenta con ese email. ¿Quieres registrarte?",
+      };
+    }
+    return { kind: "error", message: "Contraseña incorrecta. Inténtalo de nuevo." };
+  }
+
+  const profile = await getUserProfileById(data.user.id);
+  if (!profile) {
+    redirect("/complete-profile");
+  }
+  redirect(dashboardPathForRole(profile.role));
+}

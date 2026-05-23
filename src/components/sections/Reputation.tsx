@@ -11,7 +11,7 @@ const COPY = {
     eyebrow: "Sistema de reputación",
     title1: "Los mejores ",
     title2: "se reconocen solos",
-    desc: "Cada profesional gana puntos por cada colaboración exitosa, valoración positiva, puntualidad y respuesta rápida. Los niveles se actualizan en tiempo real y las clínicas ven primero a los más reputados.",
+    desc: "Cada profesional gana puntos por cada colaboración exitosa, valoración positiva, puntualidad y respuesta rápida. Los niveles se actualizan en tiempo real y las clínicas ven primero a los mejores valorados.",
     factors: "¿Qué cuenta para la puntuación?",
     fact1: "Valoraciones de clínicas",
     fact1d: "Promedio ponderado de las últimas 30 colaboraciones",
@@ -27,7 +27,7 @@ const COPY = {
     eyebrow: "Reputation system",
     title1: "The best ",
     title2: "stand out on their own",
-    desc: "Every professional earns points for each successful booking, positive review, punctuality and fast response. Levels update in real time and clinics see top-reputed professionals first.",
+    desc: "Every professional earns points for each successful booking, positive review, punctuality and fast response. Levels update in real time and clinics see top-rated professionals first.",
     factors: "What counts toward your score?",
     fact1: "Clinic ratings",
     fact1d: "Weighted average of the last 30 collaborations",
@@ -79,12 +79,13 @@ export function ReputationSection() {
         </div>
 
         <div className="space-y-2">
-          {ORDER.map((lv) => {
+          {ORDER.map((lv, i) => {
             const meta = LEVELS[lv];
             return (
               <div
                 key={lv}
-                className="card-hover flex items-center justify-between gap-4 rounded-2xl border border-mist-200 bg-white p-4 pl-5"
+                className="fade-up card-hover flex items-center justify-between gap-4 rounded-2xl border border-mist-200 bg-white p-4 pl-5"
+                style={{ animationDelay: `${i * 70}ms` }}
               >
                 <div className="flex items-center gap-4">
                   <LevelGem level={lv} size={18} />

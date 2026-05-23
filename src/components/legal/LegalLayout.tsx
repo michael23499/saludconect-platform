@@ -3,9 +3,9 @@ import type { ReactNode } from "react";
 import { Badge } from "@/components/ui/Badge";
 
 const LINKS = [
-  { href: "/legal/privacidad", label: "Política de privacidad" },
-  { href: "/legal/aviso", label: "Aviso legal" },
-  { href: "/legal/terminos", label: "Términos y condiciones" },
+  { href: "/legal/privacy", label: "Política de privacidad" },
+  { href: "/legal/legal-notice", label: "Aviso legal" },
+  { href: "/legal/terms", label: "Términos y condiciones" },
   { href: "/legal/cookies", label: "Política de cookies" },
 ];
 

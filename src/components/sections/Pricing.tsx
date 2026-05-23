@@ -10,47 +10,33 @@ const COPY = {
     eyebrow: "Planes",
     title1: "Simple. ",
     title2: "Transparente. Sin sorpresas.",
-    desc: "Los profesionales son gratis. Las clínicas eligen un plan según su tamaño. Sin permanencia, sin comisión por reserva.",
-    bestseller: "+320 clínicas lo eligen",
+    desc: "No somos intermediarios para la contratación: solo te ayudamos a encontrar los horarios y al profesional adecuado. Para acceder a los profesionales hay que inscribirse en un plan.",
+    bestseller: "Promo de lanzamiento",
     saving: "Ahorra 2 meses al año",
-    proName: "Profesional",
-    proTag: "Profesionales sanitarios",
-    proPrice: "Gratis",
-    proDesc: "Para siempre. Sin tarjeta de crédito.",
-    proCta: "Crear perfil",
-    proFeatures: [
-      "Perfil profesional verificado",
-      "Calendario y gestión de disponibilidad",
-      "Reservas y mensajería ilimitadas",
-      "Pagos sin comisión",
-      "Documentación cifrada",
-      "Sistema de reputación y badges",
-    ],
     starterName: "Clínica Starter",
     starterTag: "Clínicas pequeñas",
-    starterPrice: "79",
-    starterDesc: "Hasta 10 reservas activas al mes.",
-    starterCta: "Probar 14 días",
+    starterPrice: "50",
+    starterDesc: "Hasta 10 reservas activas al mes. Promo de lanzamiento.",
+    starterCta: "Inscribirme",
     starterFeatures: [
       "Hasta 10 reservas activas/mes",
       "Equipo de hasta 3 profesionales",
       "Panel de gestión de clínica",
       "Búsqueda avanzada con filtros",
       "Mensajería interna y notificaciones",
-      "Pagos integrados",
+      "Geolocalizador por sede",
       "Recordatorios automáticos a pacientes",
       "Soporte por email",
     ],
     proCName: "Clínica Pro",
     proCTag: "Clínicas medianas y grandes",
-    proCPrice: "149",
-    proCDesc: "Reservas ilimitadas y prioridad en solicitudes.",
-    proCCta: "Probar 14 días",
+    proCPrice: "100",
+    proCDesc: "Reservas ilimitadas y prioridad en solicitudes. Promo de lanzamiento.",
+    proCCta: "Inscribirme",
     proCFeatures: [
       "Reservas ilimitadas",
-      "Multi-sede y multi-usuario",
+      "Geolocalizador por sede",
       "Solicitudes prioritarias",
-      "Facturación automática",
       "Soporte prioritario 24/7",
       "Acceso a perfiles Elite",
       "Webhooks e integraciones",
@@ -74,7 +60,7 @@ const COPY = {
     incl: "IVA incl.",
     trial: "Prueba gratuita 14 días",
     cancelAny: "Cancela cuando quieras",
-    noCommission: "Sin comisión por reserva",
+    notIntermediary: "No somos intermediarios para la contratación",
     everything: "Todo lo del plan anterior, más:",
     compare: "Comparar todas las funcionalidades",
   },
@@ -82,47 +68,33 @@ const COPY = {
     eyebrow: "Plans",
     title1: "Simple. ",
     title2: "Transparent. No surprises.",
-    desc: "Professionals are free. Clinics pick a plan based on size. No lock-in, no per-booking fees.",
-    bestseller: "+320 clinics on this plan",
+    desc: "We are not a hiring intermediary — we just help you find the right schedules and the right professional. Accessing professionals requires signing up to a plan.",
+    bestseller: "Launch promo",
     saving: "Save 2 months / year",
-    proName: "Professional",
-    proTag: "Healthcare professionals",
-    proPrice: "Free",
-    proDesc: "Forever. No credit card.",
-    proCta: "Create profile",
-    proFeatures: [
-      "Verified professional profile",
-      "Availability and calendar",
-      "Unlimited bookings and chat",
-      "No commission on bookings",
-      "Encrypted document vault",
-      "Reputation system & badges",
-    ],
     starterName: "Clinic Starter",
     starterTag: "Small clinics",
-    starterPrice: "79",
-    starterDesc: "Up to 10 active bookings per month.",
-    starterCta: "Start 14-day trial",
+    starterPrice: "50",
+    starterDesc: "Up to 10 active bookings per month. Launch promo.",
+    starterCta: "Sign up",
     starterFeatures: [
       "Up to 10 active bookings / mo",
       "Team of up to 3 professionals",
       "Clinic management dashboard",
       "Advanced search filters",
       "Internal messaging & notifications",
-      "Integrated payments",
+      "Per-site geolocator",
       "Automated patient reminders",
       "Email support",
     ],
     proCName: "Clinic Pro",
     proCTag: "Mid-to-large clinics",
-    proCPrice: "149",
-    proCDesc: "Unlimited bookings and priority on requests.",
-    proCCta: "Start 14-day trial",
+    proCPrice: "100",
+    proCDesc: "Unlimited bookings and priority on requests. Launch promo.",
+    proCCta: "Sign up",
     proCFeatures: [
       "Unlimited bookings",
-      "Multi-site & multi-user",
+      "Per-site geolocator",
       "Priority requests",
-      "Automated invoicing",
       "Priority 24/7 support",
       "Access to Elite profiles",
       "Webhooks & integrations",
@@ -143,19 +115,13 @@ const COPY = {
     incl: "VAT included",
     trial: "14-day free trial",
     cancelAny: "Cancel anytime",
-    noCommission: "No per-booking fee",
+    notIntermediary: "We are not a hiring intermediary",
     everything: "Everything in the previous plan, plus:",
     compare: "Compare all features",
   },
 };
 
 const ICONS: Record<string, ReactNode> = {
-  professional: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <circle cx="12" cy="8" r="3.5" />
-      <path d="M5 21c1-4 4.2-6 7-6s6 2 7 6" />
-    </svg>
-  ),
   starter: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
       <path d="M4 21V9l8-5 8 5v12" />
@@ -182,7 +148,7 @@ const ICONS: Record<string, ReactNode> = {
 
 type Tone = "neutral" | "dark";
 type Plan = {
-  key: "professional" | "starter" | "pro" | "enterprise";
+  key: "starter" | "pro" | "enterprise";
   name: string;
   tag: string;
   price: string;
@@ -201,23 +167,18 @@ export function Pricing() {
 
   const plans: Plan[] = [
     {
-      key: "professional", name: c.proName, tag: c.proTag, price: c.proPrice, currency: null,
-      desc: c.proDesc, cta: { label: c.proCta, href: "/registro?rol=profesional" },
-      features: c.proFeatures, tone: "neutral", highlight: false, showPeriod: false,
-    },
-    {
       key: "starter", name: c.starterName, tag: c.starterTag, price: c.starterPrice, currency: "€",
-      desc: c.starterDesc, cta: { label: c.starterCta, href: "/registro?rol=clinica" },
-      features: c.starterFeatures, tone: "neutral", highlight: false, showPeriod: true,
+      desc: c.starterDesc, cta: { label: c.starterCta, href: "/register?rol=clinic" },
+      features: c.starterFeatures, tone: "neutral", highlight: true, showPeriod: true,
     },
     {
       key: "pro", name: c.proCName, tag: c.proCTag, price: c.proCPrice, currency: "€",
-      desc: c.proCDesc, cta: { label: c.proCCta, href: "/registro?rol=clinica" },
+      desc: c.proCDesc, cta: { label: c.proCCta, href: "/register?rol=clinic" },
       features: c.proCFeatures, tone: "dark", highlight: true, showPeriod: true,
     },
     {
       key: "enterprise", name: c.enterpriseName, tag: c.enterpriseTag, price: c.enterprisePrice, currency: null,
-      desc: c.enterpriseDesc, cta: { label: c.enterpriseCta, href: "/contacto" },
+      desc: c.enterpriseDesc, cta: { label: c.enterpriseCta, href: "/contact" },
       features: c.enterpriseFeatures, tone: "neutral", highlight: false, showPeriod: false,
     },
   ];
@@ -234,16 +195,16 @@ export function Pricing() {
           description={c.desc}
         />
 
-        <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4 lg:gap-4">
-          {plans.map((p) => (
-            <PricingCard key={p.key} plan={p} copy={c} />
+        <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:gap-4">
+          {plans.map((p, i) => (
+            <PricingCard key={p.key} plan={p} copy={c} index={i} />
           ))}
         </div>
 
         <div className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-mist-500">
           <ReassuranceItem text={c.trial} />
           <ReassuranceItem text={c.cancelAny} />
-          <ReassuranceItem text={c.noCommission} />
+          <ReassuranceItem text={c.notIntermediary} />
           <ReassuranceItem text={c.incl} />
         </div>
       </div>
@@ -251,17 +212,18 @@ export function Pricing() {
   );
 }
 
-function PricingCard({ plan: p, copy: c }: { plan: Plan; copy: (typeof COPY)["es"] }) {
+function PricingCard({ plan: p, copy: c, index }: { plan: Plan; copy: (typeof COPY)["es"]; index: number }) {
   const dark = p.tone === "dark";
 
   return (
     <div
       className={cn(
-        "group relative flex flex-col rounded-3xl border p-6 transition-all duration-300 motion-safe:hover:-translate-y-1",
+        "fade-up card-hover group relative flex flex-col rounded-3xl border p-6",
         dark
           ? "border-brand-400/30 bg-gradient-to-br from-ink-950 via-ink-900 to-brand-900/70 text-white shadow-[0_30px_70px_-30px_rgba(37,99,235,0.55)] motion-safe:hover:shadow-[0_36px_90px_-30px_rgba(37,99,235,0.75)] lg:z-10 lg:scale-[1.02]"
           : "border-mist-200 bg-white motion-safe:hover:border-mist-300 motion-safe:hover:shadow-[var(--shadow-card)]"
       )}
+      style={{ animationDelay: `${index * 90}ms` }}
     >
       {dark && (
         <div aria-hidden className="bg-grid pointer-events-none absolute inset-0 rounded-3xl opacity-20" />
@@ -277,16 +239,14 @@ function PricingCard({ plan: p, copy: c }: { plan: Plan; copy: (typeof COPY)["es
         <span
           className={cn(
             "bestseller-ring bestseller-glow",
+            p.key === "starter" && "phase-2",
             "absolute -top-3 left-1/2 inline-flex -translate-x-1/2 items-center gap-1.5 whitespace-nowrap",
             "rounded-full bg-gradient-to-r from-cyan-400 via-cyan-300 to-brand-400 px-3.5 py-1.5",
             "text-[10px] font-bold uppercase tracking-[0.1em] text-ink-900"
           )}
         >
           <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-            <circle cx="9" cy="8" r="3" />
-            <path d="M2.5 19c.7-2.6 3.1-4 6.5-4s5.8 1.4 6.5 4" />
-            <circle cx="17" cy="7" r="2.4" />
-            <path d="M21.5 17.5c-.5-1.8-2.1-2.7-4.3-2.7" />
+            <path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" />
           </svg>
           {c.bestseller}
         </span>
@@ -374,10 +334,7 @@ function PricingCard({ plan: p, copy: c }: { plan: Plan; copy: (typeof COPY)["es
           href={p.cta.href}
           size="md"
           variant="secondary"
-          className={cn(
-            "mt-6 w-full justify-center",
-            (p.key === "starter" || p.key === "pro") && "trial-cta"
-          )}
+          className="mt-6 w-full justify-center"
         >
           {p.cta.label}
         </Button>

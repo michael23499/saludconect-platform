@@ -437,13 +437,13 @@ export function DocumentsView() {
         </div>
         <div className="flex items-center gap-2">
           <a
-            href="/contacto"
+            href="/contact"
             className="inline-flex items-center gap-1.5 rounded-full border border-mist-200 bg-white px-3 py-1.5 text-xs font-semibold text-ink-800 transition hover:border-brand-300 hover:text-brand-700"
           >
             Soporte
           </a>
           <a
-            href="/como-funciona"
+            href="/how-it-works"
             className="inline-flex items-center gap-1.5 rounded-full bg-ink-900 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-ink-800"
           >
             Ver guía
