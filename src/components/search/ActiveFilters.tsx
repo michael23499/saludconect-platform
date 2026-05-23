@@ -35,11 +35,11 @@ export function ActiveFilters() {
   const removeKey = (key: Key) => {
     const params = new URLSearchParams(sp.toString());
     params.delete(key);
-    router.push(`/buscar${params.toString() ? `?${params.toString()}` : ""}`);
+    router.push(`/search${params.toString() ? `?${params.toString()}` : ""}`);
   };
 
   const clearAll = () => {
-    router.push("/buscar");
+    router.push("/search");
   };
 
   return (

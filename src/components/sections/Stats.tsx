@@ -28,7 +28,7 @@ const STATS: StatItem[] = [
     ),
   },
   {
-    l: "Clínicas privadas activas",
+    l: "Clínicas activas",
     to: 320,
     suffix: "+",
     accent: "from-brand-700 to-brand-500",

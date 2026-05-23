@@ -7,18 +7,18 @@ import { Button } from "@/components/ui/Button";
 import { Field, Input, Textarea, Checkbox } from "@/components/ui/Input";
 import { SelectMenu } from "@/components/ui/SelectMenu";
 
-type Role = "clinica" | "profesional";
+type Role = "clinic" | "professional";
 type Tab = "cuenta" | "notif" | "seguridad" | "integraciones" | "facturacion";
 
 const TABS_BY_ROLE: Record<Role, Array<{ key: Tab; label: string; icon: React.ReactNode }>> = {
-  clinica: [
+  clinic: [
     { key: "cuenta", label: "Cuenta", icon: <IconUser /> },
     { key: "notif", label: "Notificaciones", icon: <IconBell /> },
     { key: "seguridad", label: "Seguridad", icon: <IconShield /> },
     { key: "integraciones", label: "Integraciones", icon: <IconPlug /> },
     { key: "facturacion", label: "Facturación", icon: <IconCard /> },
   ],
-  profesional: [
+  professional: [
     { key: "cuenta", label: "Cuenta", icon: <IconUser /> },
     { key: "notif", label: "Notificaciones", icon: <IconBell /> },
     { key: "facturacion", label: "Pagos y cobros", icon: <IconCard /> },
@@ -27,7 +27,7 @@ const TABS_BY_ROLE: Record<Role, Array<{ key: Tab; label: string; icon: React.Re
   ],
 };
 
-export function SettingsTabs({ role = "clinica" }: { role?: Role }) {
+export function SettingsTabs({ role = "clinic" }: { role?: Role }) {
   const [active, setActive] = useState<Tab>("cuenta");
   const tabs = TABS_BY_ROLE[role];
 
@@ -66,11 +66,11 @@ export function SettingsTabs({ role = "clinica" }: { role?: Role }) {
       </nav>
 
       <div>
-        {active === "cuenta" && (role === "clinica" ? <AccountPanel /> : <AccountPanelPro />)}
+        {active === "cuenta" && (role === "clinic" ? <AccountPanel /> : <AccountPanelPro />)}
         {active === "notif" && <NotificationsPanel role={role} />}
         {active === "seguridad" && <SecurityPanel />}
         {active === "integraciones" && <IntegrationsPanel role={role} />}
-        {active === "facturacion" && (role === "clinica" ? <BillingPanel /> : <PaymentsPanelPro />)}
+        {active === "facturacion" && (role === "clinic" ? <BillingPanel /> : <PaymentsPanelPro />)}
       </div>
     </div>
   );
@@ -278,7 +278,7 @@ function PaymentsPanelPro() {
 }
 
 /* -------------------- Notificaciones -------------------- */
-function NotificationsPanel({ role = "clinica" }: { role?: Role }) {
+function NotificationsPanel({ role = "clinic" }: { role?: Role }) {
   const [saved, setSaved] = useState(false);
 
   return (
@@ -325,8 +325,8 @@ function NotificationsPanel({ role = "clinica" }: { role?: Role }) {
   );
 }
 
-function NotifTable({ role = "clinica" }: { role?: Role }) {
-  const rows = role === "clinica"
+function NotifTable({ role = "clinic" }: { role?: Role }) {
+  const rows = role === "clinic"
     ? [
         { label: "Nueva solicitud de reserva", email: true, push: true, sms: false },
         { label: "Reserva confirmada", email: true, push: true, sms: false },
@@ -437,8 +437,8 @@ function SecurityPanel() {
 }
 
 /* -------------------- Integraciones -------------------- */
-function IntegrationsPanel({ role = "clinica" }: { role?: Role }) {
-  const integrations = role === "clinica"
+function IntegrationsPanel({ role = "clinic" }: { role?: Role }) {
+  const integrations = role === "clinic"
     ? [
         { name: "Google Calendar", desc: "Sincroniza reservas con tu calendario", status: "conectado" },
         { name: "Microsoft Outlook", desc: "Sincroniza reservas con Outlook", status: "disponible" },
@@ -505,7 +505,7 @@ function BillingPanel() {
     <div className="space-y-6">
       <Panel title="Tu plan y facturas" subtitle="La gestión completa está en la sección Suscripción.">
         <a
-          href="/dashboard/clinica/suscripcion"
+          href="/dashboard/clinic/subscription"
           className="inline-flex h-11 items-center justify-center rounded-full bg-brand-600 px-5 text-sm font-semibold text-white shadow-[0_8px_20px_-8px_rgba(37,99,235,0.6)] hover:bg-brand-700"
         >
           Ir a Suscripción →

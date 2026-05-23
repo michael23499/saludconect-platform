@@ -57,8 +57,8 @@ const FEATURES = [
   },
   {
     icon: ICONS.card,
-    title: "Pagos integrados",
-    desc: "Suscripción mensual con Stripe y PayPal. Facturación automática y reembolsos.",
+    title: "Acuerdos directos",
+    desc: "No somos intermediarios para la contratación. La clínica y el profesional cierran el acuerdo directamente; nosotros te ayudamos con los horarios.",
     tone: "from-indigo-600 to-brand-500",
   },
   {

@@ -2,7 +2,7 @@
 import { useState, type ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
-type Role = "clinica" | "profesional";
+type Role = "clinic" | "professional";
 
 type Step = {
   n: number;
@@ -14,7 +14,7 @@ type Step = {
 };
 
 const STEPS: Record<Role, Step[]> = {
-  clinica: [
+  clinic: [
     {
       n: 1,
       title: "Crea tu cuenta",
@@ -29,7 +29,7 @@ const STEPS: Record<Role, Step[]> = {
       desc: "Define profesión, especialidad, fecha, turno y tarifa orientativa. Te avisamos cuando llegan candidatos.",
       time: "60 seg",
       icon: <IconBroadcast />,
-      bullets: ["Multi-sede", "Tarifa orientativa"],
+      bullets: ["Geolocalizador por sede", "Tarifa orientativa"],
     },
     {
       n: 3,
@@ -50,20 +50,20 @@ const STEPS: Record<Role, Step[]> = {
     {
       n: 5,
       title: "Cubre y valora",
-      desc: "El profesional trabaja, factura y tú dejas tu valoración. Facturación automática con IVA.",
+      desc: "El profesional trabaja y tú dejas tu valoración. El acuerdo de contratación y pago lo gestiona directamente la clínica con el profesional.",
       time: "Después de la jornada",
       icon: <IconCheck />,
-      bullets: ["Factura automática", "Reseñas verificadas"],
+      bullets: ["Acuerdo directo", "Reseñas verificadas"],
     },
   ],
-  profesional: [
+  professional: [
     {
       n: 1,
-      title: "Regístrate gratis",
-      desc: "Sin coste ni permanencia. Solo necesitas DNI y número de colegiado.",
+      title: "Inscríbete",
+      desc: "Crea tu cuenta y completa tu perfil. Solo necesitas DNI y número de colegiado.",
       time: "2 min",
       icon: <IconUser />,
-      bullets: ["100% gratis", "Sin permanencia"],
+      bullets: ["Inscripción rápida", "Sin permanencia"],
     },
     {
       n: 2,
@@ -91,28 +91,28 @@ const STEPS: Record<Role, Step[]> = {
     },
     {
       n: 5,
-      title: "Trabaja y cobra",
-      desc: "Pagos integrados con Stripe y PayPal. Factura automática al cierre de cada jornada.",
+      title: "Cierra el acuerdo",
+      desc: "Te coordinas directamente con la clínica para la contratación y el cobro. SaludCoNet no interviene en el pago: solo te ayuda a encontrar la jornada.",
       time: "Tras cada jornada",
       icon: <IconWallet />,
-      bullets: ["Stripe / PayPal", "Sin comisión por reserva"],
+      bullets: ["Acuerdo directo", "Sin intermediarios"],
     },
   ],
 };
 
 const SUMMARY: Record<Role, { headline: string; sub: string }> = {
-  clinica: {
+  clinic: {
     headline: "Desde publicación a cobertura · ~4 h",
     sub: "Tiempo medio de cobertura observado en la red.",
   },
-  profesional: {
+  professional: {
     headline: "De registro a primera reserva · < 24 h",
     sub: "Tiempo medio desde verificación hasta primera solicitud.",
   },
 };
 
 export function JourneyTabs() {
-  const [role, setRole] = useState<Role>("clinica");
+  const [role, setRole] = useState<Role>("clinic");
   const [active, setActive] = useState<number>(1);
 
   const steps = STEPS[role];
@@ -132,16 +132,16 @@ export function JourneyTabs() {
             aria-hidden
             className={cn(
               "absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] rounded-full shadow-[0_10px_22px_-10px_rgba(37,99,235,0.6)] transition-all duration-300 ease-[cubic-bezier(.22,.61,.36,1)]",
-              role === "clinica"
+              role === "clinic"
                 ? "translate-x-0 bg-gradient-to-br from-brand-600 to-brand-500"
                 : "translate-x-full bg-gradient-to-br from-cyan-500 to-brand-600"
             )}
           />
-          <RoleTab active={role === "clinica"} onClick={() => switchRole("clinica")} icon={<IconBuilding />} label="Soy clínica" />
-          <RoleTab active={role === "profesional"} onClick={() => switchRole("profesional")} icon={<IconStethoscope />} label="Soy profesional" />
+          <RoleTab active={role === "clinic"} onClick={() => switchRole("clinic")} icon={<IconBuilding />} label="Soy clínica" />
+          <RoleTab active={role === "professional"} onClick={() => switchRole("professional")} icon={<IconStethoscope />} label="Soy profesional" />
         </div>
         <p className="mt-3 text-center text-[12px] text-mist-500">
-          {role === "clinica"
+          {role === "clinic"
             ? "Estás viendo el flujo para clínicas que buscan cubrir turnos."
             : "Estás viendo el flujo para profesionales que ofrecen jornadas."}
         </p>
@@ -152,7 +152,7 @@ export function JourneyTabs() {
         key={`banner-${role}`}
         className={cn(
           "fade-up mt-8 grid gap-4 rounded-3xl border p-5 sm:flex sm:items-center sm:justify-between md:p-6",
-          role === "clinica"
+          role === "clinic"
             ? "border-brand-100 bg-gradient-to-br from-brand-50/80 via-white to-cyan-50/40"
             : "border-cyan-100 bg-gradient-to-br from-cyan-50/80 via-white to-brand-50/40"
         )}
@@ -161,7 +161,7 @@ export function JourneyTabs() {
           <span
             className={cn(
               "inline-flex h-10 w-10 items-center justify-center rounded-xl text-white shadow-md",
-              role === "clinica"
+              role === "clinic"
                 ? "bg-gradient-to-br from-brand-500 to-brand-700"
                 : "bg-gradient-to-br from-cyan-400 to-brand-600"
             )}
@@ -171,9 +171,9 @@ export function JourneyTabs() {
           <div>
             <div className={cn(
               "text-[10px] font-semibold uppercase tracking-wider",
-              role === "clinica" ? "text-brand-700" : "text-cyan-700"
+              role === "clinic" ? "text-brand-700" : "text-cyan-700"
             )}>
-              {role === "clinica" ? "Flujo · Clínica" : "Flujo · Profesional"}
+              {role === "clinic" ? "Flujo · Clínica" : "Flujo · Profesional"}
             </div>
             <div className="text-base font-semibold tracking-tight text-ink-900 md:text-lg">{summary.headline}</div>
             <div className="text-[12px] text-mist-500">{summary.sub}</div>

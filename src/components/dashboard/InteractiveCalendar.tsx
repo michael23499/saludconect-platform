@@ -204,21 +204,21 @@ export function InteractiveCalendar({ initialDate, data }: Props) {
               type="button"
               onClick={() => setSelectedKey(cell.key)}
               className={cn(
-                "group relative flex min-h-[52px] flex-col rounded-lg border p-1 text-left text-[12px] font-medium transition focus:outline-none focus:ring-2 focus:ring-brand-500 md:min-h-[88px] md:rounded-xl md:p-1.5",
+                "group relative flex min-h-[52px] flex-col rounded-lg border p-1.5 text-left text-[12px] font-medium transition focus:outline-none focus:ring-2 focus:ring-brand-500 md:min-h-[88px] md:rounded-xl md:p-2.5",
                 TILE[state],
                 isToday && "ring-2 ring-brand-500 ring-offset-1"
               )}
             >
               {/* Day number + indicators */}
-              <div className="flex items-start justify-between gap-1">
+              <div className="flex items-start justify-between gap-1.5">
                 <span className={cn("text-[11px] leading-none", isToday && "font-bold")}>{cell.d}</span>
-                <div className="flex items-center gap-0.5">
-                  {state === "morning" && <span className="h-1.5 w-1.5 rounded-full bg-brand-500" title="Mañana" />}
-                  {state === "afternoon" && <span className="h-1.5 w-1.5 rounded-full bg-cyan-500" title="Tarde" />}
+                <div className="flex items-center gap-1">
+                  {state === "morning" && <span className="h-1 w-1 rounded-full bg-brand-500" title="Mañana" />}
+                  {state === "afternoon" && <span className="h-1 w-1 rounded-full bg-cyan-500" title="Tarde" />}
                   {state === "both" && (
                     <>
-                      <span className="h-1.5 w-1.5 rounded-full bg-brand-500" />
-                      <span className="h-1.5 w-1.5 rounded-full bg-cyan-500" />
+                      <span className="h-1 w-1 rounded-full bg-brand-500" />
+                      <span className="h-1 w-1 rounded-full bg-cyan-500" />
                     </>
                   )}
                 </div>

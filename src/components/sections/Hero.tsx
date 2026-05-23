@@ -8,8 +8,8 @@ export function Hero() {
   return (
     <section className="relative overflow-hidden bg-hero text-white">
       <div className="bg-grid absolute inset-0 opacity-25" />
-      <div className="absolute -top-32 right-[-10%] h-[480px] w-[480px] rounded-full bg-cyan-400/20 blur-3xl" />
-      <div className="absolute -bottom-32 left-[-10%] h-[420px] w-[420px] rounded-full bg-brand-500/30 blur-3xl" />
+      <div className="blob-drift-a absolute -top-32 right-[-10%] h-[480px] w-[480px] rounded-full bg-cyan-400/20 blur-3xl" />
+      <div className="blob-drift-b absolute -bottom-32 left-[-10%] h-[420px] w-[420px] rounded-full bg-brand-500/30 blur-3xl" />
 
       <div className="relative mx-auto grid w-full max-w-7xl gap-12 px-5 py-20 md:grid-cols-[1.05fr_0.95fr] md:gap-10 md:px-8 md:py-28">
         <div className="fade-up">
@@ -31,13 +31,13 @@ export function Hero() {
           </p>
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
-            <Button href="/registro?rol=clinica" size="lg">
+            <Button href="/register?rol=clinic" size="lg">
               {t.common.iAmClinic}
               <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden>
                 <path d="M5 12h14M13 6l6 6-6 6" />
               </svg>
             </Button>
-            <Button href="/registro?rol=profesional" variant="outline" size="lg">
+            <Button href="/register?rol=professional" variant="outline" size="lg">
               {t.common.iAmPro}
             </Button>
           </div>
@@ -55,7 +55,7 @@ export function Hero() {
           </div>
         </div>
 
-        <div className="relative fade-up">
+        <div className="relative fade-up" style={{ animationDelay: "160ms" }}>
           <div className="absolute inset-0 -z-10 translate-y-6 rounded-3xl bg-gradient-to-br from-brand-500/30 to-cyan-400/30 blur-3xl" />
           <div className="rounded-3xl border border-white/10 bg-white/[0.06] p-3 backdrop-blur-xl">
             <div className="rounded-2xl bg-white p-5 text-ink-900 shadow-2xl">

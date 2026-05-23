@@ -38,7 +38,7 @@ const FAQS: QA[] = [
   {
     cat: "profesionales",
     q: "¿Cómo me registro como profesional?",
-    a: "Entra en /registro, elige el perfil profesional, sube tu colegiación y completa tu disponibilidad. Verificamos tu perfil en menos de 24 horas.",
+    a: "Entra en /register, elige el perfil profesional, sube tu colegiación y completa tu disponibilidad. Verificamos tu perfil en menos de 24 horas.",
   },
   {
     cat: "profesionales",
@@ -88,7 +88,7 @@ const FAQS: QA[] = [
   {
     cat: "soporte",
     q: "¿Cómo contacto con un humano?",
-    a: "Puedes escribirnos a hola@saludconet.es o desde /contacto. Te respondemos en menos de 2 horas laborables.",
+    a: "Puedes escribirnos a hola@saludconet.es o desde /contact. Te respondemos en menos de 2 horas laborables.",
   },
 ];
 
@@ -470,7 +470,7 @@ export function ChatWidget() {
           </button>
         </form>
         <a
-          href="/contacto"
+          href="/contact"
           className="shrink-0 border-t border-mist-200 bg-mist-50 px-4 py-2 text-center text-[11px] font-medium text-mist-500 transition hover:bg-mist-100 hover:text-brand-700"
         >
           ¿Prefieres hablar con una persona? Ve a contacto →

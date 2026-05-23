@@ -202,7 +202,7 @@ export function SidebarFilters({ initial }: Props) {
         <div className="text-xs font-semibold uppercase tracking-wider text-ink-900">{t.waitlist}</div>
         <p className="mt-2 text-xs text-mist-500">{t.waitlistDesc}</p>
         <a
-          href="/contacto"
+          href="/contact"
           className="mt-3 inline-flex h-9 w-full items-center justify-center rounded-full border border-mist-200 bg-white px-4 text-sm font-medium text-ink-800 transition hover:bg-mist-50"
         >
           {t.waitlistCta}

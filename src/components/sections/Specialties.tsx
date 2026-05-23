@@ -1,6 +1,7 @@
 import { Section, SectionHeading } from "@/components/ui/Section";
 
 const SPECS = [
+  { name: "Microinjerto capilar", count: 112, icon: "✣" },
   { name: "Cardiología", count: 142, icon: "❤" },
   { name: "Pediatría", count: 218, icon: "★" },
   { name: "Odontología", count: 384, icon: "◐" },
@@ -12,7 +13,6 @@ const SPECS = [
   { name: "Traumatología", count: 132, icon: "▲" },
   { name: "Oftalmología", count: 96, icon: "◎" },
   { name: "Radiología", count: 78, icon: "◑" },
-  { name: "Anestesia", count: 64, icon: "✺" },
 ];
 
 export function Specialties() {
@@ -24,11 +24,12 @@ export function Specialties() {
         description="Más de 40 especialidades sanitarias activas. Filtra por ciudad, experiencia y tipo de jornada."
       />
       <div className="mt-14 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-        {SPECS.map((s) => (
+        {SPECS.map((s, i) => (
           <a
             key={s.name}
-            href={`/buscar?especialidad=${encodeURIComponent(s.name)}`}
-            className="card-hover group flex items-center justify-between gap-3 rounded-2xl border border-mist-200 bg-white p-4 pl-5 hover:border-brand-300"
+            href={`/search?especialidad=${encodeURIComponent(s.name)}`}
+            className="fade-up card-hover group flex items-center justify-between gap-3 rounded-2xl border border-mist-200 bg-white p-4 pl-5 hover:border-brand-300"
+            style={{ animationDelay: `${i * 45}ms` }}
           >
             <div className="flex items-center gap-3">
               <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-lg text-brand-700">

@@ -7,7 +7,7 @@ import type { ReservaPro, ReservaClinica, ReservaStatus } from "@/lib/mock-reser
 
 type Reserva = (ReservaPro & { counterpart: string }) | (ReservaClinica & { counterpart: string });
 
-type Role = "profesional" | "clinica";
+type Role = "professional" | "clinic";
 
 const STATUS_BADGE: Record<ReservaStatus, "success" | "warning" | "brand" | "danger"> = {
   confirmada: "success",
@@ -95,7 +95,7 @@ export function ReservasView({
       <div className="grid grid-cols-2 gap-2.5 md:grid-cols-4 md:gap-3">
         <KpiTile label="Pendientes" value={counts.pendiente} tone="warning" hint="Requieren respuesta" />
         <KpiTile label="Confirmadas" value={counts.confirmada} tone="success" hint={`${counts.completada} ya completadas`} />
-        <KpiTile label={role === "profesional" ? "Ingresos" : "Gasto"} value={`${totalRevenue.toLocaleString("es")} €`} tone="brand" hint="Conf. + completadas" />
+        <KpiTile label={role === "professional" ? "Ingresos" : "Gasto"} value={`${totalRevenue.toLocaleString("es")} €`} tone="brand" hint="Conf. + completadas" />
         <KpiTile label="Canceladas" value={counts.cancelada} tone="danger" hint="Histórico del año" />
       </div>
 
@@ -128,7 +128,7 @@ export function ReservasView({
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder={role === "profesional" ? "Buscar clínica, ciudad…" : "Buscar profesional, especialidad…"}
+              placeholder={role === "professional" ? "Buscar clínica, ciudad…" : "Buscar profesional, especialidad…"}
               className="h-9 w-full rounded-lg border border-mist-200 bg-white pl-9 pr-3 text-xs text-ink-900 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 md:w-64"
             />
             <svg className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-mist-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -235,7 +235,7 @@ function ReservaRow({
           <div className="flex flex-wrap items-center gap-2">
             <div className="truncate text-sm font-semibold text-ink-900">{r.counterpart}</div>
             <Badge tone={STATUS_BADGE[r.status]}>{r.status}</Badge>
-            {role === "clinica" && "level" in r && (
+            {role === "clinic" && "level" in r && (
               <Badge tone="brand" className="!text-[10px]">{r.level}</Badge>
             )}
           </div>
@@ -289,11 +289,11 @@ function ReservaDetail({ r, role }: { r: Reserva; role: Role }) {
       <div className="mt-4 rounded-xl border border-brand-100 bg-brand-50/40 p-4">
         <div className="flex items-center justify-between">
           <div>
-            <div className="text-[10px] font-semibold uppercase tracking-wider text-brand-700">{role === "profesional" ? "Tarifa acordada" : "Coste estimado"}</div>
+            <div className="text-[10px] font-semibold uppercase tracking-wider text-brand-700">{role === "professional" ? "Tarifa acordada" : "Coste estimado"}</div>
             <div className="text-lg font-semibold tabular-nums text-ink-900">{r.fee.toLocaleString("es")} €</div>
             <div className="text-[11px] text-mist-500">{r.rateLabel}</div>
           </div>
-          {role === "clinica" && "rating" in r && (
+          {role === "clinic" && "rating" in r && (
             <div className="text-right">
               <div className="text-[10px] font-semibold uppercase tracking-wider text-mist-500">Valoración</div>
               <div className="text-base font-semibold text-ink-900">★ {r.rating.toFixed(1)}</div>
