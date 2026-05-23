@@ -43,3 +43,10 @@ next-env.d.ts
 # claude
 CLAUDE.md
 .claude/
+
+# secrets / credenciales (NUNCA subir al repo)
+client_secret*.json
+*googleusercontent*.json
+*.secret.json
+secrets/
+credentials/
