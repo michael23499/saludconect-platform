@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Factura proforma · SaludCoNet</title>
+    <style>
+  :root {
+    --navy: #052f59;
+    --navy-700: #042746;
+    --cyan: #01abd4;
+    --cyan-200: #7fd9ee;
+    --ink: #0a1633;
+    --muted: #6b7793;
+    --line: #e7edf5;
+    --soft: #f7f9fc;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; background: #e9eef6;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: var(--ink); -webkit-font-smoothing: antialiased;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+
+  .toolbar {
+    position: sticky; top: 0; z-index: 10;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; padding: 12px 20px; background: #fff; border-bottom: 1px solid var(--line);
+  }
+  .toolbar p { margin: 0; font-size: 13px; color: var(--muted); }
+  .btn { appearance: none; border: 0; cursor: pointer; background: var(--navy); color: #fff;
+    font-size: 14px; font-weight: 600; padding: 10px 18px; border-radius: 10px; transition: background .15s; }
+  .btn:hover { background: var(--navy-700); }
+
+  .sheet {
+    position: relative; max-width: 820px; margin: 28px auto; background: #fff;
+    border-radius: 16px; box-shadow: 0 18px 50px -20px rgba(10,22,51,.28);
+    padding: 30px 42px 26px; overflow: hidden;
+  }
+  .sheet::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 7px;
+    background: linear-gradient(90deg, var(--navy) 0%, #0a4a7a 45%, var(--cyan) 100%);
+  }
+
+  /* Cabecera */
+  .head { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; }
+  .brand { font-size: 25px; font-weight: 800; letter-spacing: -.025em; color: var(--navy); line-height: 1; }
+  .brand .co { color: var(--cyan); }
+  .brand-sub { margin-top: 6px; font-size: 11.5px; color: var(--muted); letter-spacing: .01em; }
+  .badge {
+    text-align: right; background: var(--soft); border: 1px solid var(--line);
+    border-radius: 10px; padding: 11px 15px; min-width: 195px;
+  }
+  .badge h1 { margin: 0; font-size: 15px; font-weight: 800; letter-spacing: .14em; color: var(--navy); text-transform: uppercase; }
+  .badge .meta { margin-top: 6px; font-size: 12px; color: var(--muted); line-height: 1.6; text-align: right; }
+  .badge .meta b { color: var(--ink); }
+
+  /* Partes */
+  .parties { display: flex; gap: 16px; margin-top: 20px; }
+  .party { flex: 1; background: var(--soft); border: 1px solid var(--line); border-left: 3px solid var(--cyan); border-radius: 10px; padding: 11px 14px; }
+  .party.to { border-left-color: var(--navy); }
+  .party .lbl { font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--cyan); }
+  .party.to .lbl { color: var(--navy); }
+  .party .body { margin-top: 5px; font-size: 12px; line-height: 1.5; color: var(--ink); }
+
+  [contenteditable] { outline: none; border-radius: 4px; }
+  [contenteditable]:hover { background: rgba(1,171,212,.07); }
+  [contenteditable]:focus { background: rgba(1,171,212,.12); box-shadow: 0 0 0 2px rgba(1,171,212,.25); }
+  .ph { color: #9aa6bd; }
+
+  /* Tabla */
+  table.items { width: 100%; border-collapse: collapse; margin-top: 18px; font-size: 12px; border-radius: 10px; overflow: hidden; box-shadow: 0 0 0 1px var(--line); }
+  table.items thead th {
+    background: linear-gradient(90deg, var(--navy), var(--navy-700)); color: #fff; text-align: left; font-weight: 600;
+    padding: 9px 14px; font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase;
+  }
+  th.num, td.num { text-align: right; white-space: nowrap; }
+  table.items tbody td { padding: 7px 14px; border-bottom: 1px solid var(--line); vertical-align: top; background: #fff; }
+  table.items tbody tr:last-child td { border-bottom: 0; }
+  table.items tbody tr:nth-child(even) td { background: #fafcfe; }
+  .concept-t { font-weight: 600; color: var(--ink); }
+  .concept-d { margin-top: 2px; font-size: 10px; color: var(--muted); line-height: 1.4; max-width: 500px; }
+  input.amount { width: 92px; text-align: right; border: 1px solid transparent; border-radius: 6px;
+    padding: 5px 8px; font: inherit; font-weight: 600; color: var(--navy); background: transparent; }
+  input.amount:hover { border-color: var(--line); }
+  input.amount:focus { outline: none; border-color: var(--cyan); background: #fff; }
+
+  /* Resumen: notas + total */
+  .summary { display: flex; gap: 22px; margin-top: 18px; align-items: stretch; }
+  .notes { flex: 1; padding: 12px 14px; background: var(--soft); border: 1px solid var(--line); border-radius: 10px; font-size: 10px; color: var(--muted); line-height: 1.55; }
+  .notes b { color: var(--ink); }
+  .totals { width: 290px; flex-shrink: 0; }
+  .totals .row { display: flex; justify-content: space-between; padding: 7px 2px; font-size: 13px; color: var(--muted); }
+  .totals .row .v { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .grand {
+    margin-top: 8px; background: linear-gradient(135deg, #0a4a7a 0%, var(--navy) 100%);
+    border-radius: 10px; padding: 12px 18px; color: #fff;
+    box-shadow: 0 14px 30px -14px rgba(5,47,89,.6);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .grand .lbl { font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--cyan-200); }
+  .grand .amt { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+
+  .foot { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); }
+
+  @media print {
+    body { background: #fff; }
+    .toolbar { display: none; }
+    .sheet { box-shadow: none; margin: 0; max-width: none; border-radius: 0; padding: 14px 22px; }
+    [contenteditable]:hover, [contenteditable]:focus { background: transparent; box-shadow: none; }
+    input.amount { border-color: transparent !important; }
+    @page { size: A4; margin: 9mm; }
+  }
+</style>
+  </head>
+  <body>
+    <div class="toolbar">
+      <p>📝 Edita los campos en azul. Si cambias importes o el % de IVA, el
+        total se recalcula solo.</p>
+      <button class="btn" onclick="window.print()">⬇️ Descargar PDF</button>
+    </div>
+
+    <div class="sheet">
+      <div class="head">
+        <div>
+          <div class="brand">Salud<span class="co">Co</span>Net</div>
+          <div class="brand-sub">Desarrollo · Mejoras y mantenimiento de
+            plataforma</div>
+        </div>
+        <div class="badge">
+          <h1>Factura proforma</h1>
+          <div class="meta">
+            Nº <b contenteditable="true">PROF-2026-001</b><br />
+            Fecha: <b contenteditable="true">24/05/2026</b><br />
+            Validez: <b contenteditable="true">Indefinida</b>
+          </div>
+        </div>
+      </div>
+
+      <div class="parties">
+        <div class="party from">
+          <div class="lbl">Emisor</div>
+          <div class="body" contenteditable="true">
+            <b>Michael Arismendi</b><br />
+            NIE: <span class="ph">Z2905469E</span><br />
+            <span class="ph">[ Dirección ]</span><br />
+            michaelarismendi2@gmail.com
+          </div>
+        </div>
+        <div class="party to">
+          <div class="lbl">Cliente</div>
+          <div class="body" contenteditable="true">
+            <b>SaludCoNet</b><br />
+            NIF/CIF: <span class="ph"> **** </span><br />
+            <span class="ph">[ Dirección ]</span><br />
+            info@saludconet.com
+          </div>
+        </div>
+      </div>
+
+      <table class="items" id="items">
+        <thead>
+          <tr>
+            <th>Concepto · Desarrollo y mejoras — Plataforma SaludCoNet</th>
+            <th class="num">Importe</th>
+          </tr>
+        </thead>
+        <tbody><!-- filas por JS --></tbody>
+      </table>
+
+      <div class="summary">
+        <div class="notes">
+          <b>Forma de pago:</b> transferencia bancaria<br />
+          IBAN <span contenteditable="true" class="ph"> ES19 0182 0507 9202 0453
+            3283 </span><br /><br />
+          <b>Nota:</b> documento proforma orientativo del desarrollo y mejoras
+          entregados. IVA al 0% por defecto.
+        </div>
+        <div class="totals">
+          <div class="row"><span>Subtotal (base imponible)</span><span class="v"
+              id="subtotal">—</span></div>
+          <div class="row"><span>IVA (<span contenteditable="true"
+                id="ivaRate">0</span>%)</span><span class="v"
+              id="iva">—</span></div>
+          <div class="grand">
+            <span class="lbl">Total a pagar</span>
+            <span class="amt" id="total">—</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="foot">
+        <span>SaludCoNet · Mantenimiento y mejoras</span>
+        <span id="genline"></span>
+      </div>
+    </div>
+
+    <script>
+  // Partidas: [concepto, descripción, importe €] — suman 120 €
+  var ITEMS = [
+    ["Landing / página de inicio", "Hero, secciones, CTAs y diseño responsive.", 25],
+    ["Base de datos (Supabase + Drizzle)", "Configuración en Supabase, esquema con Drizzle ORM y conexión.", 20],
+    ["Rediseño de la sección de precios", "Plan destacado, cinta “Recomendado”, CTA y animación de características.", 18],
+    ["Corrección y mejora del menú móvil", "Despliegue, fondo oscuro, bloqueo de scroll, Escape y accesibilidad.", 17],
+    ["Plantillas de email transaccional", "Maquetación responsive de los correos de recuperación y magic link.", 15],
+    ["Footer profesional", "Limpieza del pie y corrección de datos de contacto.", 10],
+    ["Favicon con el logo nuevo", "Favicon (16/32/48 px) a partir del logo SC+.", 8],
+    ["Conmutadores de idioma y tema", "Selectores ES/EN y claro/oscuro en el menú.", 7]
+  ];
+
+  var fmt = new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" });
+
+  var tbody = document.querySelector("#items tbody");
+  ITEMS.forEach(function (it) {
+    var tr = document.createElement("tr");
+    tr.innerHTML =
+      '<td><div class="concept-t">' + it[0] + '</div><div class="concept-d">' + it[1] + '</div></td>' +
+      '<td class="num"><input class="amount" type="text" value="' + it[2] + '" /></td>';
+    tbody.appendChild(tr);
+  });
+
+  function recalc() {
+    var ivaRate = parseFloat(document.getElementById("ivaRate").textContent.replace(",", ".")) || 0;
+    var subtotal = 0;
+    document.querySelectorAll("#items tbody .amount").forEach(function (inp) {
+      subtotal += parseFloat(inp.value.replace(",", ".")) || 0;
+    });
+    var iva = subtotal * ivaRate / 100;
+    document.getElementById("subtotal").textContent = fmt.format(subtotal);
+    document.getElementById("iva").textContent = fmt.format(iva);
+    document.getElementById("total").textContent = fmt.format(subtotal + iva);
+  }
+
+  document.addEventListener("input", recalc);
+  document.getElementById("ivaRate").addEventListener("keyup", recalc);
+  document.getElementById("genline").textContent = "Generado el " + new Date().toLocaleDateString("es-ES");
+  recalc();
+</script>
+  </body>
+</html>

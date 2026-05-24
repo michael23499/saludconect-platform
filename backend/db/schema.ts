@@ -1,4 +1,4 @@
-import { pgTable, pgSchema, pgEnum, uuid, text, timestamp, boolean } from "drizzle-orm/pg-core";
+import { pgTable, pgSchema, pgEnum, uuid, text, timestamp, boolean, doublePrecision } from "drizzle-orm/pg-core";
 
 /**
  * Modelado mínimo del schema `auth` de Supabase (no lo gestionamos nosotros,
@@ -23,9 +23,16 @@ export const users = pgTable("users", {
   role: userRoleEnum("role").notNull(),
   phone: text("phone"),
   city: text("city"),
+  // Dirección completa (autocompletada con OpenStreetMap/Nominatim).
+  address: text("address"),
+  postalCode: text("postal_code"),
+  lat: doublePrecision("lat"),
+  lng: doublePrecision("lng"),
   avatarUrl: text("avatar_url"),
   verified: boolean("verified").notNull().default(false),
-  isPublic: boolean("is_public").notNull().default(true),
+  // Suspensión por admin: el usuario deja de poder operar pero se conserva su
+  // dato (soft-delete reversible). NO es lo mismo que borrar de auth.users.
+  suspended: boolean("suspended").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });

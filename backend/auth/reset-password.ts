@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { checkEmailStatus } from "./check-email";
 import { getRequestOrigin } from "./origin";
+import { rateLimit } from "./rate-limit";
 
 export type ResetPasswordState =
   | null
@@ -10,11 +11,12 @@ export type ResetPasswordState =
   | { kind: "sent"; email: string };
 
 /**
- * Manda el email de recuperación de contraseña.
+ * Manda el email de recuperación de contraseña (privacidad primero).
  *
- * Por privacy SIEMPRE devolvemos "sent" aunque el email no exista — así un
- * atacante no puede enumerar qué emails están registrados desde esta pantalla.
- * (Es el comportamiento estándar de "olvidé mi contraseña".)
+ * Comprobamos POR DEBAJO si el email existe y solo enviamos si existe (evitando
+ * la petición de envío inútil). Pero al usuario le devolvemos SIEMPRE el mismo
+ * estado neutro — la UI muestra "si ese email tiene cuenta, te enviamos el
+ * enlace" — así no filtramos qué emails están registrados. Rate limit por IP.
  */
 export async function requestPasswordReset(
   _prev: ResetPasswordState,
@@ -26,8 +28,15 @@ export async function requestPasswordReset(
   }
   const email = emailRaw.trim().toLowerCase();
 
-  // Solo mandamos de verdad si el email existe; si no, no hacemos nada
-  // (pero devolvemos "sent" igualmente para no filtrar existencia).
+  // Frena enumeración masiva y email-bombing por IP.
+  const allowed = await rateLimit("reset", 5, 60_000);
+  if (!allowed) {
+    return { kind: "error", message: "Demasiados intentos. Espera un momento e inténtalo de nuevo." };
+  }
+
+  // Comprobación interna silenciosa: solo enviamos de verdad si el email existe
+  // (así evitamos la petición de envío inútil). El estado devuelto es el mismo
+  // exista o no — el mensaje neutro lo pone la UI.
   const status = await checkEmailStatus(email);
   if (status.exists) {
     const origin = await getRequestOrigin();

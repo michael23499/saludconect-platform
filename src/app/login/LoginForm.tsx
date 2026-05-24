@@ -133,9 +133,10 @@ function EmailField({
         const result = await precheckEmailAction(email);
         setChecked(email);
         if (result.kind === "oauth-only") {
+          // Solo guiamos a las cuentas OAuth (usa Google). No mostramos nada
+          // para "no encontrado" ni "tiene contraseña": privacidad primero, no
+          // revelamos si el email está registrado.
           onDetectOAuth(email, result.providers);
-        } else if (result.kind === "not-found") {
-          setHint(a.emailNotFound);
         } else {
           setHint(null);
         }

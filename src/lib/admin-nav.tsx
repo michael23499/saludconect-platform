@@ -12,8 +12,8 @@ export const ADMIN_ICONS = {
 // Cada sección del admin es ya una ruta propia (/admin/approvals, etc.).
 export const NAV_ADMIN: NavItem[] = [
   { href: "/admin", labelKey: "overview", icon: ADMIN_ICONS.home },
-  { href: "/admin/approvals", labelKey: "approvals", icon: ADMIN_ICONS.check, badge: "8" },
   { href: "/admin/users", labelKey: "users", icon: ADMIN_ICONS.team },
+  { href: "/admin/approvals", labelKey: "approvals", icon: ADMIN_ICONS.check, badge: "8" },
   { href: "/admin/payments", labelKey: "payments", icon: ADMIN_ICONS.card },
   { href: "/admin/stats", labelKey: "stats", icon: ADMIN_ICONS.chart },
   { href: "/admin/moderation", labelKey: "moderation", icon: ADMIN_ICONS.flag },

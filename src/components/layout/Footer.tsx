@@ -17,7 +17,6 @@ const COLS = [
     links: [
       { href: "/dashboard/professional", label: "Área del profesional" },
       { href: "/dashboard/clinic", label: "Área de la clínica" },
-      { href: "/admin", label: "Panel de administración" },
       { href: "/register", label: "Registro" },
       { href: "/login", label: "Iniciar sesión" },
     ],
@@ -74,8 +73,8 @@ export function Footer() {
                   <circle cx="12" cy="12" r="10" />
                   <path d="M2 12h20M12 2a15.3 15.3 0 0 1 0 20M12 2a15.3 15.3 0 0 0 0 20" />
                 </svg>
-                <a href="https://clinicacapilarcastellana.es" target="_blank" rel="noopener noreferrer" className="transition hover:text-brand-700">
-                  clinicacapilarcastellana.es
+                <a href="https://app.saludconet.com" target="_blank" rel="noopener noreferrer" className="transition hover:text-brand-700">
+                  app.saludconet.com
                 </a>
               </li>
             </ul>
@@ -85,7 +84,7 @@ export function Footer() {
                 { key: "whatsapp", href: "https://wa.me/34604890900", label: "WhatsApp" },
                 { key: "phone", href: "tel:+34604890900", label: "Teléfono" },
                 { key: "email", href: "mailto:info@saludconet.com", label: "Email" },
-                { key: "web", href: "https://clinicacapilarcastellana.es", label: "Web" },
+                { key: "web", href: "https://app.saludconet.com", label: "Web" },
               ].map(({ key: s, href, label }) => (
                 <a
                   key={s}
@@ -132,12 +131,6 @@ export function Footer() {
               </div>
             ))}
           </div>
-        </div>
-        <div className="mt-12 flex flex-col items-start justify-between gap-3 border-t border-mist-200 pt-6 md:flex-row md:items-center">
-          <p className="text-xs text-mist-500">
-            © {new Date().getFullYear()} SaludCoNet · Plataforma sanitaria profesional · Hecho en España
-          </p>
-          <p className="text-xs text-mist-500">Demo construida para presentación de proyecto</p>
         </div>
       </div>
     </footer>
