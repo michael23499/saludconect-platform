@@ -8,11 +8,14 @@ export function Avatar({
   src,
   size = "md",
   className,
+  ring = "ring-2 ring-white",
 }: {
   name: string;
   src?: string;
   size?: "xs" | "sm" | "md" | "lg" | "xl";
   className?: string;
+  /** Clases del anillo. Por defecto el borde blanco; pásalo distinto (o "") según el fondo. */
+  ring?: string;
 }) {
   // Si la imagen falla al cargar (p.ej. avatar de Google bloqueado por el
   // referrer, o URL caída), caemos a las iniciales en vez de mostrar el icono
@@ -45,7 +48,8 @@ export function Avatar({
   return (
     <span
       className={cn(
-        "inline-flex items-center justify-center overflow-hidden rounded-full font-semibold text-white bg-gradient-to-br ring-2 ring-white",
+        "inline-flex items-center justify-center overflow-hidden rounded-full font-semibold text-white bg-gradient-to-br",
+        ring,
         grad,
         sizes[size],
         className

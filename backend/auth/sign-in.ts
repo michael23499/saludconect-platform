@@ -43,19 +43,16 @@ export async function signInWithPasswordAction(
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error || !data.user) {
-    // Antes de devolver "credenciales incorrectas", comprobamos si la cuenta es OAuth-only.
     const status = await checkEmailStatus(email);
 
+    // Única excepción útil: si la cuenta es OAuth-only (sin contraseña), guiamos
+    // a entrar con Google. Para TODO lo demás —el email no existe O la contraseña
+    // es incorrecta— devolvemos el MISMO mensaje genérico, sin distinguir, para
+    // no filtrar qué emails están registrados (enumeración).
     if (status.exists && !status.hasPassword && status.providers.length > 0) {
       return { kind: "oauth-only", email, providers: status.providers };
     }
-    if (!status.exists) {
-      return {
-        kind: "error",
-        message: "No hay ninguna cuenta con ese email. ¿Quieres registrarte?",
-      };
-    }
-    return { kind: "error", message: "Contraseña incorrecta. Inténtalo de nuevo." };
+    return { kind: "error", message: "Email o contraseña incorrectos." };
   }
 
   const profile = await getUserProfileById(data.user.id);

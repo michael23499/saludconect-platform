@@ -15,7 +15,23 @@ if (!url) {
   );
 }
 
-const client = postgres(url ?? "", { prepare: false });
+// Reutilizamos el cliente entre recargas de HMR en desarrollo. Sin esto, cada
+// recompilación crea un pool de postgres-js nuevo sin cerrar el anterior, lo
+// que agota rápidamente las conexiones del pooler de Supabase (free tier) —
+// se nota, p.ej., al teclear en el buscador, que dispara muchas peticiones
+// seguidas y acaba en "Failed query". `max` acota el pool e `idle_timeout`
+// libera conexiones ociosas.
+const globalForDb = globalThis as unknown as {
+  __saludconetPg?: ReturnType<typeof postgres>;
+};
+
+const client =
+  globalForDb.__saludconetPg ??
+  postgres(url ?? "", { prepare: false, max: 10, idle_timeout: 20 });
+
+if (process.env.NODE_ENV !== "production") {
+  globalForDb.__saludconetPg = client;
+}
 
 export const db = drizzle(client, { schema });
 export * from "./schema";
