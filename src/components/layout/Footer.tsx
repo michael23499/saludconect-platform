@@ -65,8 +65,8 @@ export function Footer() {
                   <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
                   <path d="M22 6l-10 7L2 6" />
                 </svg>
-                <a href="mailto:info@clinicacapilarcastellana.es" className="transition hover:text-brand-700">
-                  info@clinicacapilarcastellana.es
+                <a href="mailto:info@saludconet.com" className="transition hover:text-brand-700">
+                  info@saludconet.com
                 </a>
               </li>
               <li className="flex items-start gap-2.5">
@@ -84,7 +84,7 @@ export function Footer() {
                 { key: "instagram", href: "https://www.instagram.com/clinicacapilarcastellana/", label: "Instagram" },
                 { key: "whatsapp", href: "https://wa.me/34604890900", label: "WhatsApp" },
                 { key: "phone", href: "tel:+34604890900", label: "Teléfono" },
-                { key: "email", href: "mailto:info@clinicacapilarcastellana.es", label: "Email" },
+                { key: "email", href: "mailto:info@saludconet.com", label: "Email" },
                 { key: "web", href: "https://clinicacapilarcastellana.es", label: "Web" },
               ].map(({ key: s, href, label }) => (
                 <a

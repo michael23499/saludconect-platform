@@ -13,15 +13,18 @@ export type NavItem = { href: string; label?: string; labelKey?: string; icon: R
 
 export function DashboardShell({
   role,
+  accent = "brand",
   user,
   nav,
   children,
 }: {
-  role: "Clínica" | "Profesional" | "Administrador";
-  user: { name: string; subtitle: string };
+  role: string;
+  accent?: "brand" | "admin";
+  user: { name: string; subtitle: string; avatarUrl?: string | null };
   nav: NavItem[];
   children: ReactNode;
 }) {
+  const eyebrowColor = accent === "admin" ? "text-amber-600" : "text-brand-600";
   const path = usePathname();
   const [open, setOpen] = useState(false);
 
@@ -59,16 +62,16 @@ export function DashboardShell({
           Menú
         </button>
         <div className="min-w-0 flex-1 text-center">
-          <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-brand-600">Área {role}</div>
+          <div className={`text-[10px] font-semibold uppercase tracking-[0.16em] ${eyebrowColor}`}>Área {role}</div>
           <div className="truncate text-[13px] font-semibold text-ink-900">{activeItem.label}</div>
         </div>
-        <Avatar name={user.name} size="sm" />
+        <Avatar name={user.name} src={user.avatarUrl ?? undefined} size="sm" />
       </div>
 
       <div className="mx-auto grid w-full max-w-[1480px] grid-cols-1 gap-0 px-0 md:grid-cols-[260px_1fr]">
         <aside className="hidden border-r border-mist-200 bg-white md:block">
           <div className="sticky top-16">
-            <SidebarBody role={role} user={user} nav={nav} path={path} />
+            <SidebarBody role={role} accent={accent} user={user} nav={nav} path={path} />
           </div>
         </aside>
 
@@ -81,7 +84,7 @@ export function DashboardShell({
           <div className="modal-backdrop absolute inset-0" onClick={() => setOpen(false)} />
           <aside className="scale-in relative ml-0 h-full w-[86%] max-w-xs border-r border-mist-200 bg-white shadow-2xl">
             <div className="flex items-center justify-between border-b border-mist-200 px-4 py-3">
-              <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-brand-600">Área {role}</div>
+              <div className={`text-[10px] font-semibold uppercase tracking-[0.16em] ${eyebrowColor}`}>Área {role}</div>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
@@ -92,7 +95,7 @@ export function DashboardShell({
               </button>
             </div>
             <div className="h-[calc(100%-49px)] overflow-y-auto">
-              <SidebarBody role={role} user={user} nav={nav} path={path} />
+              <SidebarBody role={role} accent={accent} user={user} nav={nav} path={path} />
             </div>
           </aside>
         </div>
@@ -103,25 +106,30 @@ export function DashboardShell({
 
 function SidebarBody({
   role,
+  accent,
   user,
   nav,
   path,
 }: {
   role: string;
-  user: { name: string; subtitle: string };
+  accent: "brand" | "admin";
+  user: { name: string; subtitle: string; avatarUrl?: string | null };
   nav: NavItem[];
   path: string;
 }) {
   const { t } = useApp();
   const navDict = t.dashboard.nav;
+  const eyebrowColor = accent === "admin" ? "text-amber-600" : "text-brand-600";
+  const activeItemCls = accent === "admin" ? "bg-amber-50 text-amber-700" : "bg-brand-50 text-brand-700";
+  const activeIconCls = accent === "admin" ? "border-amber-200 bg-white text-amber-700" : "border-brand-200 bg-white text-brand-700";
   return (
     <>
       <div className="border-b border-mist-200 p-5">
-        <div className="hidden text-[10px] font-semibold uppercase tracking-[0.18em] text-brand-600 md:block">
+        <div className={`hidden text-[10px] font-semibold uppercase tracking-[0.18em] md:block ${eyebrowColor}`}>
           {t.dashboard.shell.areaPrefix} {role}
         </div>
         <div className="mt-2 flex items-center gap-3">
-          <Avatar name={user.name} size="md" />
+          <Avatar name={user.name} src={user.avatarUrl ?? undefined} size="md" />
           <div className="min-w-0">
             <div className="truncate text-sm font-semibold text-ink-900">{user.name}</div>
             <div className="truncate text-xs text-mist-500">{user.subtitle}</div>
@@ -140,11 +148,11 @@ function SidebarBody({
               href={n.href}
               className={cn(
                 "flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition",
-                active ? "bg-brand-50 text-brand-700" : "text-ink-800 hover:bg-mist-50"
+                active ? activeItemCls : "text-ink-800 hover:bg-mist-50"
               )}
             >
               <span className="inline-flex items-center gap-3">
-                <span className={cn("flex h-7 w-7 items-center justify-center rounded-lg border", active ? "border-brand-200 bg-white text-brand-700" : "border-mist-200 bg-mist-50 text-ink-700")}>
+                <span className={cn("flex h-7 w-7 items-center justify-center rounded-lg border", active ? activeIconCls : "border-mist-200 bg-mist-50 text-ink-700")}>
                   {n.icon}
                 </span>
                 {label}

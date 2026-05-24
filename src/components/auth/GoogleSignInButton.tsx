@@ -9,14 +9,19 @@ type Props = {
   next?: string;
 };
 
-export function GoogleSignInButton({ next = "/" }: Props) {
+export function GoogleSignInButton({ next }: Props) {
   const { t } = useApp();
   const [loading, setLoading] = useState(false);
 
   async function handleGoogleSignIn() {
     setLoading(true);
     const supabase = createClient();
-    const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
+    // Sin `next`, el callback decide el destino según el rol del perfil
+    // (dashboardPathForRole → /admin, /dashboard/clinic, etc.). Solo forzamos
+    // `next` cuando hay un destino explícito (p.ej. /set-password tras magic link).
+    const callbackUrl = new URL("/auth/callback", window.location.origin);
+    if (next) callbackUrl.searchParams.set("next", next);
+    const redirectTo = callbackUrl.toString();
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",

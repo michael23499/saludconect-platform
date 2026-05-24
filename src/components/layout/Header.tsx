@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Logo } from "@/components/ui/Logo";
 import { Button } from "@/components/ui/Button";
@@ -21,6 +21,22 @@ export function Header({ user }: { user: HeaderUser | null }) {
   const path = usePathname();
   const { t, lang, setLang, theme, toggleTheme } = useApp();
 
+  // Mientras el menú móvil está abierto: bloquea el scroll del fondo
+  // (si no, el gesto de scroll se va a la página de detrás) y permite cerrar con Escape.
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
   // Both-language labels so each item reserves the max width
   // between ES and EN, preventing the header from shifting on toggle.
   const NAV = [
@@ -32,10 +48,11 @@ export function Header({ user }: { user: HeaderUser | null }) {
   ];
 
   return (
-    <header className="sticky top-0 z-50 border-b border-mist-200/80 bg-white/80 backdrop-blur-xl">
+    <header className="sticky top-0 z-[60] border-b border-mist-200/80 bg-white/80 backdrop-blur-xl">
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-6 px-5 md:px-8">
-        <Logo />
-        <nav className="hidden items-center gap-1 md:flex">
+        <div className="flex items-center gap-6 lg:gap-9">
+          <Logo className="shrink-0" />
+          <nav className="hidden items-center gap-1 lg:flex">
           {NAV.map((n) => {
             const active = path === n.href;
             const longer = n.es.length >= n.en.length ? n.es : n.en;
@@ -45,7 +62,7 @@ export function Header({ user }: { user: HeaderUser | null }) {
                 key={n.href}
                 href={n.href}
                 className={cn(
-                  "relative px-3.5 py-2 text-[14px] font-medium text-ink-800 transition hover:text-brand-700",
+                  "relative px-2.5 py-2 text-[14px] font-medium text-ink-800 transition hover:text-brand-700",
                   active && "text-brand-700"
                 )}
               >
@@ -57,13 +74,14 @@ export function Header({ user }: { user: HeaderUser | null }) {
                   {current}
                 </span>
                 {active && (
-                  <span className="absolute -bottom-[1px] left-3.5 right-3.5 h-[2px] rounded-full bg-gradient-to-r from-brand-500 to-cyan-400" />
+                  <span className="absolute -bottom-[1px] left-2.5 right-2.5 h-[2px] rounded-full bg-gradient-to-r from-brand-500 to-cyan-400" />
                 )}
               </Link>
             );
           })}
         </nav>
-        <div className="hidden items-center gap-2 md:flex">
+        </div>
+        <div className="hidden items-center gap-2 lg:flex">
           <LangSwitch lang={lang} onChange={setLang} />
           <ThemeSwitch theme={theme} onToggle={toggleTheme} />
 
@@ -94,16 +112,43 @@ export function Header({ user }: { user: HeaderUser | null }) {
         <button
           type="button"
           onClick={() => setOpen((s) => !s)}
-          aria-label="Abrir menú"
-          className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-mist-200 text-ink-800 md:hidden"
+          aria-label={open ? "Cerrar menú" : "Abrir menú"}
+          aria-expanded={open}
+          aria-controls="mobile-menu"
+          className="relative z-10 inline-flex h-10 w-10 items-center justify-center rounded-xl border border-mist-200 text-ink-800 transition hover:bg-mist-50 lg:hidden"
         >
-          <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+          <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
             {open ? <path d="M6 6l12 12M18 6l-12 12" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
           </svg>
         </button>
       </div>
-      {open && (
-        <div className="border-t border-mist-200 bg-white md:hidden">
+
+      {/* Mobile menu — full overlay above everything, taps outside to close */}
+      <div
+        id="mobile-menu"
+        className={cn(
+          "fixed inset-0 top-16 lg:hidden",
+          open ? "pointer-events-auto" : "pointer-events-none"
+        )}
+      >
+        {/* Backdrop */}
+        <button
+          type="button"
+          aria-label="Cerrar menú"
+          tabIndex={open ? 0 : -1}
+          onClick={() => setOpen(false)}
+          className={cn(
+            "absolute inset-0 h-full w-full cursor-default bg-ink-950/30 backdrop-blur-sm transition-opacity duration-200",
+            open ? "opacity-100" : "opacity-0"
+          )}
+        />
+        {/* Panel */}
+        <div
+          className={cn(
+            "absolute inset-x-0 top-0 max-h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain border-b border-mist-200 bg-white shadow-[0_20px_44px_-20px_rgba(10,22,51,0.28)] transition-all duration-200 ease-[cubic-bezier(.22,.61,.36,1)]",
+            open ? "translate-y-0 opacity-100" : "-translate-y-3 opacity-0"
+          )}
+        >
           <div className="mx-auto flex w-full max-w-7xl flex-col gap-1 px-5 py-4">
             {NAV.map((n) => (
               <Link
@@ -115,7 +160,7 @@ export function Header({ user }: { user: HeaderUser | null }) {
                 {lang === "es" ? n.es : n.en}
               </Link>
             ))}
-            <div className="mt-3 flex items-center gap-2">
+            <div className="mt-3 flex items-center justify-end gap-2">
               <LangSwitch lang={lang} onChange={setLang} />
               <ThemeSwitch theme={theme} onToggle={toggleTheme} />
             </div>
@@ -130,13 +175,13 @@ export function Header({ user }: { user: HeaderUser | null }) {
               </div>
             ) : (
               <div className="mt-2 flex gap-2">
-                <Button href="/login" variant="secondary" size="sm" className="flex-1">{t.nav.login}</Button>
-                <Button href="/register" size="sm" className="flex-1">{t.nav.register}</Button>
+                <Button href="/login" variant="secondary" size="sm" className="flex-1" onClick={() => setOpen(false)}>{t.nav.login}</Button>
+                <Button href="/register" size="sm" className="flex-1" onClick={() => setOpen(false)}>{t.nav.register}</Button>
               </div>
             )}
           </div>
         </div>
-      )}
+      </div>
     </header>
   );
 }

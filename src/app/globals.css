@@ -9,20 +9,25 @@
   --color-ink-700: #1a2c63;
   --color-ink-600: #233a82;
 
-  --color-brand-50: #eaf2ff;
-  --color-brand-100: #d2e2ff;
-  --color-brand-200: #a7c5ff;
-  --color-brand-300: #79a4ff;
-  --color-brand-400: #4a82ff;
-  --color-brand-500: #2563eb;
-  --color-brand-600: #1d4ed8;
-  --color-brand-700: #1e40af;
-  --color-brand-800: #1e3a8a;
-  --color-brand-900: #172554;
+  /* Marca = navy del logo SaludCoNet. brand-600 (#052F59) es el navy exacto del
+     logo y el color de los botones primarios; el resto es una rampa coherente. */
+  --color-brand-50: #ecf2f9;
+  --color-brand-100: #d5e3f1;
+  --color-brand-200: #aec8e1;
+  --color-brand-300: #7ba0c8;
+  --color-brand-400: #43719f;
+  --color-brand-500: #154e80;
+  --color-brand-600: #052f59;
+  --color-brand-700: #042746;
+  --color-brand-800: #03192f;
+  --color-brand-900: #020f1c;
 
-  --color-accent-300: #67e8f9;
-  --color-accent-400: #22d3ee;
-  --color-accent-500: #06b6d4;
+  /* Cian del logo (#01ABD4). Alineamos también cyan-500 de Tailwind, que es el
+     cian "sólido" usado en gradientes y acentos por toda la app. */
+  --color-accent-300: #5fd0ec;
+  --color-accent-400: #1fc0e6;
+  --color-accent-500: #01abd4;
+  --color-cyan-500: #01abd4;
 
   --color-mist-50: #f7f9fc;
   --color-mist-100: #eef2f8;
@@ -40,7 +45,7 @@
 
   --shadow-soft: 0 1px 2px rgba(10, 22, 51, 0.04), 0 8px 24px -8px rgba(10, 22, 51, 0.08);
   --shadow-card: 0 1px 2px rgba(10, 22, 51, 0.05), 0 12px 32px -12px rgba(10, 22, 51, 0.12);
-  --shadow-glow: 0 20px 60px -20px rgba(37, 99, 235, 0.45);
+  --shadow-glow: 0 20px 60px -20px rgba(1, 171, 212, 0.45);
 
   --radius-xs: 6px;
   --radius-sm: 10px;
@@ -184,6 +189,17 @@ html, body {
 /* Card hover lift */
 .card-hover { transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease; }
 .card-hover:hover { transform: translateY(-2px); box-shadow: var(--shadow-card); }
+
+/* Feature row — slides in slightly and pops its check on hover (pricing lists) */
+.feat-row { transition: transform .2s cubic-bezier(.22,.61,.36,1); }
+.feat-row:hover { transform: translateX(3px); }
+.feat-row .feat-check { transition: transform .2s ease; }
+@keyframes feat-pop { 0% { transform: scale(1); } 45% { transform: scale(1.22); } 100% { transform: scale(1.1); } }
+.feat-row:hover .feat-check { animation: feat-pop .3s ease both; }
+
+/* "Recommended" corner ribbon — gentle shimmer sweeping across the gradient */
+@keyframes ribbon-shine { 0%, 100% { background-position: 0% 0; } 50% { background-position: 100% 0; } }
+.ribbon-shine { background-size: 220% 100%; animation: ribbon-shine 3.6s ease-in-out infinite; }
 
 /* Animations */
 @keyframes float-y { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-8px) } }
@@ -335,22 +351,13 @@ html.js .fade-up.in { animation: fade-up .6s cubic-bezier(.22,.61,.36,1) both; }
   animation-delay: 1.2s;
 }
 
-/* Bestseller badge — bright spark that orbits the perimeter
-   We animate the conic-gradient ANGLE (not the element transform),
-   so the pill border stays put and only the bright comet travels. */
-@property --bs-angle {
-  syntax: "<angle>";
-  initial-value: 0deg;
-  inherits: false;
-}
-@keyframes bestseller-orbit {
-  to { --bs-angle: 360deg; }
-}
+/* Bestseller badge — borde plateado estático con una sombra suave.
+   (Antes tenía un cometa orbital animado; se retiró por resultar demasiado
+   "promo" para una plataforma sanitaria.) */
 .bestseller-ring {
   position: relative;
   isolation: isolate;
 }
-/* Soft static border under the spark — keeps the edge readable */
 .bestseller-ring::after {
   content: "";
   position: absolute;
@@ -369,48 +376,9 @@ html.js .fade-up.in { animation: fade-up .6s cubic-bezier(.22,.61,.36,1) both; }
   pointer-events: none;
   z-index: 0;
 }
-/* Traveling spark — only the gradient angle animates, the element is fixed */
-.bestseller-ring::before {
-  content: "";
-  position: absolute;
-  inset: -2px;
-  border-radius: inherit;
-  padding: 2px;
-  background: conic-gradient(
-    from var(--bs-angle),
-    transparent 0deg,
-    transparent 240deg,
-    rgba(34, 211, 238, 0.35) 285deg,
-    rgba(103, 232, 249, 0.85) 320deg,
-    #ffffff 348deg,
-    rgba(167, 197, 255, 0.6) 356deg,
-    transparent 360deg
-  );
-  -webkit-mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-          mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-          mask-composite: exclude;
-  animation: bestseller-orbit 2.4s linear infinite;
-  pointer-events: none;
-  z-index: 1;
-  filter: drop-shadow(0 0 4px rgba(103, 232, 249, 0.7));
-}
 .bestseller-ring > * { position: relative; z-index: 2; }
 
-@keyframes bestseller-glow {
-  0%, 100% { box-shadow: 0 10px 24px -10px rgba(34,211,238,0.55), 0 0 0 0 rgba(34,211,238,0.35); }
-  50%      { box-shadow: 0 14px 30px -10px rgba(34,211,238,0.75), 0 0 0 10px rgba(34,211,238,0); }
-}
-.bestseller-glow { animation: bestseller-glow 2.4s ease-in-out infinite; }
-
-/* Promo de lanzamiento — phase offset for the second card so the orbital
-   highlight doesn't loop in lock-step on both pricing cards. */
-.bestseller-ring.phase-2::before { animation-delay: -1.2s; }
-.bestseller-glow.phase-2         { animation-delay: -1.2s; }
+.bestseller-glow { box-shadow: 0 10px 22px -12px rgba(34, 211, 238, 0.5); }
 
 /* Slow drift for decorative blur blobs (Hero, FinalCTA). Two phase classes
    keep neighbouring blobs out of sync so the background feels alive. */

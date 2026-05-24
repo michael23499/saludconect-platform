@@ -25,9 +25,9 @@ export default function ContactoPage() {
               {[
                 {
                   i: "✉",
-                  t: "info@clinicacapilarcastellana.es",
+                  t: "info@saludconet.com",
                   s: "Atención y consultas",
-                  href: "mailto:info@clinicacapilarcastellana.es",
+                  href: "mailto:info@saludconet.com",
                 },
                 {
                   i: "☎",

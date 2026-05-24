@@ -227,10 +227,19 @@ export function UserMenu({ fullName, email, avatarUrl, role }: Props) {
 }
 
 function Avatar({ src, initials, variant }: { src: string | null; initials: string; variant: "sm" | "lg" }) {
+  const [failed, setFailed] = useState(false);
   const cls = variant === "lg" ? "h-11 w-11 text-sm" : "h-7 w-7 text-[11px]";
-  if (src) {
-    // eslint-disable-next-line @next/next/no-img-element
-    return <img src={src} alt="" className={`${cls} rounded-full object-cover ring-1 ring-mist-200`} />;
+  if (src && !failed) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={src}
+        alt=""
+        referrerPolicy="no-referrer"
+        onError={() => setFailed(true)}
+        className={`${cls} rounded-full object-cover ring-1 ring-mist-200`}
+      />
+    );
   }
   return (
     <span

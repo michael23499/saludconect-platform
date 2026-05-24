@@ -84,7 +84,7 @@ export function LoginForm() {
         {a.orContinueWith}
         <span className="h-px flex-1 bg-mist-200" />
       </div>
-      <GoogleSignInButton next="/" />
+      <GoogleSignInButton />
     </>
   );
 }
@@ -235,7 +235,7 @@ function OAuthOnlyView({
         </div>
       </div>
 
-      {hasGoogle && <GoogleSignInButton next="/" />}
+      {hasGoogle && <GoogleSignInButton />}
 
       <div className="flex items-center gap-3 text-xs text-mist-400">
         <span className="h-px flex-1 bg-mist-200" />
