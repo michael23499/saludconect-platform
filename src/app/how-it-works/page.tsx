@@ -265,7 +265,7 @@ export default function ComoFuncionaPage() {
         <SectionHeading
           eyebrow="Preguntas frecuentes"
           title="Resolvemos tus dudas"
-          description="Si necesitas más detalles, escríbenos a info@clinicacapilarcastellana.es."
+          description="Si necesitas más detalles, escríbenos a info@saludconet.com."
         />
         <div className="mt-12 grid gap-4 md:grid-cols-2">
           {FAQ.map((f) => (

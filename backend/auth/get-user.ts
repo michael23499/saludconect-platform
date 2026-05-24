@@ -23,14 +23,17 @@ export type CurrentUser = {
  */
 export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
   const supabase = await createClient();
-  const { data, error } = await supabase.auth.getUser();
-  if (error || !data.user) return null;
+  // getClaims() verifica el JWT LOCALMENTE (sin red) si el proyecto usa claves
+  // de firma asimétricas (ECC/RSA). Con el secreto legacy HS256 hace una llamada
+  // de red equivalente a getUser(), así que este código es seguro en ambos casos.
+  const { data, error } = await supabase.auth.getClaims();
+  if (error || !data) return null;
 
-  const u = data.user;
-  const meta = (u.user_metadata ?? {}) as Record<string, unknown>;
+  const claims = data.claims;
+  const meta = (claims.user_metadata ?? {}) as Record<string, unknown>;
   const auth: AuthUser = {
-    id: u.id,
-    email: u.email,
+    id: claims.sub,
+    email: claims.email,
     fullNameFromProvider:
       (meta.full_name as string | undefined) ??
       (meta.name as string | undefined) ??
@@ -41,6 +44,6 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
       null,
   };
 
-  const profile = await getUserProfileById(u.id);
+  const profile = await getUserProfileById(claims.sub);
   return { auth, profile };
 });

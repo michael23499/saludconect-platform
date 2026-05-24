@@ -42,6 +42,9 @@ Supabase expone estas variables que puedes interpolar con `{{ .Variable }}`:
 
 - Usar `<table>` para layout (NO flexbox/grid — Outlook no los soporta)
 - Estilos inline (NO `<style>` blocks salvo media queries)
-- Imágenes embebidas como base64 o evitarlas (muchos clientes las bloquean)
+- Evita imágenes EXCEPTO el logo: es un PNG alojado en `https://app.saludconet.com/logo-email.png`
+  (fichero versionado en `public/logo-email.png`) con `alt="SaludCoNet"` de respaldo. NO uses base64
+  (Outlook lo bloquea). El logo solo se ve si el dominio de prod está desplegado con ese asset; si el
+  cliente bloquea imágenes, se muestra el texto del `alt`.
 - Texto preheader oculto para mejorar el preview en el inbox
 - Probar siempre en al menos: Gmail web, Gmail mobile, Outlook web

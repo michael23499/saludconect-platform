@@ -11,12 +11,13 @@ const COPY = {
     title1: "Simple. ",
     title2: "Transparente. Sin sorpresas.",
     desc: "No somos intermediarios para la contratación: solo te ayudamos a encontrar los horarios y al profesional adecuado. Para acceder a los profesionales hay que inscribirse en un plan.",
-    bestseller: "Promo de lanzamiento",
+    bestseller: "Recomendado para clínicas",
+    ribbon: "Recomendado",
     saving: "Ahorra 2 meses al año",
     starterName: "Clínica Starter",
     starterTag: "Clínicas pequeñas",
     starterPrice: "50",
-    starterDesc: "Hasta 10 reservas activas al mes. Promo de lanzamiento.",
+    starterDesc: "Hasta 10 reservas activas al mes. Ideal para empezar.",
     starterCta: "Inscribirme",
     starterFeatures: [
       "Hasta 10 reservas activas/mes",
@@ -31,7 +32,7 @@ const COPY = {
     proCName: "Clínica Pro",
     proCTag: "Clínicas medianas y grandes",
     proCPrice: "100",
-    proCDesc: "Reservas ilimitadas y prioridad en solicitudes. Promo de lanzamiento.",
+    proCDesc: "Reservas ilimitadas y prioridad en solicitudes. Para clínicas en crecimiento.",
     proCCta: "Inscribirme",
     proCFeatures: [
       "Reservas ilimitadas",
@@ -69,12 +70,13 @@ const COPY = {
     title1: "Simple. ",
     title2: "Transparent. No surprises.",
     desc: "We are not a hiring intermediary — we just help you find the right schedules and the right professional. Accessing professionals requires signing up to a plan.",
-    bestseller: "Launch promo",
+    bestseller: "Recommended for clinics",
+    ribbon: "Recommended",
     saving: "Save 2 months / year",
     starterName: "Clinic Starter",
     starterTag: "Small clinics",
     starterPrice: "50",
-    starterDesc: "Up to 10 active bookings per month. Launch promo.",
+    starterDesc: "Up to 10 active bookings per month. Ideal to get started.",
     starterCta: "Sign up",
     starterFeatures: [
       "Up to 10 active bookings / mo",
@@ -89,7 +91,7 @@ const COPY = {
     proCName: "Clinic Pro",
     proCTag: "Mid-to-large clinics",
     proCPrice: "100",
-    proCDesc: "Unlimited bookings and priority on requests. Launch promo.",
+    proCDesc: "Unlimited bookings and priority on requests. For growing clinics.",
     proCCta: "Sign up",
     proCFeatures: [
       "Unlimited bookings",
@@ -169,7 +171,7 @@ export function Pricing() {
     {
       key: "starter", name: c.starterName, tag: c.starterTag, price: c.starterPrice, currency: "€",
       desc: c.starterDesc, cta: { label: c.starterCta, href: "/register?rol=clinic" },
-      features: c.starterFeatures, tone: "neutral", highlight: true, showPeriod: true,
+      features: c.starterFeatures, tone: "neutral", highlight: false, showPeriod: true,
     },
     {
       key: "pro", name: c.proCName, tag: c.proCTag, price: c.proCPrice, currency: "€",
@@ -195,7 +197,7 @@ export function Pricing() {
           description={c.desc}
         />
 
-        <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:gap-4">
+        <div className="mt-14 grid items-stretch gap-5 lg:grid-cols-3 lg:gap-4">
           {plans.map((p, i) => (
             <PricingCard key={p.key} plan={p} copy={c} index={i} />
           ))}
@@ -218,7 +220,7 @@ function PricingCard({ plan: p, copy: c, index }: { plan: Plan; copy: (typeof CO
   return (
     <div
       className={cn(
-        "fade-up card-hover group relative flex flex-col rounded-3xl border p-6",
+        "fade-up card-hover group relative flex flex-col overflow-hidden rounded-3xl border p-6",
         dark
           ? "border-brand-400/30 bg-gradient-to-br from-ink-950 via-ink-900 to-brand-900/70 text-white shadow-[0_30px_70px_-30px_rgba(37,99,235,0.55)] motion-safe:hover:shadow-[0_36px_90px_-30px_rgba(37,99,235,0.75)] lg:z-10 lg:scale-[1.02]"
           : "border-mist-200 bg-white motion-safe:hover:border-mist-300 motion-safe:hover:shadow-[var(--shadow-card)]"
@@ -237,18 +239,16 @@ function PricingCard({ plan: p, copy: c, index }: { plan: Plan; copy: (typeof CO
 
       {p.highlight && (
         <span
+          role="note"
+          aria-label={c.bestseller}
           className={cn(
-            "bestseller-ring bestseller-glow",
-            p.key === "starter" && "phase-2",
-            "absolute -top-3 left-1/2 inline-flex -translate-x-1/2 items-center gap-1.5 whitespace-nowrap",
-            "rounded-full bg-gradient-to-r from-cyan-400 via-cyan-300 to-brand-400 px-3.5 py-1.5",
-            "text-[10px] font-bold uppercase tracking-[0.1em] text-ink-900"
+            "ribbon-shine pointer-events-none absolute -right-[52px] top-[26px] z-20 w-[180px] rotate-45",
+            "bg-gradient-to-r from-cyan-400 via-cyan-300 to-brand-400",
+            "py-1.5 text-center text-[10px] font-bold uppercase tracking-[0.12em] text-ink-900",
+            "shadow-[0_8px_18px_-6px_rgba(34,211,238,0.7)]"
           )}
         >
-          <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-            <path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" />
-          </svg>
-          {c.bestseller}
+          {c.ribbon}
         </span>
       )}
 
@@ -333,7 +333,7 @@ function PricingCard({ plan: p, copy: c, index }: { plan: Plan; copy: (typeof CO
         <Button
           href={p.cta.href}
           size="md"
-          variant="secondary"
+          variant={p.highlight ? "primary" : "secondary"}
           className="mt-6 w-full justify-center"
         >
           {p.cta.label}
@@ -343,26 +343,38 @@ function PricingCard({ plan: p, copy: c, index }: { plan: Plan; copy: (typeof CO
         <div
           aria-hidden
           className={cn(
-            "mt-6 h-px",
+            "mt-6",
             dark
-              ? "bg-gradient-to-r from-transparent via-white/15 to-transparent"
-              : "bg-gradient-to-r from-transparent via-mist-200 to-transparent"
+              ? "h-0.5 bg-gradient-to-r from-transparent via-white/35 to-transparent"
+              : "h-px bg-gradient-to-r from-transparent via-mist-200 to-transparent"
           )}
         />
 
+        {/* "Everything in the previous plan, plus:" — only on tiers above the first */}
+        {index > 0 && (
+          <p
+            className={cn(
+              "mt-5 text-[11px] font-medium tracking-wide",
+              dark ? "text-white/55" : "text-mist-400"
+            )}
+          >
+            {c.everything}
+          </p>
+        )}
+
         {/* Features */}
-        <ul className="mt-5 space-y-2.5">
+        <ul className={cn("space-y-2.5", index > 0 ? "mt-3" : "mt-5")}>
           {p.features.map((f) => (
             <li
               key={f}
               className={cn(
-                "flex items-start gap-2.5 text-[13px]",
-                dark ? "text-white/85" : "text-ink-800"
+                "feat-row flex items-start gap-2.5 text-[13px] transition-colors",
+                dark ? "text-white/85 hover:text-white" : "text-ink-800 hover:text-ink-950"
               )}
             >
               <span
                 className={cn(
-                  "mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full",
+                  "feat-check mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full",
                   dark
                     ? "bg-cyan-400/15 text-cyan-300 ring-1 ring-cyan-300/30"
                     : "bg-brand-50 text-brand-700 ring-1 ring-brand-100"

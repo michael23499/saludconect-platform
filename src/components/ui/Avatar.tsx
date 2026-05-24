@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import { cn } from "@/lib/cn";
 
 export function Avatar({
@@ -11,6 +14,11 @@ export function Avatar({
   size?: "xs" | "sm" | "md" | "lg" | "xl";
   className?: string;
 }) {
+  // Si la imagen falla al cargar (p.ej. avatar de Google bloqueado por el
+  // referrer, o URL caída), caemos a las iniciales en vez de mostrar el icono
+  // de imagen rota.
+  const [failed, setFailed] = useState(false);
+
   const sizes = {
     xs: "h-6 w-6 text-[10px]",
     sm: "h-8 w-8 text-xs",
@@ -33,19 +41,26 @@ export function Avatar({
     "from-indigo-600 to-brand-500",
   ];
   const grad = palette[hash % palette.length];
+  const showImg = Boolean(src) && !failed;
   return (
     <span
       className={cn(
-        "inline-flex items-center justify-center rounded-full font-semibold text-white bg-gradient-to-br ring-2 ring-white",
+        "inline-flex items-center justify-center overflow-hidden rounded-full font-semibold text-white bg-gradient-to-br ring-2 ring-white",
         grad,
         sizes[size],
         className
       )}
       aria-label={name}
     >
-      {src ? (
+      {showImg ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={src} alt={name} className="h-full w-full rounded-full object-cover" />
+        <img
+          src={src}
+          alt={name}
+          referrerPolicy="no-referrer"
+          onError={() => setFailed(true)}
+          className="h-full w-full rounded-full object-cover"
+        />
       ) : (
         initials
       )}

@@ -5,6 +5,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Providers } from "@/components/providers/Providers";
 import { ChatWidget } from "@/components/chat/ChatWidget";
+import { TopProgress } from "@/components/ui/TopProgress";
 import { getCurrentUser } from "@backend/auth";
 import { getLang } from "@/lib/i18n-server";
 
@@ -60,6 +61,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body className="min-h-screen antialiased" suppressHydrationWarning>
         <Providers initialLang={lang}>
+          <TopProgress />
           <Header user={userForHeader} />
           <main className="min-h-[calc(100vh-4rem)]">{children}</main>
           <Footer />
