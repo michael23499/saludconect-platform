@@ -54,6 +54,28 @@
   --radius-xl: 28px;
 }
 
+/* Cursor pointer en elementos interactivos. Tailwind v4 eliminó el
+   `cursor: pointer` por defecto de los <button>; lo reponemos globalmente
+   para botones y elementos con role="button" que no estén deshabilitados. */
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+}
+
+/* Centra ópticamente las iniciales (mayúsculas) dentro del círculo del avatar.
+   Con `items-center` el flex centra la CAJA de línea, pero las mayúsculas se
+   apoyan en la baseline y dejan el hueco del descendente debajo → el glifo queda
+   ópticamente alto. Compensamos bajando el texto 0.1em (relativo al tamaño de
+   fuente, así escala en avatares grandes y pequeños). Va sobre el <span> que
+   envuelve SOLO las iniciales, nunca sobre el círculo. Universal (sin depender
+   de text-box-trim, que no todos los navegadores soportan aún). */
+@utility avatar-initials {
+  display: block;
+  transform: translateY(0.1em);
+}
+
 /* Semantic surface tokens used across light/dark */
 :root {
   --bg: #ffffff;
@@ -101,6 +123,12 @@ html, body {
 .dark .bg-white { background-color: var(--surface) !important; }
 .dark .bg-mist-50 { background-color: var(--bg-soft) !important; }
 .dark .bg-mist-100 { background-color: var(--bg-muted) !important; }
+/* Las variantes `hover:` no las cubren los selectores de arriba (apuntan a la
+   clase base, no a `.hover\:bg-…:hover`). Sin esto, cualquier fila/opción con
+   `hover:bg-mist-50/100` se vuelve BLANCA al pasar el ratón en modo oscuro y el
+   texto claro encima queda ilegible (dropdowns de filtros, sidebar, etc.). */
+.dark .hover\:bg-mist-50:hover { background-color: var(--bg-soft) !important; }
+.dark .hover\:bg-mist-100:hover { background-color: var(--bg-muted) !important; }
 .dark .bg-mist-50\/40 { background-color: color-mix(in oklab, var(--surface-soft) 70%, transparent) !important; }
 .dark .bg-mist-50\/50 { background-color: color-mix(in oklab, var(--surface-soft) 80%, transparent) !important; }
 .dark .bg-mist-50\/60 { background-color: color-mix(in oklab, var(--surface-soft) 90%, transparent) !important; }
@@ -121,6 +149,83 @@ html, body {
 /* Header surface adjusts */
 .dark .bg-white\/80 { background-color: color-mix(in oklab, var(--surface) 80%, transparent) !important; }
 .dark .border-mist-200\/80 { border-color: color-mix(in oklab, var(--border) 80%, transparent) !important; }
+
+/* ───────────────────────────────────────────────────────────────────────
+   Dark mode — rampas de ACENTO (brand / cyan / emerald / amber / red / indigo).
+   Muchísimos componentes usan superficies y chips claros (`bg-<color>-50`),
+   texto del mismo tono oscuro (`text-<color>-700/800`) y bordes claros
+   (`border-<color>-100/200`) pensados para fondo blanco. En oscuro hay que
+   invertirlos: superficie = tinte translúcido del color, texto = tono CLARO.
+   Se centraliza aquí para no repetir `dark:` en decenas de componentes.
+   Nota: en oscuro el acento de marca (brand) se representa con CIAN, que es la
+   identidad oscura del proyecto (ver .dark .text-gradient-brand más abajo).
+   ─────────────────────────────────────────────────────────────────────── */
+
+/* Superficies -50 (estáticas y con opacidad) → tinte translúcido del color */
+.dark .bg-brand-50,
+.dark .bg-brand-50\/30, .dark .bg-brand-50\/40, .dark .bg-brand-50\/50, .dark .bg-brand-50\/60 {
+  background-color: color-mix(in oklab, #43719f 22%, transparent) !important;
+}
+.dark .bg-cyan-50, .dark .bg-cyan-50\/40 {
+  background-color: color-mix(in oklab, #01abd4 18%, transparent) !important;
+}
+.dark .bg-emerald-50, .dark .bg-emerald-50\/60, .dark .bg-emerald-50\/70 {
+  background-color: color-mix(in oklab, #10b981 16%, transparent) !important;
+}
+.dark .bg-amber-50, .dark .bg-amber-50\/60, .dark .bg-amber-50\/70 {
+  background-color: color-mix(in oklab, #f59e0b 16%, transparent) !important;
+}
+.dark .bg-red-50 { background-color: color-mix(in oklab, #ef4444 16%, transparent) !important; }
+.dark .bg-indigo-50 { background-color: color-mix(in oklab, #6366f1 16%, transparent) !important; }
+
+/* Superficies -50 en HOVER → mismo tinte, sólo al pasar el ratón */
+.dark .hover\:bg-brand-50:hover,
+.dark .hover\:bg-brand-50\/30:hover, .dark .hover\:bg-brand-50\/40:hover,
+.dark .hover\:bg-brand-50\/50:hover, .dark .hover\:bg-brand-50\/60:hover {
+  background-color: color-mix(in oklab, #43719f 24%, transparent) !important;
+}
+.dark .hover\:bg-cyan-50:hover, .dark .hover\:bg-cyan-50\/60:hover {
+  background-color: color-mix(in oklab, #01abd4 20%, transparent) !important;
+}
+.dark .hover\:bg-emerald-50:hover { background-color: color-mix(in oklab, #10b981 18%, transparent) !important; }
+.dark .hover\:bg-amber-50:hover { background-color: color-mix(in oklab, #f59e0b 18%, transparent) !important; }
+.dark .hover\:bg-red-50:hover { background-color: color-mix(in oklab, #ef4444 18%, transparent) !important; }
+
+/* Rings de acento claros → translúcidos del mismo tono */
+.dark .ring-brand-50, .dark .ring-brand-100 { --tw-ring-color: color-mix(in oklab, #43719f 35%, transparent) !important; }
+.dark .ring-brand-200 { --tw-ring-color: color-mix(in oklab, #43719f 48%, transparent) !important; }
+.dark .ring-cyan-50, .dark .ring-cyan-200 { --tw-ring-color: color-mix(in oklab, #01abd4 38%, transparent) !important; }
+.dark .ring-emerald-200 { --tw-ring-color: color-mix(in oklab, #10b981 40%, transparent) !important; }
+.dark .ring-amber-100 { --tw-ring-color: color-mix(in oklab, #f59e0b 35%, transparent) !important; }
+
+/* Texto de acento (tonos oscuros) → tono CLARO legible sobre superficie oscura */
+.dark .text-brand-600, .dark .text-brand-700, .dark .text-brand-800 { color: #67e8f9 !important; }
+.dark .text-cyan-600, .dark .text-cyan-700, .dark .text-cyan-800 { color: #67e8f9 !important; }
+.dark .text-emerald-600, .dark .text-emerald-700, .dark .text-emerald-800 { color: #6ee7b7 !important; }
+.dark .text-amber-600, .dark .text-amber-700, .dark .text-amber-800 { color: #fcd34d !important; }
+.dark .text-red-600, .dark .text-red-700, .dark .text-red-800 { color: #f87171 !important; }
+
+/* Las mismas conversiones para los estados hover/group-hover (apuntan a la
+   clase con su pseudo, no a la base) — si no, el texto vuelve a su tono oscuro
+   e ilegible al pasar el ratón en modo oscuro. */
+.dark .hover\:text-brand-600:hover, .dark .hover\:text-brand-700:hover, .dark .hover\:text-brand-800:hover,
+.dark .group:hover .group-hover\:text-brand-600, .dark .group:hover .group-hover\:text-brand-700 { color: #67e8f9 !important; }
+.dark .hover\:text-cyan-700:hover { color: #67e8f9 !important; }
+.dark .hover\:text-emerald-700:hover { color: #6ee7b7 !important; }
+.dark .hover\:text-amber-700:hover, .dark .hover\:text-amber-800:hover { color: #fcd34d !important; }
+.dark .hover\:text-red-600:hover, .dark .hover\:text-red-700:hover, .dark .hover\:text-red-800:hover { color: #f87171 !important; }
+
+/* Bordes de acento claros → translúcidos del mismo tono */
+.dark .border-brand-100 { border-color: color-mix(in oklab, #43719f 35%, transparent) !important; }
+.dark .border-brand-200 { border-color: color-mix(in oklab, #43719f 48%, transparent) !important; }
+.dark .border-cyan-100 { border-color: color-mix(in oklab, #01abd4 32%, transparent) !important; }
+.dark .border-cyan-200 { border-color: color-mix(in oklab, #01abd4 42%, transparent) !important; }
+.dark .border-emerald-100 { border-color: color-mix(in oklab, #10b981 30%, transparent) !important; }
+.dark .border-emerald-200, .dark .border-emerald-300 { border-color: color-mix(in oklab, #10b981 42%, transparent) !important; }
+.dark .border-amber-100 { border-color: color-mix(in oklab, #f59e0b 30%, transparent) !important; }
+.dark .border-amber-200 { border-color: color-mix(in oklab, #f59e0b 42%, transparent) !important; }
+.dark .border-red-100 { border-color: color-mix(in oklab, #ef4444 30%, transparent) !important; }
+.dark .border-red-200 { border-color: color-mix(in oklab, #ef4444 42%, transparent) !important; }
 
 * { border-color: var(--border); }
 
@@ -201,6 +306,29 @@ html, body {
 @keyframes ribbon-shine { 0%, 100% { background-position: 0% 0; } 50% { background-position: 100% 0; } }
 .ribbon-shine { background-size: 220% 100%; animation: ribbon-shine 3.6s ease-in-out infinite; }
 
+/* Pricing CTA — destello (sheen) que barre el botón al pasar el ratón.
+   El color del barrido se controla por botón con la variable --shine, para que
+   contraste sobre fondos oscuros (blanco) o claros (cian de marca). */
+@keyframes cta-sweep {
+  from { transform: translateX(-130%) skewX(-18deg); }
+  to   { transform: translateX(130%) skewX(-18deg); }
+}
+.cta-shine { position: relative; overflow: hidden; }
+.cta-shine::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 60%;
+  transform: translateX(-130%) skewX(-18deg);
+  background: linear-gradient(90deg, transparent, var(--shine, rgba(255, 255, 255, 0.5)), transparent);
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .cta-shine:hover::after { animation: cta-sweep 0.7s ease-out; }
+}
+
 /* Animations */
 @keyframes float-y { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-8px) } }
 .animate-float { animation: float-y 6s ease-in-out infinite; }
@@ -220,6 +348,12 @@ html, body {
    browsers without JS (or before hydration) still see the content. */
 html.js .fade-up { opacity: 0; transform: translateY(10px); }
 html.js .fade-up.in { animation: fade-up .6s cubic-bezier(.22,.61,.36,1) both; }
+
+/* Variante para elementos que se REMONTAN (p.ej. dentro de un contenedor con
+   `key` que cambia, como las tarjetas del JourneyTabs al alternar de rol): anima
+   al montar sin depender del IntersectionObserver/`.in`. Con `both` siempre
+   termina visible, así nunca se quedan "en blanco" si el observer ya pasó. */
+.reveal-up { animation: fade-up .6s cubic-bezier(.22,.61,.36,1) both; }
 
 @keyframes scale-in {
   from { opacity: 0; transform: scale(.96); }
@@ -489,5 +623,5 @@ html.js .fade-up.in { animation: fade-up .6s cubic-bezier(.22,.61,.36,1) both; }
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
   }
-  .fade-up { opacity: 1; transform: none; }
+  .fade-up, .reveal-up { opacity: 1; transform: none; }
 }

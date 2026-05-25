@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Logo } from "@/components/ui/Logo";
 import { Badge } from "@/components/ui/Badge";
 import { Field, Input } from "@/components/ui/Input";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { SelectMenu } from "@/components/ui/SelectMenu";
 import { AnimatedCheckbox } from "@/components/ui/AnimatedCheckbox";
 import { Button } from "@/components/ui/Button";
@@ -132,7 +133,7 @@ function FormClinica() {
             options={["1 - 5 profesionales", "6 - 20 profesionales", "21 - 50 profesionales", "+50 profesionales"]}
           />
         </Field>
-        <Field label="Contraseña" className="md:col-span-2"><Input type="password" placeholder="Mínimo 10 caracteres" /></Field>
+        <Field label="Contraseña" className="md:col-span-2"><PasswordInput placeholder="Mínimo 10 caracteres" /></Field>
       </div>
       <AnimatedCheckbox name="trial" className="mt-1">
         Quiero empezar mi prueba gratuita de <strong>14 días</strong> en el plan <strong>Clínica Pro</strong>
@@ -162,7 +163,7 @@ function FormProfesional() {
         <Field label="Número de colegiado"><Input placeholder="28-049-381" /></Field>
         <Field label="Email"><Input type="email" placeholder="tu@email.com" /></Field>
         <Field label="Teléfono"><Input type="tel" placeholder="+34 600 00 00 00" /></Field>
-        <Field label="Contraseña" className="md:col-span-2"><Input type="password" placeholder="Mínimo 10 caracteres" /></Field>
+        <Field label="Contraseña" className="md:col-span-2"><PasswordInput placeholder="Mínimo 10 caracteres" /></Field>
       </div>
       <AnimatedCheckbox name="docs_consent" required className="mt-1">
         Acepto que SaludCoNet valide mi documentación profesional

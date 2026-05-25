@@ -65,7 +65,7 @@ export function ReputationSection() {
                 { i: "◆", t: c.fact4, d: c.fact4d },
               ].map((f) => (
                 <li key={f.t} className="flex items-start gap-3">
-                  <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand-50 to-cyan-50 text-base text-brand-700">
+                  <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand-50 to-cyan-50 text-base text-brand-700 dark:from-brand-500/20 dark:to-cyan-500/15">
                     {f.i}
                   </span>
                   <div>

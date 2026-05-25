@@ -11,6 +11,9 @@
     "db:test-users": "tsx backend/scripts/test-users-table.ts",
     "db:migrate-role-enum": "tsx backend/scripts/migrate-role-enum.ts",
     "db:push": "drizzle-kit push",
+    "db:seed-specialties": "tsx backend/scripts/seed-specialties.ts",
+    "db:seed-test": "tsx backend/scripts/seed-test-data.ts",
+    "db:backfill-profiles": "tsx backend/scripts/backfill-profiles.ts",
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {

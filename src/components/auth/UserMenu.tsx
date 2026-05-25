@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { SignOutButton } from "./SignOutButton";
+import { CopyEmail } from "@/components/ui/CopyEmail";
 import { useApp } from "@/components/providers/Providers";
 
 type Role = "professional" | "clinic" | "admin";
@@ -81,9 +82,11 @@ export function UserMenu({ fullName, email, avatarUrl, role }: Props) {
             label: a.mAccount,
             items: [
               { href: base, label: a.mMyPanel, icon: <IconDashboard />, shortcut: "⌘D" },
+              { href: `${base}/surgeries`, label: a.mSurgeries, icon: <IconActivity /> },
+              { href: `${base}/publish`, label: a.mPublish, icon: <IconPlus /> },
+              { href: `${base}/notifications`, label: a.mNotifications, icon: <IconBell /> },
               { href: `${base}/calendar`, label: a.mCalendar, icon: <IconCalendar /> },
               { href: `${base}/bookings`, label: a.mBookings, icon: <IconBookmark /> },
-              { href: `${base}/publish`, label: a.mPublish, icon: <IconPlus /> },
               { href: `${base}/team`, label: a.mTeam, icon: <IconTeam /> },
               { href: `${base}/messages`, label: a.mMessages, icon: <IconChat />, shortcut: "⌘M" },
             ],
@@ -102,6 +105,8 @@ export function UserMenu({ fullName, email, avatarUrl, role }: Props) {
             label: a.mAccount,
             items: [
               { href: base, label: a.mMyPanel, icon: <IconDashboard />, shortcut: "⌘D" },
+              { href: `${base}/surgeries`, label: a.mSurgeries, icon: <IconActivity /> },
+              { href: `${base}/notifications`, label: a.mNotifications, icon: <IconBell /> },
               { href: `${base}/calendar`, label: a.mMyCalendar, icon: <IconCalendar /> },
               { href: `${base}/bookings`, label: a.mMyBookings, icon: <IconBookmark /> },
               { href: `${base}/messages`, label: a.mMessages, icon: <IconChat />, shortcut: "⌘M" },
@@ -166,13 +171,16 @@ export function UserMenu({ fullName, email, avatarUrl, role }: Props) {
           <Link
             href={settingsHref}
             onClick={() => setOpen(false)}
-            className="group block border-b border-mist-200 bg-gradient-to-br from-brand-50 to-cyan-50/40 p-4 transition hover:from-brand-50 hover:to-cyan-50/60"
+            className="group block border-b border-mist-200 bg-gradient-to-br from-brand-50 to-cyan-50/40 p-4 transition hover:from-brand-50 hover:to-cyan-50/60 dark:from-brand-500/15 dark:to-cyan-500/10 dark:hover:from-brand-500/25 dark:hover:to-cyan-500/15"
           >
             <div className="flex items-center gap-3">
               <Avatar src={avatarUrl} initials={initials} variant="lg" />
               <div className="min-w-0 flex-1">
                 <div className="truncate text-sm font-semibold text-ink-900">{fullName || a.noName}</div>
-                <div className="truncate text-xs text-mist-500">{email}</div>
+                <div className="flex items-center gap-1.5">
+                  <span className="truncate text-xs text-mist-500">{email}</span>
+                  {email && <CopyEmail email={email} />}
+                </div>
                 <div className="mt-1.5 inline-flex items-center gap-1.5 text-[11px] text-mist-500">
                   <span className={`h-1.5 w-1.5 rounded-full ${roleMeta.dotClass}`} />
                   {roleMeta.label}
@@ -243,9 +251,9 @@ function Avatar({ src, initials, variant }: { src: string | null; initials: stri
   }
   return (
     <span
-      className={`${cls} inline-flex items-center justify-center rounded-full bg-gradient-to-br from-brand-600 to-brand-500 font-semibold text-white ring-1 ring-brand-700/10`}
+      className={`${cls} inline-flex items-center justify-center rounded-full bg-gradient-to-br from-brand-600 to-brand-500 font-semibold leading-none text-white ring-1 ring-brand-700/10`}
     >
-      {initials || "?"}
+      <span className="avatar-initials">{initials || "?"}</span>
     </span>
   );
 }
@@ -321,6 +329,22 @@ function IconUser() {
     <svg className="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
       <circle cx="12" cy="7" r="4" />
+    </svg>
+  );
+}
+function IconActivity() {
+  return (
+    <svg className="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M3 12h3l2 5 4-12 2 7h2" />
+      <circle cx="19.5" cy="12" r="1.4" />
+    </svg>
+  );
+}
+function IconBell() {
+  return (
+    <svg className="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+      <path d="M13.7 21a2 2 0 0 1-3.4 0" />
     </svg>
   );
 }

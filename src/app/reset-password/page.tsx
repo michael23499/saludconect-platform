@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Logo } from "@/components/ui/Logo";
 import { RecuperarForm } from "./RecuperarForm";
 import { AuthHeading } from "@/components/auth/AuthHeading";

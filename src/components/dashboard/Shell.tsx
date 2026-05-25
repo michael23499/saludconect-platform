@@ -30,6 +30,9 @@ export function DashboardShell({
 
   // Close drawer on route change
   useEffect(() => {
+    // Cierra el drawer móvil al navegar (cambia el pathname). Sincronización con
+    // el router; setState puntual por navegación, no cascada.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setOpen(false);
   }, [path]);
 
@@ -120,8 +123,14 @@ function SidebarBody({
   const { t } = useApp();
   const navDict = t.dashboard.nav;
   const eyebrowColor = accent === "admin" ? "text-amber-600" : "text-brand-600";
-  const activeItemCls = accent === "admin" ? "bg-amber-50 text-amber-700" : "bg-brand-50 text-brand-700";
-  const activeIconCls = accent === "admin" ? "border-amber-200 bg-white text-amber-700" : "border-brand-200 bg-white text-brand-700";
+  const activeItemCls =
+    accent === "admin"
+      ? "bg-amber-50 text-amber-700 dark:bg-amber-400/10 dark:text-amber-300"
+      : "bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-cyan-300";
+  const activeIconCls =
+    accent === "admin"
+      ? "border-amber-200 bg-white text-amber-700 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-300"
+      : "border-brand-200 bg-white text-brand-700 dark:border-brand-500/30 dark:bg-brand-500/15 dark:text-cyan-300";
   return (
     <>
       <div className="border-b border-mist-200 p-5">
@@ -148,7 +157,7 @@ function SidebarBody({
               href={n.href}
               className={cn(
                 "flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition",
-                active ? activeItemCls : "text-ink-800 hover:bg-mist-50"
+                active ? activeItemCls : "text-ink-800 hover:bg-mist-50 dark:hover:bg-white/5"
               )}
             >
               <span className="inline-flex items-center gap-3">
@@ -186,18 +195,34 @@ export function PageHeader({
   title,
   subtitle,
   actions,
+  backHref,
+  backLabel = "Volver",
 }: {
   title: string;
   subtitle?: string;
   actions?: ReactNode;
+  /** Si se pasa, muestra una flecha "← volver" encima del título. */
+  backHref?: string;
+  backLabel?: string;
 }) {
   return (
-    <div className="mb-7 flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-ink-900 md:text-3xl">{title}</h1>
-        {subtitle && <p className="mt-1 text-sm text-mist-500">{subtitle}</p>}
+    <div className="mb-7">
+      {backHref && (
+        <Link
+          href={backHref}
+          className="mb-3 inline-flex items-center gap-1.5 text-sm font-medium text-mist-500 transition hover:text-brand-700 dark:hover:text-cyan-300"
+        >
+          <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
+          {backLabel}
+        </Link>
+      )}
+      <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-ink-900 md:text-3xl">{title}</h1>
+          {subtitle && <p className="mt-1 text-sm text-mist-500">{subtitle}</p>}
+        </div>
+        {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
       </div>
-      {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
     </div>
   );
 }

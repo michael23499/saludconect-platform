@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import { useFormStatus } from "react-dom";
-import { Field, Input, Checkbox } from "@/components/ui/Input";
+import { Field, Input } from "@/components/ui/Input";
+import { PasswordInput } from "@/components/ui/PasswordInput";
+import { AnimatedCheckbox } from "@/components/ui/AnimatedCheckbox";
 import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
 import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
@@ -30,6 +32,21 @@ export function LoginForm() {
 
   const [detected, setDetected] = useState<DetectedOAuth | null>(null);
 
+  // "Recordarme": si está activo, guardamos el email para prerrellenarlo la
+  // próxima vez. Lectura inicial perezosa del localStorage (sin effect que
+  // dispare setState al montar). El Input tiene suppressHydrationWarning.
+  const REMEMBER_KEY = "scn:login-email";
+  const [email, setEmail] = useState(() =>
+    typeof window !== "undefined" ? localStorage.getItem(REMEMBER_KEY) ?? "" : "",
+  );
+  const [remember, setRemember] = useState(() =>
+    typeof window !== "undefined" ? !!localStorage.getItem(REMEMBER_KEY) : false,
+  );
+  useEffect(() => {
+    if (remember && email.trim()) localStorage.setItem(REMEMBER_KEY, email.trim());
+    else localStorage.removeItem(REMEMBER_KEY);
+  }, [remember, email]);
+
   const oauth: DetectedOAuth | null =
     detected ??
     (state && state.kind === "oauth-only"
@@ -51,20 +68,23 @@ export function LoginForm() {
   return (
     <>
       <form action={formAction} className="mt-8 space-y-4">
-        <EmailField onDetectOAuth={(email, providers) => setDetected({ email, providers })} />
+        <EmailField
+          value={email}
+          onChange={setEmail}
+          onDetectOAuth={(em, providers) => setDetected({ email: em, providers })}
+        />
         <Field label={a.password}>
-          <Input
+          <PasswordInput
             name="password"
-            type="password"
             placeholder={a.passwordPlaceholder}
             required
             autoComplete="current-password"
           />
         </Field>
         <div className="flex items-center justify-between">
-          <label className="flex items-center gap-2 text-sm text-ink-800">
-            <Checkbox /> {a.remember}
-          </label>
+          <AnimatedCheckbox name="remember" checked={remember} onCheckedChange={setRemember}>
+            {a.remember}
+          </AnimatedCheckbox>
           <Link href="/reset-password" className="text-sm font-semibold text-brand-700 hover:text-brand-800">
             {a.forgot}
           </Link>
@@ -106,13 +126,16 @@ const DEBOUNCE_MS = 600;
 const FAST_TRIGGER_TLDS = [".com", ".es", ".org", ".net", ".io", ".dev", ".co", ".eu"];
 
 function EmailField({
+  value,
+  onChange,
   onDetectOAuth,
 }: {
+  value: string;
+  onChange: (v: string) => void;
   onDetectOAuth: (email: string, providers: string[]) => void;
 }) {
   const { t } = useApp();
   const a = t.auth;
-  const [value, setValue] = useState("");
   const [checked, setChecked] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [hint, setHint] = useState<string | null>(null);
@@ -158,7 +181,7 @@ function EmailField({
           autoComplete="email"
           value={value}
           onChange={(e) => {
-            setValue(e.target.value);
+            onChange(e.target.value);
             if (hint) setHint(null);
           }}
           className={isPending ? "pr-11 transition-[padding] duration-200" : "transition-[padding] duration-200"}

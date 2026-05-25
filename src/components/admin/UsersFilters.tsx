@@ -158,12 +158,14 @@ function RoleSelect({
                 onClick={() => { onChange(o.value); setOpen(false); }}
                 className={
                   "flex w-full items-center justify-between gap-6 rounded-lg px-3.5 py-2.5 text-left text-sm transition " +
-                  (active ? "bg-brand-50 font-medium text-brand-700" : "text-ink-800 hover:bg-mist-50")
+                  (active
+                    ? "bg-brand-50 font-medium text-brand-700 dark:bg-white/10 dark:text-cyan-300"
+                    : "text-ink-800 hover:bg-mist-50")
                 }
               >
                 {o.label}
                 {active && (
-                  <svg className="h-4 w-4 text-brand-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M5 12l4.5 4.5L19 7" /></svg>
+                  <svg className="h-4 w-4 text-brand-600 dark:text-cyan-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M5 12l4.5 4.5L19 7" /></svg>
                 )}
               </button>
             );
@@ -311,7 +313,7 @@ function DateRangePicker({
                           : selected
                             ? "bg-brand-600 font-semibold text-white"
                             : inRange
-                              ? "bg-brand-50 text-brand-700"
+                              ? "bg-brand-50 text-brand-700 dark:bg-brand-500/25 dark:text-cyan-200"
                               : inMonth
                                 ? "text-ink-800 hover:bg-mist-100"
                                 : "text-mist-300 hover:bg-mist-50")
@@ -328,11 +330,11 @@ function DateRangePicker({
             <div className="flex flex-col border-l border-mist-100 pl-3" style={{ width: 150 }}>
               <div className="mb-2 px-2.5 text-[11px] font-semibold uppercase tracking-wide text-mist-400">{d.colJoined}</div>
               <div className="flex flex-col gap-1">
-                <button type="button" onClick={() => { setDraftFrom(null); setDraftTo(null); }} className="rounded-lg px-2.5 py-1.5 text-left text-[13px] font-medium text-mist-600 transition hover:bg-mist-50 hover:text-brand-700">
+                <button type="button" onClick={() => { setDraftFrom(null); setDraftTo(null); }} className="rounded-lg px-2.5 py-1.5 text-left text-[13px] font-medium text-mist-600 transition hover:bg-mist-50 hover:text-brand-700 dark:text-slate-300 dark:hover:text-cyan-300">
                   {d.anyDate}
                 </button>
                 {[{ l: d.last7, n: 7 }, { l: d.last30, n: 30 }, { l: d.last90, n: 90 }].map((p) => (
-                  <button key={p.n} type="button" onClick={() => applyPreset(p.n)} className="rounded-lg px-2.5 py-1.5 text-left text-[13px] font-medium text-mist-600 transition hover:bg-mist-50 hover:text-brand-700">
+                  <button key={p.n} type="button" onClick={() => applyPreset(p.n)} className="rounded-lg px-2.5 py-1.5 text-left text-[13px] font-medium text-mist-600 transition hover:bg-mist-50 hover:text-brand-700 dark:text-slate-300 dark:hover:text-cyan-300">
                     {p.l}
                   </button>
                 ))}

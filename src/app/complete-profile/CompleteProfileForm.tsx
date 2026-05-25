@@ -39,6 +39,21 @@ export function CompleteProfileForm({ defaultFullName, email }: Props) {
         <input type="hidden" name="role" value={role} />
       </div>
 
+      {role === "professional" && (
+        <div className="rounded-xl border border-brand-100 bg-brand-50/60 px-3.5 py-3">
+          <div className="text-[11px] font-semibold uppercase tracking-wider text-brand-700">
+            Especialidad
+          </div>
+          <div className="mt-0.5 flex items-center gap-2 text-sm font-medium text-ink-900">
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-brand-600" />
+            Microinjerto capilar
+          </div>
+          <p className="mt-1 text-[11px] text-mist-500">
+            Por ahora SaludCoNet opera en microinjerto capilar. Pronto añadiremos más áreas.
+          </p>
+        </div>
+      )}
+
       <Field label={a.fullName}>
         <Input
           name="fullName"

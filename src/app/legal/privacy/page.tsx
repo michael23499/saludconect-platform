@@ -10,7 +10,7 @@ export default function PrivacidadPage() {
       intro="En SaludCoNet nos tomamos la protección de datos personales tan en serio como tu clínica se toma a sus pacientes."
     >
       <h2>1. Responsable del tratamiento</h2>
-      <p>El responsable del tratamiento de tus datos personales es SaludCoNet S.L. (en adelante, "SaludCoNet"), con domicilio en Madrid, España, y CIF B-00000000. Puedes contactar con nuestra Delegada de Protección de Datos en <a href="mailto:dpd@saludconet.demo">dpd@saludconet.demo</a>.</p>
+      <p>El responsable del tratamiento de tus datos personales es SaludCoNet S.L. (en adelante, “SaludCoNet”), con domicilio en Madrid, España, y CIF B-00000000. Puedes contactar con nuestra Delegada de Protección de Datos en <a href="mailto:dpd@saludconet.demo">dpd@saludconet.demo</a>.</p>
 
       <h2>2. Datos que tratamos</h2>
       <p>Tratamos los datos que tú nos facilitas al registrarte, completar tu perfil, contratar nuestros servicios o ponerte en contacto con nosotros. Esto incluye, según corresponda:</p>

@@ -19,26 +19,13 @@ const SHIFTS = [
 
 type ShiftId = (typeof SHIFTS)[number]["id"];
 
+// Avatares ilustrativos del mockup (solo para animar la tira de "compatibles").
+// No afirman ser usuarios reales: son una demostración visual de la interfaz.
 const CANDIDATES = [
-  { name: "Lucía Martín", role: "Cardióloga · 12 a", rating: "4.9" },
-  { name: "Andrés Cano", role: "Cardiólogo · 8 a", rating: "4.8" },
-  { name: "Marta Vives", role: "Cardióloga · 15 a", rating: "5.0" },
+  { name: "Ana López" },
+  { name: "Carlos Ruiz" },
+  { name: "Marta Vives" },
 ];
-
-const NETWORK_SIZE_BY_SPECIALTY: Record<string, number> = {
-  Cardiología: 524,
-  Pediatría: 612,
-  Odontología: 488,
-  Fisioterapia: 731,
-  Psicología: 402,
-  Dermatología: 356,
-  "Enfermería general": 1240,
-  Ginecología: 298,
-  Traumatología: 341,
-  Oftalmología: 274,
-  Radiología: 211,
-  Anestesia: 165,
-};
 
 export function LiveRequestCard() {
   const [specialty, setSpecialty] = useState("Cardiología");
@@ -53,7 +40,6 @@ export function LiveRequestCard() {
 
   useEffect(() => () => timeouts.current.forEach(clearTimeout), []);
 
-  const networkSize = NETWORK_SIZE_BY_SPECIALTY[specialty] ?? 320;
   const shiftDef = SHIFTS.find((s) => s.id === shift) ?? SHIFTS[0];
 
   const onPublish = () => {
@@ -214,7 +200,7 @@ export function LiveRequestCard() {
               <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor" aria-hidden>
                 <path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z" />
               </svg>
-              Publicar a {networkSize.toLocaleString("es-ES")} profesionales
+              Publicar solicitud
             </>
           )}
         </button>
@@ -243,16 +229,10 @@ export function LiveRequestCard() {
             </div>
             <div className="min-w-0 leading-tight">
               <div className={cn("text-[12px] font-semibold transition-colors", published ? "text-emerald-800" : "text-ink-700")}>
-                {published ? (
-                  <>
-                    <span className="tabular-nums">{visibleMatches}</span> compatible{visibleMatches === 1 ? "" : "s"} ahora
-                  </>
-                ) : (
-                  "Listos para responder"
-                )}
+                {published ? "Solicitud activa" : "Listos para responder"}
               </div>
               <div className={cn("text-[11px] transition-colors", published ? "text-emerald-700/70" : "text-mist-500")}>
-                {published ? `+${Math.max(networkSize - visibleMatches - 12, 0)} ya recibieron la oferta` : "Pulsa publicar para activar la red"}
+                {published ? "Los profesionales compatibles ya la reciben" : "Pulsa publicar para activar la red"}
               </div>
             </div>
             <svg

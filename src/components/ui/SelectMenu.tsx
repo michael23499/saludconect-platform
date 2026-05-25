@@ -109,6 +109,9 @@ export function SelectMenu({
     if (!open) return;
     if (showSearch) setTimeout(() => inputRef.current?.focus(), 0);
     const i = normalized.findIndex((o) => o.value === value);
+    // Sincroniza el índice activo y limpia la búsqueda al abrir el menú.
+    // setState puntual de apertura (no cascada): falso positivo de la regla.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setActiveIdx(i >= 0 ? i : 0);
     setQuery("");
   }, [open, showSearch, normalized, value]);
@@ -223,7 +226,11 @@ export function SelectMenu({
                     }}
                     className={cn(
                       "flex cursor-pointer items-center justify-between gap-2 px-3.5 py-2 text-[14px] transition",
-                      active ? "bg-brand-50 text-brand-800" : selected ? "text-brand-800" : "text-ink-800"
+                      active
+                        ? "bg-brand-50 text-brand-800 dark:bg-white/10 dark:text-white"
+                        : selected
+                          ? "text-brand-800 dark:text-cyan-300"
+                          : "text-ink-800"
                     )}
                   >
                     <span className="min-w-0 truncate">
@@ -231,7 +238,7 @@ export function SelectMenu({
                       {o.hint && <span className="ml-2 text-xs text-mist-400">{o.hint}</span>}
                     </span>
                     {selected && (
-                      <svg className="h-4 w-4 shrink-0 text-brand-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden>
+                      <svg className="h-4 w-4 shrink-0 text-brand-600 dark:text-cyan-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden>
                         <path d="M5 12l4.5 4.5L19 7" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                     )}

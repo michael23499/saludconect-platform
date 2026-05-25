@@ -30,16 +30,12 @@ export function Providers({
   // El idioma inicial viene del servidor (cookie) → server y client coinciden,
   // sin flash ni hydration mismatch.
   const [lang, setLangState] = useState<Lang>(initialLang);
-  const [theme, setThemeState] = useState<Theme>("light");
-
-  // El theme sigue en localStorage (no necesita ser server-side; se aplica
-  // con el script inline del layout para evitar flash).
-  useEffect(() => {
-    try {
-      const storedTheme = localStorage.getItem("scn:theme") as Theme | null;
-      setThemeState(storedTheme === "dark" ? "dark" : "light");
-    } catch {}
-  }, []);
+  // El script inline del layout ya aplicó la clase `dark` desde localStorage
+  // antes de hidratar (evita flash). Inicializamos el estado leyendo esa clase
+  // del DOM: así no necesitamos un effect que haga setState al montar.
+  const [theme, setThemeState] = useState<Theme>(() =>
+    typeof document !== "undefined" && document.documentElement.classList.contains("dark") ? "dark" : "light",
+  );
 
   useEffect(() => {
     const root = document.documentElement;

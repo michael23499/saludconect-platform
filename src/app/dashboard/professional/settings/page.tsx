@@ -1,17 +1,56 @@
 import { DashboardShell, PageHeader } from "@/components/dashboard/Shell";
 import { SettingsTabs } from "@/components/dashboard/SettingsTabs";
-import { NAV_PRO, USER_PRO } from "@/lib/dashboard-nav";
+import type { AccountData } from "@/components/dashboard/AccountSettingsForm";
+import { NAV_PRO } from "@/lib/dashboard-nav";
+import { getDict } from "@/lib/i18n-server";
+import { requireRole } from "@backend/auth/guards";
+import { getProfessionalById } from "@backend/queries/professionals";
+import { getSpecialtyById } from "@backend/queries/specialties";
 
 export const metadata = { title: "Ajustes · Profesional · SaludCoNet" };
 
-export default function ProfesionalAjustesPage() {
+export default async function ProfesionalAjustesPage() {
+  const me = await requireRole("professional");
+  const p = (await getDict()).dashboard.prof;
+  const isAdmin = me.profile.role === "admin";
+  const user = {
+    name: me.profile.fullName,
+    subtitle: isAdmin ? "Administrador" : me.profile.city ? `Técnico capilar · ${me.profile.city}` : "Técnico capilar",
+    avatarUrl: me.profile.avatarUrl,
+  };
+
+  const professional = await getProfessionalById(me.profile.id);
+  const specialty = professional?.specialtyId ? await getSpecialtyById(professional.specialtyId) : null;
+  const account: AccountData = {
+    role: "professional",
+    fullName: me.profile.fullName,
+    email: me.profile.email,
+    phone: me.profile.phone ?? "",
+    city: me.profile.city ?? "",
+    address: me.profile.address ?? "",
+    postalCode: me.profile.postalCode ?? "",
+    lat: me.profile.lat,
+    lng: me.profile.lng,
+    avatarUrl: me.profile.avatarUrl,
+    specialtyName: specialty?.name ?? null,
+    headline: professional?.headline ?? "",
+    bio: professional?.bio ?? "",
+    yearsExperience: professional?.yearsExperience != null ? String(professional.yearsExperience) : "",
+    hourlyRate: professional?.hourlyRate != null ? String(professional.hourlyRate) : "",
+    clinicName: "",
+    about: "",
+    website: "",
+  };
+
   return (
-    <DashboardShell role="Profesional" user={USER_PRO} nav={NAV_PRO}>
+    <DashboardShell role="Profesional" user={user} nav={NAV_PRO}>
       <PageHeader
-        title="Ajustes"
-        subtitle="Gestiona tu perfil profesional, cobros, notificaciones y seguridad."
+        backHref="/dashboard/professional"
+        backLabel={p.back}
+        title={p.settingsTitle}
+        subtitle={p.settingsSubPro}
       />
-      <SettingsTabs role="professional" />
+      <SettingsTabs role="professional" account={account} />
     </DashboardShell>
   );
 }

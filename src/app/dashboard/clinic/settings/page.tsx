@@ -1,17 +1,54 @@
 import { DashboardShell, PageHeader } from "@/components/dashboard/Shell";
-import { NAV_CLINICA, USER_CLINICA } from "@/lib/dashboard-nav";
+import { NAV_CLINICA } from "@/lib/dashboard-nav";
 import { SettingsTabs } from "@/components/dashboard/SettingsTabs";
+import type { AccountData } from "@/components/dashboard/AccountSettingsForm";
+import { getDict } from "@/lib/i18n-server";
+import { requireRole } from "@backend/auth/guards";
+import { getClinicById } from "@backend/queries/clinics";
 
 export const metadata = { title: "Ajustes · SaludCoNet" };
 
-export default function AjustesPage() {
+export default async function AjustesPage() {
+  const me = await requireRole("clinic");
+  const p = (await getDict()).dashboard.prof;
+  const isAdmin = me.profile.role === "admin";
+  const user = {
+    name: me.profile.fullName,
+    subtitle: isAdmin ? "Administrador" : me.profile.city ? `Clínica · ${me.profile.city}` : "Clínica",
+    avatarUrl: me.profile.avatarUrl,
+  };
+
+  const clinic = await getClinicById(me.profile.id);
+  const account: AccountData = {
+    role: "clinic",
+    fullName: me.profile.fullName,
+    email: me.profile.email,
+    phone: me.profile.phone ?? "",
+    city: me.profile.city ?? "",
+    address: me.profile.address ?? "",
+    postalCode: me.profile.postalCode ?? "",
+    lat: me.profile.lat,
+    lng: me.profile.lng,
+    avatarUrl: me.profile.avatarUrl,
+    specialtyName: null,
+    headline: "",
+    bio: "",
+    yearsExperience: "",
+    hourlyRate: "",
+    clinicName: clinic?.clinicName ?? "",
+    about: clinic?.about ?? "",
+    website: clinic?.website ?? "",
+  };
+
   return (
-    <DashboardShell role="Clínica" user={USER_CLINICA} nav={NAV_CLINICA}>
+    <DashboardShell role="Clínica" user={user} nav={NAV_CLINICA}>
       <PageHeader
-        title="Ajustes"
-        subtitle="Configura los datos de tu clínica, notificaciones, seguridad e integraciones."
+        backHref="/dashboard/clinic"
+        backLabel={p.back}
+        title={p.settingsTitle}
+        subtitle={p.settingsSubClinic}
       />
-      <SettingsTabs />
+      <SettingsTabs account={account} />
     </DashboardShell>
   );
 }
