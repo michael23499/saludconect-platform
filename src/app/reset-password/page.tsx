@@ -2,8 +2,13 @@ import { Logo } from "@/components/ui/Logo";
 import { RecuperarForm } from "./RecuperarForm";
 import { AuthHeading } from "@/components/auth/AuthHeading";
 import { AuthBackToLogin } from "@/components/auth/AuthLinks";
+import { getDict } from "@/lib/i18n-server";
+import type { Metadata } from "next";
 
-export const metadata = { title: "Recuperar contraseña · SaludCoNet" };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = (await getDict()).meta.reset;
+  return { title: t.title };
+}
 
 export default function RecuperarPage() {
   return (

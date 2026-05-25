@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { Pricing } from "@/components/sections/Pricing";
 import { FinalCTA } from "@/components/sections/FinalCTA";
+import { getDict } from "@/lib/i18n-server";
 
-export const metadata: Metadata = {
-  title: "Planes y precios · SaludCoNet",
-  description:
-    "Planes para clínicas: Starter, Pro y Enterprise. Simple, transparente y sin sorpresas. Para acceder a los profesionales hay que inscribirse en un plan.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = (await getDict()).meta.precios;
+  return { title: t.title, description: t.description };
+}
 
 export default function PreciosPage() {
   return (

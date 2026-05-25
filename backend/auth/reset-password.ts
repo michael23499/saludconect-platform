@@ -11,12 +11,13 @@ export type ResetPasswordState =
   | { kind: "sent"; email: string };
 
 /**
- * Manda el email de recuperación de contraseña (privacidad primero).
+ * Manda el email de recuperación de contraseña.
  *
- * Comprobamos POR DEBAJO si el email existe y solo enviamos si existe (evitando
- * la petición de envío inútil). Pero al usuario le devolvemos SIEMPRE el mismo
- * estado neutro — la UI muestra "si ese email tiene cuenta, te enviamos el
- * enlace" — así no filtramos qué emails están registrados. Rate limit por IP.
+ * Comprobamos si el email está registrado: si NO existe, devolvemos un error
+ * claro pidiendo al usuario que verifique el correo (decisión de producto: el
+ * cliente prefiere avisar antes que dejar a alguien esperando un email que no
+ * va a llegar). Si existe, enviamos el enlace de recuperación. El rate limit
+ * por IP frena la enumeración masiva y el email-bombing.
  */
 export async function requestPasswordReset(
   _prev: ResetPasswordState,
@@ -34,17 +35,21 @@ export async function requestPasswordReset(
     return { kind: "error", message: "Demasiados intentos. Espera un momento e inténtalo de nuevo." };
   }
 
-  // Comprobación interna silenciosa: solo enviamos de verdad si el email existe
-  // (así evitamos la petición de envío inútil). El estado devuelto es el mismo
-  // exista o no — el mensaje neutro lo pone la UI.
+  // Si el correo no está registrado, avisamos en lugar de simular el envío.
   const status = await checkEmailStatus(email);
-  if (status.exists) {
-    const origin = await getRequestOrigin();
-    const supabase = await createClient();
-    await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${origin}/auth/callback?next=/set-password`,
-    });
+  if (!status.exists) {
+    return {
+      kind: "error",
+      message:
+        "No hay ninguna cuenta registrada con ese correo. Verifica que lo hayas escrito bien o crea una cuenta nueva.",
+    };
   }
+
+  const origin = await getRequestOrigin();
+  const supabase = await createClient();
+  await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${origin}/auth/callback?next=/set-password`,
+  });
 
   return { kind: "sent", email };
 }

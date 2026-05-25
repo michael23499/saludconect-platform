@@ -1,15 +1,12 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Badge } from "@/components/ui/Badge";
+import { getDict } from "@/lib/i18n-server";
 
-const LINKS = [
-  { href: "/legal/privacy", label: "Política de privacidad" },
-  { href: "/legal/legal-notice", label: "Aviso legal" },
-  { href: "/legal/terms", label: "Términos y condiciones" },
-  { href: "/legal/cookies", label: "Política de cookies" },
-];
+// Hrefs estables (no textuales); las etiquetas vienen del dict por índice.
+const LINK_HREFS = ["/legal/privacy", "/legal/legal-notice", "/legal/terms", "/legal/cookies"];
 
-export function LegalLayout({
+export async function LegalLayout({
   title,
   updated,
   intro,
@@ -20,14 +17,16 @@ export function LegalLayout({
   intro?: string;
   children: ReactNode;
 }) {
+  const t = (await getDict()).legalLayout;
+  const links = LINK_HREFS.map((href, i) => ({ href, label: t.links[i] }));
   return (
     <div className="bg-mist-50">
       <div className="mx-auto w-full max-w-7xl px-5 py-14 md:px-8 md:py-20">
         <div className="grid gap-10 lg:grid-cols-[260px_1fr]">
           <aside className="lg:sticky lg:top-24 lg:self-start">
-            <Badge tone="brand">Centro legal</Badge>
+            <Badge tone="brand">{t.center}</Badge>
             <nav className="mt-4 space-y-1">
-              {LINKS.map((l) => (
+              {links.map((l) => (
                 <Link
                   key={l.href}
                   href={l.href}
@@ -38,7 +37,7 @@ export function LegalLayout({
               ))}
             </nav>
             <p className="mt-6 text-xs text-mist-500">
-              Última revisión: <span className="font-semibold text-ink-800">{updated}</span>
+              {t.lastReview} <span className="font-semibold text-ink-800">{updated}</span>
             </p>
           </aside>
           <article className="rounded-3xl border border-mist-200 bg-white p-7 shadow-[var(--shadow-soft)] md:p-12">

@@ -1,36 +1,21 @@
 import { Section, SectionHeading } from "@/components/ui/Section";
 import { Avatar } from "@/components/ui/Avatar";
+import { getDict } from "@/lib/i18n-server";
 
-const ITEMS = [
-  {
-    name: "Dra. Elena Romero",
-    role: "Directora médica · Clínica Mediterránea",
-    avatar: "Elena Romero",
-    text:
-      "Antes tardábamos semanas en cubrir una baja. Con SaludCoNet hemos confirmado profesionales en menos de una mañana. Cambia el ritmo de gestión de una clínica.",
-  },
-  {
-    name: "Carlos Sánchez",
-    role: "Fisioterapeuta · Madrid",
-    avatar: "Carlos Sánchez",
-    text:
-      "Tengo control total de mi calendario y elijo solo las jornadas que me encajan. He duplicado mis ingresos sin perder calidad de vida.",
-  },
-  {
-    name: "Marta Vives",
-    role: "Gerente · Centros Salud Vives (4 sedes)",
-    avatar: "Marta Vives",
-    text:
-      "La verificación documental y el chat interno nos dan confianza absoluta. Por fin trabajamos con una plataforma sanitaria pensada para clínicas serias.",
-  },
+const NAMES = [
+  { name: "Dra. Elena Romero", avatar: "Elena Romero" },
+  { name: "Carlos Sánchez", avatar: "Carlos Sánchez" },
+  { name: "Marta Vives", avatar: "Marta Vives" },
 ];
 
-export function Testimonials() {
+export async function Testimonials() {
+  const t = (await getDict()).sections.testimonials;
+  const ITEMS = NAMES.map((n, i) => ({ ...n, role: t.items[i].role, text: t.items[i].text }));
   return (
     <Section className="bg-white">
       <SectionHeading
-        eyebrow="Lo que dicen"
-        title={<>Diseñada para <span className="text-gradient-brand">clínicas exigentes</span> y profesionales cualificados</>}
+        eyebrow={t.eyebrow}
+        title={<>{t.title1}<span className="text-gradient-brand">{t.title2}</span>{t.title3}</>}
       />
       <div className="mt-16 grid gap-5 md:grid-cols-3">
         {ITEMS.map((t, i) => (

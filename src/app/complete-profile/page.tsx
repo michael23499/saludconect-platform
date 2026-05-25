@@ -4,8 +4,13 @@ import { dashboardPathForRole } from "@backend/auth/paths";
 import { CompleteProfileForm } from "./CompleteProfileForm";
 import { Logo } from "@/components/ui/Logo";
 import { AuthHeading } from "@/components/auth/AuthHeading";
+import { getDict } from "@/lib/i18n-server";
+import type { Metadata } from "next";
 
-export const metadata = { title: "Completar perfil · SaludCoNet" };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = (await getDict()).meta.completeProfile;
+  return { title: t.title };
+}
 
 export default async function CompletarPerfilPage() {
   const current = await requireSession();

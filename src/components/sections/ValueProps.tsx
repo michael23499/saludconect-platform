@@ -1,4 +1,5 @@
 import { Section, SectionHeading } from "@/components/ui/Section";
+import { getDict } from "@/lib/i18n-server";
 
 const ICONS = {
   bolt: (
@@ -30,58 +31,36 @@ const ICONS = {
   ),
 };
 
-const FEATURES = [
-  {
-    icon: ICONS.bolt,
-    title: "Cobertura en minutos",
-    desc: "Solicita un profesional disponible y recibe respuestas en tiempo real. Cubre tu agenda antes de que se enfríe.",
-    tone: "from-brand-500 to-cyan-400",
-  },
-  {
-    icon: ICONS.shield,
-    title: "Profesionales verificados",
-    desc: "Validación documental: DNI, titulación, colegiación y certificados. Sin sorpresas, sin riesgo.",
-    tone: "from-ink-800 to-brand-700",
-  },
-  {
-    icon: ICONS.calendar,
-    title: "Calendario sincronizado",
-    desc: "Disponibilidad real, turnos mañana/tarde, bloqueo de fechas y reservas automáticas.",
-    tone: "from-brand-600 to-brand-400",
-  },
-  {
-    icon: ICONS.chat,
-    title: "Mensajería interna",
-    desc: "Chat privado entre clínica y profesional. Acuerdos rápidos, claros y trazables.",
-    tone: "from-cyan-500 to-brand-500",
-  },
-  {
-    icon: ICONS.card,
-    title: "Acuerdos directos",
-    desc: "No somos intermediarios para la contratación. La clínica y el profesional cierran el acuerdo directamente; nosotros te ayudamos con los horarios.",
-    tone: "from-indigo-600 to-brand-500",
-  },
-  {
-    icon: ICONS.doc,
-    title: "Documentación segura",
-    desc: "Almacén cifrado para titulaciones, certificados y documentos sensibles del profesional.",
-    tone: "from-brand-700 to-cyan-500",
-  },
+const ICON_LIST = [ICONS.bolt, ICONS.shield, ICONS.calendar, ICONS.chat, ICONS.card, ICONS.doc];
+const TONES = [
+  "from-brand-500 to-cyan-400",
+  "from-ink-800 to-brand-700",
+  "from-brand-600 to-brand-400",
+  "from-cyan-500 to-brand-500",
+  "from-indigo-600 to-brand-500",
+  "from-brand-700 to-cyan-500",
 ];
 
-export function ValueProps() {
+export async function ValueProps() {
+  const t = (await getDict()).sections;
+  const FEATURES = t.value.features.map((f, i) => ({
+    icon: ICON_LIST[i],
+    title: f.title,
+    desc: f.desc,
+    tone: TONES[i],
+  }));
   return (
     <Section className="bg-mesh-light">
       <SectionHeading
-        eyebrow="¿Por qué SaludCoNet?"
+        eyebrow={t.value.eyebrow}
         title={
           <>
-            Todo el <span className="text-gradient-brand">ecosistema sanitario</span>
+            {t.value.title1}<span className="text-gradient-brand">{t.value.title2}</span>
             <br />
-            en una sola plataforma
+            {t.value.title3}
           </>
         }
-        description="Desde la búsqueda hasta el pago, gestionamos cada paso del ciclo de colaboración entre clínicas y profesionales."
+        description={t.value.desc}
       />
       <div className="mt-16 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {FEATURES.map((f) => (

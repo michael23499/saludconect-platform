@@ -1,8 +1,13 @@
 import { listPublicProfessionals } from "@backend/queries/professionals";
 import { getCurrentUser } from "@backend/auth";
 import { ProfessionalsDirectory, type PublicPro } from "@/components/search/ProfessionalsDirectory";
+import { getDict } from "@/lib/i18n-server";
+import type { Metadata } from "next";
 
-export const metadata = { title: "Buscar talento sanitario · SaludCoNet" };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = (await getDict()).meta.search;
+  return { title: t.title };
+}
 
 export default async function BuscarPage() {
   // Cargamos el directorio público completo; el filtrado es EN VIVO en el cliente

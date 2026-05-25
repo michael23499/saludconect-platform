@@ -1,6 +1,7 @@
 "use client";
 import { useState, type ReactNode } from "react";
 import { cn } from "@/lib/cn";
+import { useApp } from "@/components/providers/Providers";
 
 type Role = "clinic" | "professional";
 
@@ -13,110 +14,26 @@ type Step = {
   bullets: string[];
 };
 
-const STEPS: Record<Role, Step[]> = {
-  clinic: [
-    {
-      n: 1,
-      title: "Crea tu cuenta",
-      desc: "Verifica el dominio de tu clínica con tu email corporativo. Sin tarjeta los primeros 14 días.",
-      time: "1 min",
-      icon: <IconBuilding />,
-      bullets: ["Email corporativo", "Prueba 14 días gratis"],
-    },
-    {
-      n: 2,
-      title: "Publica tu necesidad",
-      desc: "Define profesión, especialidad, fecha, turno y tarifa orientativa. Te avisamos cuando llegan candidatos.",
-      time: "60 seg",
-      icon: <IconBroadcast />,
-      bullets: ["Geolocalizador por sede", "Tarifa orientativa"],
-    },
-    {
-      n: 3,
-      title: "Recibe profesionales verificados",
-      desc: "Aparecen ordenados por compatibilidad y reputación. Solo perfiles con documentación validada.",
-      time: "Minutos",
-      icon: <IconUsers />,
-      bullets: ["100% verificados", "Filtros avanzados"],
-    },
-    {
-      n: 4,
-      title: "Confirma por chat",
-      desc: "Acuerda detalles sin salir de la plataforma. Reserva confirmada con un clic.",
-      time: "1 clic",
-      icon: <IconChat />,
-      bullets: ["Mensajería interna", "Calendario sincronizado"],
-    },
-    {
-      n: 5,
-      title: "Cubre y valora",
-      desc: "El profesional trabaja y tú dejas tu valoración. El acuerdo de contratación y pago lo gestiona directamente la clínica con el profesional.",
-      time: "Después de la jornada",
-      icon: <IconCheck />,
-      bullets: ["Acuerdo directo", "Reseñas verificadas"],
-    },
-  ],
-  professional: [
-    {
-      n: 1,
-      title: "Inscríbete",
-      desc: "Crea tu cuenta y completa tu perfil. Solo necesitas DNI y número de colegiado.",
-      time: "2 min",
-      icon: <IconUser />,
-      bullets: ["Inscripción rápida", "Sin permanencia"],
-    },
-    {
-      n: 2,
-      title: "Verifica tu identidad",
-      desc: "Nuestro equipo valida titulación, colegiación y certificados. Subes los archivos una sola vez.",
-      time: "< 24 h",
-      icon: <IconShieldCheck />,
-      bullets: ["Equipo humano", "Almacenamiento cifrado"],
-    },
-    {
-      n: 3,
-      title: "Configura disponibilidad",
-      desc: "Calendario, turnos preferidos, ciudades y rango de tarifa. Cambia cuando quieras.",
-      time: "5 min",
-      icon: <IconCalendar />,
-      bullets: ["Plantillas semanales", "Bloqueo de fechas"],
-    },
-    {
-      n: 4,
-      title: "Recibe solicitudes",
-      desc: "Las clínicas compatibles te encontrarán. Aceptas o rechazas con un clic.",
-      time: "Cuando quieras",
-      icon: <IconInbox />,
-      bullets: ["Notificaciones inteligentes", "Chat directo"],
-    },
-    {
-      n: 5,
-      title: "Cierra el acuerdo",
-      desc: "Te coordinas directamente con la clínica para la contratación y el cobro. SaludCoNet no interviene en el pago: solo te ayuda a encontrar la jornada.",
-      time: "Tras cada jornada",
-      icon: <IconWallet />,
-      bullets: ["Acuerdo directo", "Sin intermediarios"],
-    },
-  ],
-};
-
-const SUMMARY: Record<Role, { headline: string; sub: string }> = {
-  clinic: {
-    headline: "Desde publicación a cobertura · ~4 h",
-    sub: "Tiempo medio de cobertura observado en la red.",
-  },
-  professional: {
-    headline: "De registro a primera reserva · < 24 h",
-    sub: "Tiempo medio desde verificación hasta primera solicitud.",
-  },
-};
+const ICONS_CLINIC = [<IconBuilding key="b" />, <IconBroadcast key="br" />, <IconUsers key="u" />, <IconChat key="c" />, <IconCheck key="ch" />];
+const ICONS_PRO = [<IconUser key="u" />, <IconShieldCheck key="s" />, <IconCalendar key="cal" />, <IconInbox key="i" />, <IconWallet key="w" />];
 
 export function JourneyTabs() {
+  const { t } = useApp();
+  const j = t.sections.journey;
   const [role, setRole] = useState<Role>("clinic");
   const [active, setActive] = useState<number>(1);
 
-  const steps = STEPS[role];
-  const summary = SUMMARY[role];
+  const icons = role === "clinic" ? ICONS_CLINIC : ICONS_PRO;
+  const rawSteps = role === "clinic" ? j.stepsClinic : j.stepsPro;
+  const steps: Step[] = rawSteps.map((s, i) => ({
+    n: i + 1,
+    title: s.title,
+    desc: s.desc,
+    time: s.time,
+    icon: icons[i],
+    bullets: s.bullets,
+  }));
+  const summary = role === "clinic" ? j.summaryClinic : j.summaryPro;
 
   const switchRole = (r: Role) => {
     setRole(r);
@@ -137,13 +54,11 @@ export function JourneyTabs() {
                 : "translate-x-full bg-gradient-to-br from-cyan-500 to-brand-600"
             )}
           />
-          <RoleTab active={role === "clinic"} onClick={() => switchRole("clinic")} icon={<IconBuilding />} label="Soy clínica" />
-          <RoleTab active={role === "professional"} onClick={() => switchRole("professional")} icon={<IconStethoscope />} label="Soy profesional" />
+          <RoleTab active={role === "clinic"} onClick={() => switchRole("clinic")} icon={<IconBuilding />} label={j.tabClinic} />
+          <RoleTab active={role === "professional"} onClick={() => switchRole("professional")} icon={<IconStethoscope />} label={j.tabPro} />
         </div>
         <p className="mt-3 text-center text-[12px] text-mist-500">
-          {role === "clinic"
-            ? "Estás viendo el flujo para clínicas que buscan cubrir turnos."
-            : "Estás viendo el flujo para profesionales que ofrecen jornadas."}
+          {role === "clinic" ? j.hintClinic : j.hintPro}
         </p>
       </div>
 
@@ -173,7 +88,7 @@ export function JourneyTabs() {
               "text-[10px] font-semibold uppercase tracking-wider",
               role === "clinic" ? "text-brand-700" : "text-cyan-700"
             )}>
-              {role === "clinic" ? "Flujo · Clínica" : "Flujo · Profesional"}
+              {role === "clinic" ? j.flowClinic : j.flowPro}
             </div>
             <div className="text-base font-semibold tracking-tight text-ink-900 md:text-lg">{summary.headline}</div>
             <div className="text-[12px] text-mist-500">{summary.sub}</div>
@@ -182,7 +97,7 @@ export function JourneyTabs() {
         <div className="flex flex-wrap items-center gap-2 text-xs">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1 ring-1 ring-mist-200">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-            5 pasos · sin papeleo
+            {j.badge}
           </span>
         </div>
       </div>
@@ -214,7 +129,7 @@ export function JourneyTabs() {
                     s.n === active && "border-brand-600 bg-white text-brand-700 ring-4 ring-brand-200",
                     s.n > active && "border-mist-200 bg-white text-mist-500 hover:border-brand-300 hover:text-brand-700"
                   )}
-                  aria-label={`Ir al paso ${s.n}`}
+                  aria-label={`${j.stepAriaPre} ${s.n}`}
                 >
                   {s.n < active ? (
                     <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
@@ -330,10 +245,10 @@ export function JourneyTabs() {
           className="inline-flex h-10 items-center gap-2 rounded-full border border-mist-200 bg-white px-4 text-sm font-medium text-ink-800 transition hover:bg-mist-50 disabled:opacity-40"
         >
           <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4"><path d="M15 18l-6-6 6-6" /></svg>
-          Anterior
+          {j.prev}
         </button>
         <span className="text-xs font-medium text-mist-500">
-          Paso <span className="font-semibold text-ink-900">{active}</span> de {steps.length}
+          {j.stepLabel} <span className="font-semibold text-ink-900">{active}</span> {j.stepOf} {steps.length}
         </span>
         <button
           type="button"
@@ -341,7 +256,7 @@ export function JourneyTabs() {
           disabled={active === steps.length}
           className="inline-flex h-10 items-center gap-2 rounded-full bg-brand-600 px-5 text-sm font-semibold text-white shadow-[0_10px_22px_-10px_rgba(37,99,235,0.6)] transition hover:bg-brand-700 disabled:opacity-40"
         >
-          Siguiente
+          {j.next}
           <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4"><path d="M9 6l6 6-6 6" /></svg>
         </button>
       </div>

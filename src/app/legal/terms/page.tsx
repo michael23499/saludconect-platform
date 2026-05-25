@@ -1,38 +1,43 @@
+import type { Metadata } from "next";
 import { LegalLayout } from "@/components/legal/LegalLayout";
+import { getDict } from "@/lib/i18n-server";
 
-export const metadata = { title: "Términos y condiciones · SaludCoNet" };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = (await getDict()).legal.terms;
+  return { title: t.metaTitle };
+}
 
-export default function TerminosPage() {
+export default async function TerminosPage() {
+  const t = (await getDict()).legal.terms;
   return (
-    <LegalLayout title="Términos y condiciones" updated="20 de mayo de 2026">
-      <h2>1. Aceptación</h2>
-      <p>Al registrarte en SaludCoNet aceptas estos términos. Si no estás conforme, no debes utilizar la plataforma.</p>
+    <LegalLayout title={t.title} updated={t.updated}>
+      <h2>{t.s1h}</h2>
+      <p>{t.s1p}</p>
 
-      <h2>2. Cuentas y verificación</h2>
-      <p>Las cuentas se asignan a personas físicas (profesionales) o jurídicas (clínicas). Los profesionales aceptan que SaludCoNet verifique su documentación. Las clínicas aceptan facilitar datos identificativos y fiscales veraces.</p>
+      <h2>{t.s2h}</h2>
+      <p>{t.s2p}</p>
 
-      <h2>3. Reservas y colaboraciones</h2>
-      <p>SaludCoNet facilita la conexión entre clínicas y profesionales, pero la relación contractual entre ambas partes es directa. SaludCoNet no es empleador ni intermediario laboral.</p>
+      <h2>{t.s3h}</h2>
+      <p>{t.s3p}</p>
 
-      <h2>4. Suscripciones y pagos</h2>
-      <p>Las clínicas contratan una suscripción mensual. Los pagos se procesan a través de Stripe y PayPal. La suscripción se renueva automáticamente salvo cancelación previa, que puede realizarse en cualquier momento desde el panel de usuario.</p>
+      <h2>{t.s4h}</h2>
+      <p>{t.s4p}</p>
 
-      <h2>5. Reembolsos</h2>
-      <p>Las suscripciones son reembolsables durante los primeros 14 días desde su contratación. Pasado ese período no se realizan reembolsos parciales.</p>
+      <h2>{t.s5h}</h2>
+      <p>{t.s5p}</p>
 
-      <h2>6. Conductas prohibidas</h2>
+      <h2>{t.s6h}</h2>
       <ul>
-        <li>Suplantar la identidad de otra persona o entidad.</li>
-        <li>Subir documentación falsa o adulterada.</li>
-        <li>Utilizar la plataforma para actividades ajenas al sector sanitario.</li>
-        <li>Eludir el sistema de mensajería para evitar la trazabilidad.</li>
+        {t.s6items.map((item) => (
+          <li key={item}>{item}</li>
+        ))}
       </ul>
 
-      <h2>7. Modificaciones</h2>
-      <p>SaludCoNet puede modificar estos términos. Las modificaciones materiales serán notificadas con 15 días de antelación.</p>
+      <h2>{t.s7h}</h2>
+      <p>{t.s7p}</p>
 
-      <h2>8. Jurisdicción</h2>
-      <p>Estos términos se rigen por la legislación española. Las partes se someten a los Juzgados y Tribunales de Madrid.</p>
+      <h2>{t.s8h}</h2>
+      <p>{t.s8p}</p>
     </LegalLayout>
   );
 }

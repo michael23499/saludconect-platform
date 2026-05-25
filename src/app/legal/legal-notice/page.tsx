@@ -1,27 +1,33 @@
+import type { Metadata } from "next";
 import { LegalLayout } from "@/components/legal/LegalLayout";
+import { getDict } from "@/lib/i18n-server";
 
-export const metadata = { title: "Aviso legal · SaludCoNet" };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = (await getDict()).legal.notice;
+  return { title: t.metaTitle };
+}
 
-export default function AvisoPage() {
+export default async function AvisoPage() {
+  const t = (await getDict()).legal.notice;
   return (
-    <LegalLayout title="Aviso legal" updated="20 de mayo de 2026">
-      <h2>1. Datos identificativos</h2>
-      <p>En cumplimiento de la Ley 34/2002, de Servicios de la Sociedad de la Información y Comercio Electrónico (LSSI-CE), te informamos de que esta plataforma es operada por SaludCoNet S.L., con CIF B-00000000 y domicilio social en Madrid, España. Puedes contactarnos a través de <a href="mailto:hola@saludconet.demo">hola@saludconet.demo</a>.</p>
+    <LegalLayout title={t.title} updated={t.updated}>
+      <h2>{t.s1h}</h2>
+      <p>{t.s1pPre}<a href="mailto:hola@saludconet.demo">hola@saludconet.demo</a>{t.s1pPost}</p>
 
-      <h2>2. Objeto del servicio</h2>
-      <p>SaludCoNet es un marketplace sanitario que conecta clínicas privadas y profesionales sanitarios para colaboraciones, turnos y jornadas profesionales. SaludCoNet no presta servicios sanitarios ni interviene en la relación profesional entre clínicas y profesionales, más allá de facilitar la conexión y la gestión administrativa de las reservas.</p>
+      <h2>{t.s2h}</h2>
+      <p>{t.s2p}</p>
 
-      <h2>3. Condiciones de acceso</h2>
-      <p>El acceso a la plataforma es libre y gratuito para profesionales. Las clínicas acceden mediante una suscripción mensual. El registro implica la aceptación expresa de los presentes términos y la política de privacidad.</p>
+      <h2>{t.s3h}</h2>
+      <p>{t.s3p}</p>
 
-      <h2>4. Propiedad intelectual</h2>
-      <p>Todos los contenidos, marcas, logotipos, código y diseño son titularidad de SaludCoNet o de sus licenciantes. Queda prohibida la reproducción total o parcial sin autorización expresa.</p>
+      <h2>{t.s4h}</h2>
+      <p>{t.s4p}</p>
 
-      <h2>5. Responsabilidad</h2>
-      <p>SaludCoNet realiza esfuerzos razonables para verificar la documentación profesional, pero no se responsabiliza de la veracidad de los datos aportados por las clínicas y profesionales. Las partes son responsables del cumplimiento de la legislación sanitaria, laboral y fiscal aplicable a su actividad.</p>
+      <h2>{t.s5h}</h2>
+      <p>{t.s5p}</p>
 
-      <h2>6. Legislación aplicable</h2>
-      <p>Las presentes condiciones se rigen por la legislación española. Para cualquier controversia, las partes se someten a los Juzgados y Tribunales de Madrid.</p>
+      <h2>{t.s6h}</h2>
+      <p>{t.s6p}</p>
     </LegalLayout>
   );
 }
