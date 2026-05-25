@@ -1,35 +1,22 @@
 import Link from "next/link";
-import { Logo } from "@/components/ui/Logo";
 import { Badge } from "@/components/ui/Badge";
 import { Field, Input } from "@/components/ui/Input";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 import { SelectMenu } from "@/components/ui/SelectMenu";
 import { AnimatedCheckbox } from "@/components/ui/AnimatedCheckbox";
 import { Button } from "@/components/ui/Button";
-import { RoleTabs } from "@/components/register/RoleTabs";
+import { RegisterShell } from "@/components/register/RegisterShell";
 import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 import { requireGuest } from "@backend/auth/guards";
+import { getDict } from "@/lib/i18n-server";
+import type { Metadata } from "next";
 
-export const metadata = { title: "Crear cuenta · SaludCoNet" };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = (await getDict()).meta.register;
+  return { title: t.title };
+}
 
-const PROFESIONES = [
-  "Médico/a",
-  "Enfermero/a",
-  "Fisioterapeuta",
-  "Odontólogo/a",
-  "Psicólogo/a",
-  "Dermatólogo/a",
-  "Pediatra",
-  "Cardiólogo/a",
-  "Ginecólogo/a",
-  "Auxiliar de enfermería",
-];
-
-const ESPECIALIDADES = [
-  "Cardiología", "Pediatría", "Odontología", "Fisioterapia", "Psicología",
-  "Dermatología", "Enfermería general", "Ginecología", "Traumatología",
-  "Oftalmología", "Radiología", "Anestesia",
-];
+type RegisterDict = Awaited<ReturnType<typeof getDict>>["register"];
 
 export default async function RegistroPage({
   searchParams,
@@ -39,136 +26,109 @@ export default async function RegistroPage({
   await requireGuest();
   const sp = await searchParams;
   const rol = sp?.rol === "professional" ? "professional" : sp?.rol === "clinic" ? "clinic" : null;
+  const r = (await getDict()).register;
 
   return (
     <div className="relative min-h-[calc(100vh-4rem)] overflow-hidden bg-mesh-light">
       <div className="bg-dotgrid absolute inset-0 opacity-50" />
-      <div className="relative mx-auto grid w-full max-w-7xl gap-10 px-5 py-12 md:grid-cols-[1.05fr_1.4fr] md:px-8 md:py-16">
-        <aside className="md:sticky md:top-24 md:self-start">
-          <Logo />
-          <h1 className="mt-6 text-balance text-3xl font-semibold tracking-tight text-ink-900 md:text-4xl">
-            Únete a la <span className="text-gradient-brand">nueva red sanitaria</span>.
-          </h1>
-          <p className="mt-4 text-mist-500">
-            Más de 5.000 profesionales y 320 clínicas ya gestionan sus jornadas con SaludCoNet.
-          </p>
-          <ul className="mt-8 space-y-3">
-            {[
-              "Inscripción rápida para acceder a la red",
-              "Verificación documental en 24 h",
-              "Cancela tu suscripción cuando quieras",
-            ].map((t) => (
-              <li key={t} className="flex items-start gap-2.5 text-[15px] text-ink-800">
-                <svg className="mt-0.5 h-5 w-5 shrink-0 text-brand-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden>
-                  <path d="M5 12l4.5 4.5L19 7" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                {t}
-              </li>
-            ))}
-          </ul>
-          <p className="mt-10 text-sm text-mist-500">
-            ¿Ya tienes cuenta?{" "}
-            <Link href="/login" className="font-semibold text-brand-700 hover:text-brand-800">
-              Inicia sesión
-            </Link>
-          </p>
-        </aside>
-
-        <div className="rounded-3xl border border-mist-200 bg-white p-6 shadow-[var(--shadow-card)] md:p-10">
-          <RoleTabs
-            initialRole={rol}
-            emptyState={
-              <div className="mt-8 rounded-2xl border border-dashed border-mist-300 bg-mist-50/60 p-8 text-center">
-                <div className="mx-auto inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-50 text-brand-700">
-                  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-                    <path d="M12 5v14M5 12h14" strokeLinecap="round" />
-                  </svg>
-                </div>
-                <p className="mt-4 text-[15px] font-medium text-ink-900">¿Cómo te registras?</p>
-                <p className="mt-1 text-sm text-mist-500">Elige arriba si eres una clínica o un profesional sanitario.</p>
-              </div>
-            }
-            formClinica={<FormClinica />}
-            formProfesional={<FormProfesional />}
-          />
-
-          <div className="mt-8 flex items-center gap-3 text-xs text-mist-400">
-            <span className="h-px flex-1 bg-mist-200" />
-            o regístrate con
-            <span className="h-px flex-1 bg-mist-200" />
+      <RegisterShell
+        initialRole={rol}
+        formClinica={<FormClinica r={r} />}
+        formProfesional={<FormProfesional r={r} />}
+        emptyState={
+          <div className="mt-8 rounded-2xl border border-dashed border-mist-300 bg-mist-50/60 p-8 text-center">
+            <div className="mx-auto inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-50 text-brand-700">
+              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                <path d="M12 5v14M5 12h14" strokeLinecap="round" />
+              </svg>
+            </div>
+            <p className="mt-4 text-[15px] font-medium text-ink-900">{r.emptyTitle}</p>
+            <p className="mt-1 text-sm text-mist-500">{r.emptyHint}</p>
           </div>
-          <GoogleSignInButton next="/" />
-          <p className="mt-6 text-center text-xs text-mist-500">
-            Al registrarte aceptas nuestros{" "}
-            <Link className="underline" href="/legal/terms">Términos</Link> y la{" "}
-            <Link className="underline" href="/legal/privacy">Política de privacidad</Link>.
-          </p>
-        </div>
-      </div>
+        }
+        footer={
+          <>
+            <div className="mt-8 flex items-center gap-3 text-xs text-mist-400">
+              <span className="h-px flex-1 bg-mist-200" />
+              {r.orWith}
+              <span className="h-px flex-1 bg-mist-200" />
+            </div>
+            <GoogleSignInButton next="/" />
+            <p className="mt-6 text-center text-xs text-mist-500">
+              {r.termsPre}
+              <Link className="underline" href="/legal/terms">{r.termsLink}</Link>
+              {r.termsMid}
+              <Link className="underline" href="/legal/privacy">{r.privacyLink}</Link>
+              {r.termsSuf}
+            </p>
+          </>
+        }
+      />
     </div>
   );
 }
 
-function FormClinica() {
+function FormClinica({ r }: { r: RegisterDict }) {
   return (
     <form className="mt-6 space-y-4">
       <div className="flex items-center gap-2">
-        <Badge tone="brand">Registro de clínica</Badge>
-        <span className="text-xs text-mist-500">Paso 1 de 2</span>
+        <Badge tone="brand">{r.cfBadge}</Badge>
       </div>
       <div className="grid gap-4 md:grid-cols-2">
-        <Field label="Nombre de la clínica"><Input placeholder="Clínica Mediterránea" /></Field>
-        <Field label="Persona de contacto"><Input placeholder="Marta Vives" /></Field>
-        <Field label="Ciudad"><Input placeholder="Madrid" /></Field>
-        <Field label="Dirección"><Input placeholder="Calle Alcalá 200" /></Field>
-        <Field label="Email corporativo"><Input type="email" placeholder="info@clinica.com" /></Field>
-        <Field label="Teléfono"><Input type="tel" placeholder="+34 600 00 00 00" /></Field>
-        <Field label="Especialidad principal">
-          <SelectMenu name="especialidad" options={ESPECIALIDADES} placeholder="Selecciona…" />
+        <Field label={r.cfName}><Input placeholder="Clínica Mediterránea" /></Field>
+        <Field label={r.cfContact}><Input placeholder="Marta Vives" /></Field>
+        <Field label={r.cfCity}><Input placeholder="Madrid" /></Field>
+        <Field label={r.cfAddress}><Input placeholder="Calle Alcalá 200" /></Field>
+        <Field label={r.cfEmail}><Input type="email" placeholder="info@clinica.com" /></Field>
+        <Field label={r.cfPhone}><Input type="tel" placeholder="+34 600 00 00 00" /></Field>
+        <Field label={r.cfSpecialty}>
+          <SelectMenu name="especialidad" options={r.specialties} placeholder={r.selectPlaceholder} />
         </Field>
-        <Field label="Tamaño de equipo">
-          <SelectMenu
-            name="tamano"
-            placeholder="Selecciona…"
-            options={["1 - 5 profesionales", "6 - 20 profesionales", "21 - 50 profesionales", "+50 profesionales"]}
-          />
+        <Field label={r.cfTeam}>
+          <SelectMenu name="tamano" placeholder={r.selectPlaceholder} options={r.teamSizes} />
         </Field>
-        <Field label="Contraseña" className="md:col-span-2"><PasswordInput placeholder="Mínimo 10 caracteres" /></Field>
+        <Field label={r.cfPassword} className="md:col-span-2"><PasswordInput placeholder={r.passwordPlaceholder} /></Field>
       </div>
       <AnimatedCheckbox name="trial" className="mt-1">
-        Quiero empezar mi prueba gratuita de <strong>14 días</strong> en el plan <strong>Clínica Pro</strong>
+        {r.cfTrial1}
+        <strong>{r.cfTrialDays}</strong>
+        {r.cfTrial2}
+        <strong>{r.cfTrialPlan}</strong>
+        {r.cfTrial3}
       </AnimatedCheckbox>
-      <Button size="lg" className="w-full justify-center">Crear cuenta de clínica</Button>
+      <Button size="lg" className="mt-1 w-full justify-center !shadow-[0_2px_10px_-3px_rgba(5,47,89,0.28)] hover:!shadow-[0_5px_16px_-5px_rgba(5,47,89,0.4)]">
+        {r.cfSubmit}
+      </Button>
     </form>
   );
 }
 
-function FormProfesional() {
+function FormProfesional({ r }: { r: RegisterDict }) {
   return (
     <form className="mt-6 space-y-4">
       <div className="flex items-center gap-2">
-        <Badge tone="brand">Registro de profesional</Badge>
-        <span className="text-xs text-mist-500">Paso 1 de 3 · Datos básicos</span>
+        <Badge tone="brand">{r.pfBadge}</Badge>
       </div>
       <div className="grid gap-4 md:grid-cols-2">
-        <Field label="Nombre"><Input placeholder="Lucía" /></Field>
-        <Field label="Apellidos"><Input placeholder="Martín García" /></Field>
-        <Field label="Profesión">
-          <SelectMenu name="profesion" options={PROFESIONES} placeholder="Selecciona…" />
+        <Field label={r.pfFirstName}><Input placeholder="Lucía" /></Field>
+        <Field label={r.pfLastName}><Input placeholder="Martín García" /></Field>
+        <Field label={r.pfProfession}>
+          <SelectMenu name="profesion" options={r.professions} placeholder={r.selectPlaceholder} />
         </Field>
-        <Field label="Especialidad">
-          <SelectMenu name="especialidad" options={ESPECIALIDADES} placeholder="Selecciona…" />
+        <Field label={r.pfSpecialty}>
+          <SelectMenu name="especialidad" options={r.specialties} placeholder={r.selectPlaceholder} />
         </Field>
-        <Field label="Ciudad"><Input placeholder="Madrid" /></Field>
-        <Field label="Número de colegiado"><Input placeholder="28-049-381" /></Field>
-        <Field label="Email"><Input type="email" placeholder="tu@email.com" /></Field>
-        <Field label="Teléfono"><Input type="tel" placeholder="+34 600 00 00 00" /></Field>
-        <Field label="Contraseña" className="md:col-span-2"><PasswordInput placeholder="Mínimo 10 caracteres" /></Field>
+        <Field label={r.pfCity}><Input placeholder="Madrid" /></Field>
+        <Field label={r.pfPhone}><Input type="tel" placeholder="+34 600 00 00 00" /></Field>
+        <Field label={r.pfEmail} className="md:col-span-2"><Input type="email" placeholder="tu@email.com" /></Field>
+        <Field label={r.pfPassword} className="md:col-span-2"><PasswordInput placeholder={r.passwordPlaceholder} /></Field>
       </div>
       <AnimatedCheckbox name="docs_consent" required className="mt-1">
-        Acepto que SaludCoNet valide mi documentación profesional
+        {r.pfConsent}
       </AnimatedCheckbox>
-      <Button size="lg" className="w-full justify-center">Continuar — completar perfil</Button>
+      <Button size="lg" className="mt-1 w-full justify-center !shadow-[0_2px_10px_-3px_rgba(5,47,89,0.28)] hover:!shadow-[0_5px_16px_-5px_rgba(5,47,89,0.4)]">
+        {r.pfSubmit}
+      </Button>
     </form>
   );
 }

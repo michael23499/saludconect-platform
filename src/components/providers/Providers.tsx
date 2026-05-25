@@ -18,31 +18,35 @@ type Ctx = {
 const AppContext = createContext<Ctx | null>(null);
 
 const LANG_COOKIE = "scn_lang";
+const THEME_COOKIE = "scn_theme"; // debe coincidir con la cookie que lee el layout
 
 export function Providers({
   children,
   initialLang = "es",
+  initialTheme = "light",
 }: {
   children: ReactNode;
   initialLang?: Lang;
+  initialTheme?: Theme;
 }) {
   const router = useRouter();
-  // El idioma inicial viene del servidor (cookie) → server y client coinciden,
-  // sin flash ni hydration mismatch.
+  // El idioma y el tema iniciales vienen del servidor (cookies scn_lang /
+  // scn_theme) → server y client renderizan lo mismo, sin flash ni hydration
+  // mismatch.
   const [lang, setLangState] = useState<Lang>(initialLang);
-  // El script inline del layout ya aplicó la clase `dark` desde localStorage
-  // antes de hidratar (evita flash). Inicializamos el estado leyendo esa clase
-  // del DOM: así no necesitamos un effect que haga setState al montar.
-  const [theme, setThemeState] = useState<Theme>(() =>
-    typeof document !== "undefined" && document.documentElement.classList.contains("dark") ? "dark" : "light",
-  );
+  const [theme, setThemeState] = useState<Theme>(initialTheme);
 
   useEffect(() => {
     const root = document.documentElement;
     if (theme === "dark") root.classList.add("dark");
     else root.classList.remove("dark");
     root.setAttribute("data-theme", theme);
-    try { localStorage.setItem("scn:theme", theme); } catch {}
+    // Cookie para que el servidor renderice el tema correcto en la próxima
+    // carga (evita el mismatch); localStorage queda como respaldo.
+    try {
+      localStorage.setItem("scn:theme", theme);
+      document.cookie = `${THEME_COOKIE}=${theme}; path=/; max-age=31536000; samesite=lax`;
+    } catch {}
   }, [theme]);
 
   const setLang = useCallback(

@@ -2,8 +2,13 @@ import { requireSession } from "@backend/auth/guards";
 import { SetPasswordForm } from "./SetPasswordForm";
 import { Logo } from "@/components/ui/Logo";
 import { AuthHeading } from "@/components/auth/AuthHeading";
+import { getDict } from "@/lib/i18n-server";
+import type { Metadata } from "next";
 
-export const metadata = { title: "Establecer contraseña · SaludCoNet" };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = (await getDict()).meta.setPassword;
+  return { title: t.title };
+}
 
 export default async function EstablecerPasswordPage() {
   const current = await requireSession();

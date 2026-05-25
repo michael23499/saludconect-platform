@@ -10,6 +10,7 @@ import { TopProgress } from "@/components/ui/TopProgress";
 import { getCurrentUser } from "@backend/auth";
 import { countUnreadNotifications } from "@backend/queries/notifications";
 import { getLang } from "@/lib/i18n-server";
+import { cookies } from "next/headers";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -30,16 +31,16 @@ export const metadata: Metadata = {
   },
 };
 
-// Inline pre-hydration script to avoid theme flash.
-// First-time visitors get LIGHT mode by default; we only honor an explicit
-// saved choice in localStorage. System preference is ignored on purpose.
-// El idioma lo fija el servidor desde la cookie (ver getLang). El script solo
-// gestiona el theme para evitar el flash de modo claro/oscuro.
+// Script pre-hidratación para evitar el flash de tema. El tema lo fija el
+// servidor desde la cookie `scn_theme` (igual que el idioma), así que aquí solo
+// reafirmamos esa misma cookie antes de que React hidrate. Leer la cookie (no
+// localStorage) garantiza que coincida con lo que renderizó el servidor → sin
+// hydration mismatch. Primera visita sin cookie = modo claro por defecto.
 const THEME_INIT = `
 (function(){try{
   document.documentElement.classList.add('js');
-  var t=localStorage.getItem('scn:theme');
-  if(t!=='dark'&&t!=='light'){t='light';}
+  var m=document.cookie.match(/(?:^|; )scn_theme=(dark|light)/);
+  var t=m?m[1]:'light';
   if(t==='dark'){document.documentElement.classList.add('dark');}
   document.documentElement.setAttribute('data-theme',t);
 }catch(e){}})();
@@ -47,6 +48,9 @@ const THEME_INIT = `
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const [current, lang] = await Promise.all([getCurrentUser(), getLang()]);
+  // Tema desde cookie (igual que el idioma) para que server y client coincidan.
+  const theme: "light" | "dark" =
+    (await cookies()).get("scn_theme")?.value === "dark" ? "dark" : "light";
   // Conteo de notificaciones sin leer para la campana del header (solo clínica
   // y profesional; el admin no recibe notificaciones del marketplace).
   const unread =
@@ -63,12 +67,17 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     : null;
 
   return (
-    <html lang={lang} className={inter.variable} suppressHydrationWarning>
+    <html
+      lang={lang}
+      className={`${inter.variable}${theme === "dark" ? " dark" : ""}`}
+      data-theme={theme}
+      suppressHydrationWarning
+    >
       <body className="min-h-screen antialiased" suppressHydrationWarning>
         {/* Aplica el tema antes de hidratar para evitar el flash. beforeInteractive
             inyecta el script en el <head> del HTML inicial (patrón oficial Next). */}
         <Script id="scn-theme-init" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: THEME_INIT }} />
-        <Providers initialLang={lang}>
+        <Providers initialLang={lang} initialTheme={theme}>
           <TopProgress />
           <Header user={userForHeader} unread={unread} />
           <main className="min-h-[calc(100vh-4rem)]">{children}</main>

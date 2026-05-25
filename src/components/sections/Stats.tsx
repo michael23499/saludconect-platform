@@ -1,4 +1,5 @@
 import { CountUp } from "@/components/ui/CountUp";
+import { getDict } from "@/lib/i18n-server";
 
 type StatItem = {
   l: string;
@@ -11,9 +12,8 @@ type StatItem = {
   icon: React.ReactNode;
 };
 
-const STATS: StatItem[] = [
+const STATS_META: Omit<StatItem, "l">[] = [
   {
-    l: "Profesionales verificados",
     to: 5000,
     suffix: "+",
     accent: "from-ink-900 to-brand-600",
@@ -28,7 +28,6 @@ const STATS: StatItem[] = [
     ),
   },
   {
-    l: "Clínicas activas",
     to: 320,
     suffix: "+",
     accent: "from-brand-700 to-brand-500",
@@ -41,7 +40,6 @@ const STATS: StatItem[] = [
     ),
   },
   {
-    l: "Tiempo medio de cobertura",
     to: 252, // 4h 12m in minutes
     mode: "duration",
     accent: "from-brand-600 to-brand-400",
@@ -54,7 +52,6 @@ const STATS: StatItem[] = [
     ),
   },
   {
-    l: "Satisfacción de clínicas",
     to: 96,
     suffix: "%",
     accent: "from-brand-500 to-brand-300",
@@ -67,7 +64,9 @@ const STATS: StatItem[] = [
   },
 ];
 
-export function Stats() {
+export async function Stats() {
+  const labels = (await getDict()).sections.stats.labels;
+  const STATS: StatItem[] = STATS_META.map((s, i) => ({ ...s, l: labels[i] }));
   return (
     <section className="relative overflow-hidden border-y border-mist-200 bg-white">
       {/* Subtle ambient backdrop */}

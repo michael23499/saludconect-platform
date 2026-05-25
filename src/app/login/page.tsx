@@ -3,8 +3,13 @@ import { LoginForm } from "./LoginForm";
 import { AuthHeading } from "@/components/auth/AuthHeading";
 import { AuthNoAccount } from "@/components/auth/AuthLinks";
 import { requireGuest } from "@backend/auth/guards";
+import { getDict } from "@/lib/i18n-server";
+import type { Metadata } from "next";
 
-export const metadata = { title: "Iniciar sesión · SaludCoNet" };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = (await getDict()).meta.login;
+  return { title: t.title };
+}
 
 export default async function LoginPage() {
   await requireGuest();

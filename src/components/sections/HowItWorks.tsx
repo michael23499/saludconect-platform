@@ -1,42 +1,9 @@
 import { Section, SectionHeading } from "@/components/ui/Section";
+import { getDict } from "@/lib/i18n-server";
 
-const STEPS_CLINIC = [
-  {
-    n: "01",
-    t: "Publica tu necesidad",
-    d: "Define profesión, especialidad, fechas, turno y tarifa orientativa. Tarda menos de 60 segundos.",
-  },
-  {
-    n: "02",
-    t: "Recibe candidatos verificados",
-    d: "Profesionales disponibles te contactan o aparecen filtrados por compatibilidad con tu solicitud.",
-  },
-  {
-    n: "03",
-    t: "Confirma y trabaja",
-    d: "Acuerda detalles por chat, confirma la reserva y deja que SaludCoNet gestione el resto.",
-  },
-];
+type Step = { n: string; t: string; d: string };
 
-const STEPS_PRO = [
-  {
-    n: "01",
-    t: "Crea tu perfil profesional",
-    d: "Sube titulación, colegiado y experiencia. Tu perfil queda verificado en menos de 24 h.",
-  },
-  {
-    n: "02",
-    t: "Marca tu disponibilidad",
-    d: "Configura calendario, turnos, ciudad y tarifa. Las clínicas verán únicamente lo que tú permitas.",
-  },
-  {
-    n: "03",
-    t: "Acepta jornadas y cobra",
-    d: "Recibe solicitudes de clínicas, confirma con un clic y gestiona tu agenda.",
-  },
-];
-
-function StepList({ steps, color }: { steps: typeof STEPS_CLINIC; color: string }) {
+function StepList({ steps, color }: { steps: Step[]; color: string }) {
   return (
     <ol className="relative space-y-6 pl-12">
       <span className="absolute left-[18px] top-2 bottom-2 w-px bg-gradient-to-b from-brand-200 to-transparent" />
@@ -55,13 +22,14 @@ function StepList({ steps, color }: { steps: typeof STEPS_CLINIC; color: string 
   );
 }
 
-export function HowItWorks() {
+export async function HowItWorks() {
+  const t = (await getDict()).sections.how;
   return (
     <Section className="bg-white">
       <SectionHeading
-        eyebrow="Cómo funciona"
-        title={<>Tres pasos. Dos roles. <span className="text-gradient-brand">Cero fricción.</span></>}
-        description="Diseñado por y para el sector sanitario. Cada flujo está optimizado para que el tiempo se invierta en pacientes, no en procesos."
+        eyebrow={t.eyebrow}
+        title={<>{t.title1}<span className="text-gradient-brand">{t.title2}</span></>}
+        description={t.desc}
       />
       <div className="mt-16 grid gap-10 lg:grid-cols-2">
         <div className="fade-up rounded-3xl border border-mist-200 bg-mist-50/50 p-8 md:p-10">
@@ -73,11 +41,11 @@ export function HowItWorks() {
               </svg>
             </span>
             <div>
-              <div className="text-xs font-semibold uppercase tracking-wider text-brand-700">Para clínicas</div>
-              <div className="text-[18px] font-semibold tracking-tight text-ink-900">Encuentra y reserva</div>
+              <div className="text-xs font-semibold uppercase tracking-wider text-brand-700">{t.clinicEyebrow}</div>
+              <div className="text-[18px] font-semibold tracking-tight text-ink-900">{t.clinicHeading}</div>
             </div>
           </div>
-          <StepList steps={STEPS_CLINIC} color="bg-gradient-to-br from-brand-600 to-brand-500" />
+          <StepList steps={t.stepsClinic} color="bg-gradient-to-br from-brand-600 to-brand-500" />
         </div>
 
         <div className="fade-up rounded-3xl border border-mist-200 bg-mist-50/50 p-8 md:p-10" style={{ animationDelay: "120ms" }}>
@@ -89,11 +57,11 @@ export function HowItWorks() {
               </svg>
             </span>
             <div>
-              <div className="text-xs font-semibold uppercase tracking-wider text-ink-700">Para profesionales</div>
-              <div className="text-[18px] font-semibold tracking-tight text-ink-900">Conecta y trabaja</div>
+              <div className="text-xs font-semibold uppercase tracking-wider text-ink-700">{t.proEyebrow}</div>
+              <div className="text-[18px] font-semibold tracking-tight text-ink-900">{t.proHeading}</div>
             </div>
           </div>
-          <StepList steps={STEPS_PRO} color="bg-gradient-to-br from-ink-800 to-brand-700" />
+          <StepList steps={t.stepsPro} color="bg-gradient-to-br from-ink-800 to-brand-700" />
         </div>
       </div>
     </Section>

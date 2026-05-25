@@ -5,13 +5,10 @@ import { AnimatedCheckbox } from "@/components/ui/AnimatedCheckbox";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/cn";
+import { useApp } from "@/components/providers/Providers";
 
-const BENEFITS = [
-  { icon: "∞", text: "Reservas ilimitadas durante 14 días" },
-  { icon: "★", text: "Acceso a profesionales Elite" },
-  { icon: "◎", text: "Multi-sede hasta 5 clínicas" },
-  { icon: "♥", text: "Sin tarjeta · sin permanencia" },
-];
+// Iconos de cada beneficio (no textual). El texto viene del dict por índice.
+const BENEFIT_ICONS = ["∞", "★", "◎", "♥"];
 
 // Pre-computed confetti trajectories so the render stays deterministic
 const CONFETTI = [
@@ -30,6 +27,8 @@ const CONFETTI = [
 ];
 
 export function FreeTrialCTA() {
+  const { t } = useApp();
+  const tr = t.trial;
   const [accepted, setAccepted] = useState(false);
   const [burstKey, setBurstKey] = useState(0);
 
@@ -59,28 +58,24 @@ export function FreeTrialCTA() {
         <div>
           <div className="inline-flex items-center gap-2">
             <Badge tone={accepted ? "success" : "brand"}>
-              {accepted ? "Prueba lista" : "14 días gratis"}
+              {accepted ? tr.badgeReady : tr.badgeFree}
             </Badge>
             <span className="text-xs font-semibold uppercase tracking-wider text-brand-700 dark:!text-cyan-300">
-              Plan Clínica Pro
+              {tr.planLabel}
             </span>
           </div>
 
           <h3 className="mt-2 text-xl font-semibold tracking-tight text-ink-900 md:text-2xl">
-            {accepted
-              ? "¡Genial! Estás a un paso de activar tu prueba"
-              : "Empieza tu prueba gratuita de 14 días"}
+            {accepted ? tr.titleReady : tr.titleDefault}
           </h3>
           <p className="mt-1.5 text-sm text-mist-500 dark:!text-slate-200">
-            {accepted
-              ? "Confirmamos que quieres activar Clínica Pro durante 14 días sin coste. Pulsa el botón para empezar ahora mismo."
-              : "Prueba Clínica Pro sin compromiso. Sin tarjeta, sin permanencia. Cancela cuando quieras."}
+            {accepted ? tr.descReady : tr.descDefault}
           </p>
 
           <ul className="mt-4 grid gap-2 sm:grid-cols-2">
-            {BENEFITS.map((b, i) => (
+            {tr.benefits.map((text, i) => (
               <li
-                key={b.text}
+                key={text}
                 className={cn(
                   "flex items-start gap-2 text-sm text-ink-800 dark:!text-slate-100",
                   accepted && "fade-up"
@@ -95,9 +90,9 @@ export function FreeTrialCTA() {
                       : "bg-white text-brand-700 ring-1 ring-brand-200 dark:bg-white/10 dark:!text-cyan-200 dark:ring-brand-400/30"
                   )}
                 >
-                  {accepted ? "✓" : b.icon}
+                  {accepted ? "✓" : BENEFIT_ICONS[i]}
                 </span>
-                <span>{b.text}</span>
+                <span>{text}</span>
               </li>
             ))}
           </ul>
@@ -145,17 +140,17 @@ export function FreeTrialCTA() {
                 className="z-10"
               >
                 <span className="text-sm font-medium">
-                  Quiero empezar mi prueba gratuita de <strong>14 días</strong> en el plan <strong>Clínica Pro</strong>.
+                  {tr.consentPre}<strong>{tr.consentDays}</strong>{tr.consentMid}<strong>{tr.consentPlan}</strong>{tr.consentPost}
                 </span>
               </AnimatedCheckbox>
             </div>
 
             <p className="mt-3 text-[11px] leading-relaxed text-mist-500 dark:!text-slate-300">
-              Al activar la prueba aceptas los{" "}
+              {tr.legalPre}
               <a href="#" className="font-semibold text-brand-700 hover:underline dark:!text-cyan-300">
-                términos del servicio
+                {tr.legalLink}
               </a>
-              . No realizaremos ningún cargo durante el periodo de prueba.
+              {tr.legalPost}
             </p>
           </div>
 
@@ -168,7 +163,7 @@ export function FreeTrialCTA() {
               accepted && "scale-[1.01]"
             )}
           >
-            {accepted ? "Activar mi prueba gratuita →" : "Marca la casilla para continuar"}
+            {accepted ? tr.ctaReady : tr.ctaDefault}
           </Button>
         </div>
       </div>

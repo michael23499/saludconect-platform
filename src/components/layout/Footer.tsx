@@ -1,39 +1,41 @@
 import Link from "next/link";
 import { Logo } from "@/components/ui/Logo";
+import { getDict } from "@/lib/i18n-server";
 
-const COLS = [
-  {
-    title: "Producto",
-    links: [
-      { href: "/how-it-works", label: "Cómo funciona" },
-      { href: "/clinics", label: "Para clínicas" },
-      { href: "/professionals", label: "Para profesionales" },
-      { href: "/search", label: "Buscar talento" },
-      { href: "/precios", label: "Planes y precios" },
-    ],
-  },
-  {
-    title: "Plataforma",
-    links: [
-      { href: "/dashboard/professional", label: "Área del profesional" },
-      { href: "/dashboard/clinic", label: "Área de la clínica" },
-      { href: "/register", label: "Registro" },
-      { href: "/login", label: "Iniciar sesión" },
-    ],
-  },
-  {
-    title: "Recursos",
-    links: [
-      { href: "/contact", label: "Contacto" },
-      { href: "/legal/privacy", label: "Política de privacidad" },
-      { href: "/legal/legal-notice", label: "Aviso legal" },
-      { href: "/legal/terms", label: "Términos y condiciones" },
-      { href: "/legal/cookies", label: "Política de cookies" },
-    ],
-  },
-];
-
-export function Footer() {
+export async function Footer() {
+  const dict = await getDict();
+  const f = dict.footer2;
+  const COLS = [
+    {
+      title: f.colProduct,
+      links: [
+        { href: "/how-it-works", label: f.lProductHow },
+        { href: "/clinics", label: f.lProductClinics },
+        { href: "/professionals", label: f.lProductPros },
+        { href: "/search", label: f.lProductSearch },
+        { href: "/precios", label: f.lProductPricing },
+      ],
+    },
+    {
+      title: f.colPlatform,
+      links: [
+        { href: "/dashboard/professional", label: f.lPlatformProArea },
+        { href: "/dashboard/clinic", label: f.lPlatformClinicArea },
+        { href: "/register", label: f.lPlatformRegister },
+        { href: "/login", label: f.lPlatformLogin },
+      ],
+    },
+    {
+      title: f.colResources,
+      links: [
+        { href: "/contact", label: f.lResourcesContact },
+        { href: "/legal/privacy", label: f.lResourcesPrivacy },
+        { href: "/legal/legal-notice", label: f.lResourcesLegal },
+        { href: "/legal/terms", label: f.lResourcesTerms },
+        { href: "/legal/cookies", label: f.lResourcesCookies },
+      ],
+    },
+  ];
   return (
     <footer className="border-t border-mist-200 bg-mist-50">
       <div className="mx-auto w-full max-w-7xl px-5 py-16 md:px-8">
@@ -41,7 +43,7 @@ export function Footer() {
           <div>
             <Logo />
             <p className="mt-4 max-w-xs text-sm text-mist-500">
-              La nueva red profesional sanitaria. Conectamos clínicas con profesionales sanitarios verificados en toda España.
+              {dict.footer.tagline}
             </p>
             <ul className="mt-6 space-y-2.5 text-sm text-mist-500">
               <li className="flex items-start gap-2.5">

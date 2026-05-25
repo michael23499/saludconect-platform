@@ -2,94 +2,27 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
+import { useApp } from "@/components/providers/Providers";
 
 type QA = { q: string; a: string; cat: CatId };
 type CatId = "general" | "profesionales" | "clinicas" | "precios" | "soporte";
 
-const CATEGORIES: { id: CatId; label: string; icon: string }[] = [
-  { id: "general", label: "Sobre SaludCoNet", icon: "info" },
-  { id: "profesionales", label: "Profesionales", icon: "user" },
-  { id: "clinicas", label: "Clínicas", icon: "building" },
-  { id: "precios", label: "Precios", icon: "tag" },
-  { id: "soporte", label: "Soporte", icon: "help" },
+// Estructura local no-textual: id (filtrado) e icono. El label viene del dict por índice.
+const CATEGORY_META: { id: CatId; icon: string }[] = [
+  { id: "general", icon: "info" },
+  { id: "profesionales", icon: "user" },
+  { id: "clinicas", icon: "building" },
+  { id: "precios", icon: "tag" },
+  { id: "soporte", icon: "help" },
 ];
 
-const FAQS: QA[] = [
-  {
-    cat: "general",
-    q: "¿Qué es SaludCoNet?",
-    a: "Somos la red profesional sanitaria que conecta clínicas privadas con profesionales sanitarios verificados en toda España. Publica una necesidad y recibe candidatos cualificados en minutos.",
-  },
-  {
-    cat: "general",
-    q: "¿Qué especialidades cubrís?",
-    a: "Medicina, enfermería, fisioterapia, podología, odontología, óptica, psicología, nutrición y especialidades técnicas como auxiliares y técnicos sanitarios.",
-  },
-  {
-    cat: "general",
-    q: "¿Dónde operáis?",
-    a: "Operamos en toda España, con mayor densidad de profesionales en Madrid, Barcelona, Valencia, Sevilla, Bilbao y Málaga.",
-  },
-  {
-    cat: "profesionales",
-    q: "¿Cómo verificáis a los profesionales?",
-    a: "Validamos colegiación, titulación oficial y experiencia. Solo los profesionales verificados pueden recibir reservas de clínicas a través de la plataforma.",
-  },
-  {
-    cat: "profesionales",
-    q: "¿Cómo me registro como profesional?",
-    a: "Entra en /register, elige el perfil profesional, sube tu colegiación y completa tu disponibilidad. Verificamos tu perfil en menos de 24 horas.",
-  },
-  {
-    cat: "profesionales",
-    q: "¿Cuándo y cómo cobro?",
-    a: "Cobras de forma segura mediante transferencia tras cada servicio confirmado por la clínica. El plazo medio es de 3 a 5 días laborables.",
-  },
-  {
-    cat: "clinicas",
-    q: "¿Cuánto tarda en cubrirse una vacante?",
-    a: "El tiempo medio de respuesta es inferior a 30 minutos. La mayoría de las urgencias se cubren el mismo día gracias a nuestra red activa.",
-  },
-  {
-    cat: "clinicas",
-    q: "¿Cómo publico una necesidad?",
-    a: "Desde el área de la clínica pulsa “Publicar necesidad”, indica especialidad, fechas y condiciones. Los profesionales compatibles reciben aviso al instante.",
-  },
-  {
-    cat: "clinicas",
-    q: "¿Puedo reservar siempre al mismo profesional?",
-    a: "Sí. Puedes marcar profesionales favoritos y darles prioridad o reservarlos directamente para tus próximas vacantes.",
-  },
-  {
-    cat: "precios",
-    q: "¿Cuánto cuesta la plataforma?",
-    a: "Para profesionales el registro es 100% gratuito. Las clínicas eligen entre planes mensuales según su volumen de contratación. Consulta /precios para ver el detalle.",
-  },
-  {
-    cat: "precios",
-    q: "¿Hay permanencia?",
-    a: "No. Todos los planes son mensuales y puedes cancelar cuando quieras desde tu panel de administración.",
-  },
-  {
-    cat: "precios",
-    q: "¿Cómo se factura?",
-    a: "Toda la facturación se centraliza en la plataforma: las clínicas reciben factura mensual con el detalle de los servicios contratados.",
-  },
-  {
-    cat: "soporte",
-    q: "¿Tenéis soporte humano?",
-    a: "Sí. Nuestro equipo de soporte está disponible por chat y email de lunes a viernes de 9:00 a 19:00. Para urgencias clínicas, contamos con guardia 24/7.",
-  },
-  {
-    cat: "soporte",
-    q: "¿Mis datos están seguros?",
-    a: "Cumplimos RGPD y LOPDGDD. Los datos clínicos y de colegiación se cifran en tránsito y en reposo, y nunca se comparten sin consentimiento.",
-  },
-  {
-    cat: "soporte",
-    q: "¿Cómo contacto con un humano?",
-    a: "Puedes escribirnos a hola@saludconet.es o desde /contact. Te respondemos en menos de 2 horas laborables.",
-  },
+// Categoría de cada FAQ por índice (mismo orden que t.chat.faq). Lo textual vive en el dict.
+const FAQ_CATS: CatId[] = [
+  "general", "general", "general",
+  "profesionales", "profesionales", "profesionales",
+  "clinicas", "clinicas", "clinicas",
+  "precios", "precios", "precios",
+  "soporte", "soporte", "soporte",
 ];
 
 type Message =
@@ -97,15 +30,6 @@ type Message =
   | { id: string; kind: "user"; text: string }
   | { id: string; kind: "menu" }
   | { id: string; kind: "questions"; cat: CatId };
-
-const initialMessages = (): Message[] => [
-  {
-    id: "welcome",
-    kind: "bot",
-    text: "¡Hola! 👋 Soy el asistente de SaludCoNet. Elige una categoría para ver las preguntas más frecuentes.",
-  },
-  { id: "menu-0", kind: "menu" },
-];
 
 function DoctorIcon({ className }: { className?: string }) {
   return (
@@ -185,6 +109,27 @@ function stamp() {
 }
 
 export function ChatWidget() {
+  const { t } = useApp();
+  const c = t.chat;
+
+  // Combinamos lo no-textual (id, icono) con los labels traducidos por índice.
+  const CATEGORIES = useMemo(
+    () => CATEGORY_META.map((m, i) => ({ ...m, label: c.categories[i] })),
+    [c.categories],
+  );
+  // FAQs traducidas: el texto viene del dict, la categoría del array local por índice.
+  const FAQS = useMemo<QA[]>(
+    () => c.faq.map((f, i) => ({ q: f.q, a: f.a, cat: FAQ_CATS[i] })),
+    [c.faq],
+  );
+  const initialMessages = useMemo<Message[]>(
+    () => [
+      { id: "welcome", kind: "bot", text: c.welcome },
+      { id: "menu-0", kind: "menu" },
+    ],
+    [c.welcome],
+  );
+
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [draft, setDraft] = useState("");
@@ -227,7 +172,7 @@ export function ChatWidget() {
   function showCategory(cat: CatId) {
     setMessages((prev) => [
       ...prev,
-      { id: stamp(), kind: "user", text: CATEGORIES.find((c) => c.id === cat)?.label || "" },
+      { id: stamp(), kind: "user", text: CATEGORIES.find((cat2) => cat2.id === cat)?.label || "" },
       { id: stamp(), kind: "questions", cat },
     ]);
   }
@@ -269,7 +214,7 @@ export function ChatWidget() {
           {
             id: stamp(),
             kind: "bot",
-            text: "No tengo una respuesta exacta para eso. Puedes elegir una categoría o escribirnos a hola@saludconet.es y te respondemos enseguida.",
+            text: c.noMatch,
           },
           { id: stamp(), kind: "menu" },
         ]);
@@ -278,7 +223,7 @@ export function ChatWidget() {
   }
 
   function reset() {
-    setMessages(initialMessages());
+    setMessages(initialMessages);
   }
 
   const questionsByCat = useMemo(() => {
@@ -291,7 +236,7 @@ export function ChatWidget() {
     };
     for (const qa of FAQS) map[qa.cat].push(qa);
     return map;
-  }, []);
+  }, [FAQS]);
 
   return (
     <>
@@ -299,7 +244,7 @@ export function ChatWidget() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        aria-label={open ? "Cerrar chat de ayuda" : "Abrir chat de ayuda"}
+        aria-label={open ? c.launcherOpen : c.launcherClose}
         aria-expanded={open}
         className={cn(
           "fixed bottom-5 right-5 z-50 inline-flex h-14 w-14 items-center justify-center rounded-full",
@@ -326,7 +271,7 @@ export function ChatWidget() {
       {/* Panel */}
       <div
         role="dialog"
-        aria-label="Chat de ayuda de SaludCoNet"
+        aria-label={c.dialogLabel}
         aria-hidden={!open}
         className={cn(
           "fixed z-50 flex flex-col overflow-hidden border border-mist-200 bg-white shadow-[0_30px_80px_-20px_rgba(15,23,42,0.4)]",
@@ -350,14 +295,14 @@ export function ChatWidget() {
             <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-emerald-400" aria-hidden />
           </div>
           <div className="min-w-0 flex-1">
-            <div className="text-[15px] font-semibold leading-tight">Soporte SaludCoNet</div>
-            <div className="text-xs text-white/80">En línea · respuesta inmediata</div>
+            <div className="text-[15px] font-semibold leading-tight">{c.headerTitle}</div>
+            <div className="text-xs text-white/80">{c.headerStatus}</div>
           </div>
           <button
             type="button"
             onClick={reset}
-            aria-label="Reiniciar conversación"
-            title="Reiniciar conversación"
+            aria-label={c.resetLabel}
+            title={c.resetLabel}
             className="rounded-full p-2 text-white/85 transition hover:bg-white/15 hover:text-white"
           >
             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -368,7 +313,7 @@ export function ChatWidget() {
           <button
             type="button"
             onClick={() => setOpen(false)}
-            aria-label="Cerrar"
+            aria-label={c.closeLabel}
             className="rounded-full p-2 text-white/85 transition hover:bg-white/15 hover:text-white"
           >
             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -461,14 +406,14 @@ export function ChatWidget() {
             type="text"
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
-            placeholder="Escribe tu pregunta…"
+            placeholder={c.inputPlaceholder}
             className="h-10 flex-1 rounded-full border border-mist-200 bg-mist-50 px-4 text-sm text-ink-900 placeholder:text-mist-500 focus:border-brand-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-200"
-            aria-label="Escribe tu pregunta"
+            aria-label={c.inputLabel}
           />
           <button
             type="submit"
             disabled={!draft.trim()}
-            aria-label="Enviar"
+            aria-label={c.sendLabel}
             className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-600 text-white transition hover:bg-brand-700 disabled:opacity-40"
           >
             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
@@ -480,7 +425,7 @@ export function ChatWidget() {
           href="/contact"
           className="shrink-0 border-t border-mist-200 bg-mist-50 px-4 py-2 text-center text-[11px] font-medium text-mist-500 transition hover:bg-mist-100 hover:text-brand-700"
         >
-          ¿Prefieres hablar con una persona? Ve a contacto →
+          {c.contactLink}
         </a>
       </div>
     </>

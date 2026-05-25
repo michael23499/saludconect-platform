@@ -1,20 +1,26 @@
+import type { Metadata } from "next";
 import { LegalLayout } from "@/components/legal/LegalLayout";
+import { getDict } from "@/lib/i18n-server";
 
-export const metadata = { title: "Política de cookies · SaludCoNet" };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = (await getDict()).legal.cookies;
+  return { title: t.metaTitle };
+}
 
-export default function CookiesPage() {
+export default async function CookiesPage() {
+  const t = (await getDict()).legal.cookies;
   return (
-    <LegalLayout title="Política de cookies" updated="20 de mayo de 2026">
-      <h2>¿Qué son las cookies?</h2>
-      <p>Las cookies son pequeños archivos que se almacenan en tu navegador cuando visitas un sitio web. Permiten reconocerte y mejorar tu experiencia de uso.</p>
-      <h2>Cookies que utilizamos</h2>
+    <LegalLayout title={t.title} updated={t.updated}>
+      <h2>{t.s1h}</h2>
+      <p>{t.s1p}</p>
+      <h2>{t.s2h}</h2>
       <ul>
-        <li><strong>Técnicas:</strong> imprescindibles para el funcionamiento de la plataforma (sesión, idioma, tema).</li>
-        <li><strong>Analíticas:</strong> nos permiten entender cómo usas la plataforma de forma agregada y anónima.</li>
-        <li><strong>Funcionales:</strong> recuerdan tus preferencias (ciudad por defecto, vista de calendario).</li>
+        <li><strong>{t.s2item1Strong}</strong>{t.s2item1}</li>
+        <li><strong>{t.s2item2Strong}</strong>{t.s2item2}</li>
+        <li><strong>{t.s2item3Strong}</strong>{t.s2item3}</li>
       </ul>
-      <h2>Gestión de cookies</h2>
-      <p>Puedes aceptar, rechazar o configurar el uso de cookies en cualquier momento desde el banner de configuración o desde los ajustes de tu navegador.</p>
+      <h2>{t.s3h}</h2>
+      <p>{t.s3p}</p>
     </LegalLayout>
   );
 }
