@@ -1,9 +1,9 @@
 "use client";
+import Link from "next/link";
 import { Section, SectionHeading } from "@/components/ui/Section";
-import { Button } from "@/components/ui/Button";
 import { useApp } from "@/components/providers/Providers";
 import { cn } from "@/lib/cn";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 const COPY = {
   es: {
@@ -330,14 +330,7 @@ function PricingCard({ plan: p, copy: c, index }: { plan: Plan; copy: (typeof CO
         </div>
 
         {/* CTA */}
-        <Button
-          href={p.cta.href}
-          size="md"
-          variant={p.highlight ? "primary" : "secondary"}
-          className="mt-6 w-full justify-center"
-        >
-          {p.cta.label}
-        </Button>
+        <PlanCTA plan={p} />
 
         {/* Divider */}
         <div
@@ -390,6 +383,54 @@ function PricingCard({ plan: p, copy: c, index }: { plan: Plan; copy: (typeof CO
         </ul>
       </div>
     </div>
+  );
+}
+
+function PlanCTA({ plan: p }: { plan: Plan }) {
+  // Un estilo por plan, pensado para su fondo y su jerarquía:
+  //  · starter  → navy sólido, con presencia sobre la tarjeta blanca
+  //  · pro       → blanco con halo cian, máximo contraste sobre la tarjeta oscura
+  //  · enterprise → contorno que se rellena en hover, deliberadamente más discreto
+  const styles: Record<Plan["key"], string> = {
+    starter:
+      "bg-brand-600 text-white shadow-[0_8px_20px_-8px_rgba(5,47,89,0.45)] hover:bg-brand-700 hover:shadow-[0_16px_34px_-12px_rgba(5,47,89,0.6)] motion-safe:hover:-translate-y-0.5",
+    pro:
+      "bg-white text-brand-700 shadow-[0_10px_30px_-10px_rgba(1,171,212,0.55)] hover:shadow-[0_16px_42px_-10px_rgba(1,171,212,0.85)] motion-safe:hover:-translate-y-0.5",
+    enterprise:
+      "border border-mist-300 bg-white text-ink-900 hover:border-brand-300 hover:bg-mist-50 hover:shadow-[0_12px_28px_-14px_rgba(5,47,89,0.45)] motion-safe:hover:-translate-y-0.5",
+  };
+
+  // Color del destello que barre el botón en hover (variable --shine):
+  // claro sobre el navy, cian de marca sobre los botones blancos.
+  const shine: Record<Plan["key"], string> = {
+    starter: "rgba(255,255,255,0.55)",
+    pro: "rgba(1,171,212,0.45)",
+    enterprise: "rgba(1,171,212,0.30)",
+  };
+
+  return (
+    <Link
+      href={p.cta.href}
+      style={{ "--shine": shine[p.key] } as CSSProperties}
+      className={cn(
+        "cta-shine group/cta mt-6 inline-flex h-11 w-full select-none items-center justify-center gap-2 rounded-full text-[15px] font-semibold transition-all duration-200",
+        styles[p.key]
+      )}
+    >
+      {p.cta.label}
+      <svg
+        viewBox="0 0 24 24"
+        className="h-4 w-4 transition-transform duration-200 ease-out motion-safe:group-hover/cta:translate-x-1"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden
+      >
+        <path d="M5 12h14M13 6l6 6-6 6" />
+      </svg>
+    </Link>
   );
 }
 

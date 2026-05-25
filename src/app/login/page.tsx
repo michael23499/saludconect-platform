@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Logo } from "@/components/ui/Logo";
 import { LoginForm } from "./LoginForm";
 import { AuthHeading } from "@/components/auth/AuthHeading";
@@ -20,14 +19,6 @@ export default async function LoginPage() {
           <LoginForm />
 
           <AuthNoAccount />
-          <div className="mt-6 grid grid-cols-2 gap-2 rounded-2xl border border-dashed border-mist-200 bg-mist-50/60 p-3 text-center text-[11px] text-mist-500">
-            <Link href="/dashboard/professional" className="hover:text-brand-700">
-              <div className="font-semibold text-ink-800">Demo</div>Profesional
-            </Link>
-            <Link href="/dashboard/clinic" className="hover:text-brand-700">
-              <div className="font-semibold text-ink-800">Demo</div>Clínica
-            </Link>
-          </div>
         </div>
       </div>
     </div>

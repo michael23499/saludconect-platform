@@ -151,10 +151,10 @@ export function JourneyTabs() {
       <div
         key={`banner-${role}`}
         className={cn(
-          "fade-up mt-8 grid gap-4 rounded-3xl border p-5 sm:flex sm:items-center sm:justify-between md:p-6",
+          "reveal-up mt-8 grid gap-4 rounded-3xl border p-5 sm:flex sm:items-center sm:justify-between md:p-6",
           role === "clinic"
-            ? "border-brand-100 bg-gradient-to-br from-brand-50/80 via-white to-cyan-50/40"
-            : "border-cyan-100 bg-gradient-to-br from-cyan-50/80 via-white to-brand-50/40"
+            ? "border-brand-100 bg-gradient-to-br from-brand-50/80 via-white to-cyan-50/40 dark:from-brand-500/15 dark:via-transparent dark:to-cyan-500/10"
+            : "border-cyan-100 bg-gradient-to-br from-cyan-50/80 via-white to-brand-50/40 dark:from-cyan-500/15 dark:via-transparent dark:to-brand-500/10"
         )}
       >
         <div className="flex items-center gap-3">
@@ -190,10 +190,17 @@ export function JourneyTabs() {
       {/* Stepper progress (desktop) */}
       <div className="mt-8 hidden md:block">
         <div className="relative">
-          <div className="absolute left-0 right-0 top-5 h-px bg-mist-200" />
+          {/* Las líneas van de CENTRO a CENTRO de los círculos extremos (cada
+              círculo está centrado en su columna del grid de 5 → el primero a
+              media columna del borde = 100%/5/2 = 10%). Así la línea de progreso
+              termina justo en el círculo activo, sin quedarse corta. */}
+          <div className="absolute top-5 h-px bg-mist-200" style={{ left: `${50 / steps.length}%`, right: `${50 / steps.length}%` }} />
           <div
-            className="absolute left-0 top-5 h-[2px] bg-gradient-to-r from-brand-500 to-cyan-400 transition-[width] duration-500"
-            style={{ width: `${((active - 1) / (steps.length - 1)) * 100}%` }}
+            className="absolute top-5 h-[2px] bg-gradient-to-r from-brand-500 to-cyan-400 transition-[width] duration-500"
+            style={{
+              left: `${50 / steps.length}%`,
+              width: `${((active - 1) / (steps.length - 1)) * (100 - 100 / steps.length)}%`,
+            }}
           />
           <ol className="relative grid grid-cols-5 gap-2">
             {steps.map((s) => (
@@ -241,9 +248,9 @@ export function JourneyTabs() {
               type="button"
               onClick={() => setActive(s.n)}
               className={cn(
-                "fade-up block w-full overflow-hidden rounded-3xl border bg-white p-5 text-left transition-all md:p-7",
+                "reveal-up block w-full overflow-hidden rounded-3xl border bg-white p-5 text-left transition-all md:p-7",
                 isActive
-                  ? "border-brand-300 bg-gradient-to-br from-white via-white to-brand-50/40 shadow-[var(--shadow-card)]"
+                  ? "border-brand-300 bg-gradient-to-br from-white via-white to-brand-50/40 shadow-[var(--shadow-card)] dark:from-transparent dark:via-transparent dark:to-brand-500/10"
                   : "border-mist-200 hover:border-brand-200 hover:bg-mist-50/40"
               )}
               style={{ animationDelay: `${(s.n - 1) * 60}ms` }}
@@ -358,7 +365,10 @@ function RoleTab({
       type="button"
       onClick={onClick}
       className={cn(
-        "relative z-10 inline-flex h-10 items-center gap-2 rounded-full px-4 text-[13px] font-semibold transition-colors md:h-11 md:px-5 md:text-sm",
+        // flex-1 → cada pestaña ocupa exactamente el 50% del contenedor, de modo
+        // que la píldora deslizante (w-[calc(50%-4px)] + translate-x-full) encaje
+        // justo sobre cada una en vez de desbordarse.
+        "relative z-10 inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-full px-4 text-[13px] font-semibold transition-colors md:h-11 md:px-5 md:text-sm",
         active ? "text-white" : "text-ink-700 hover:text-ink-900"
       )}
     >

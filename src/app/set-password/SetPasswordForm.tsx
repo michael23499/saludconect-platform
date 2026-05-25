@@ -2,7 +2,8 @@
 
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
-import { Field, Input } from "@/components/ui/Input";
+import { Field } from "@/components/ui/Input";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
 import { useApp } from "@/components/providers/Providers";
@@ -20,9 +21,8 @@ export function SetPasswordForm() {
   return (
     <form action={formAction} className="mt-8 space-y-4">
       <Field label={a.newPassword} hint={a.minChars}>
-        <Input
+        <PasswordInput
           name="password"
-          type="password"
           required
           minLength={8}
           autoComplete="new-password"
@@ -30,9 +30,8 @@ export function SetPasswordForm() {
         />
       </Field>
       <Field label={a.confirmPassword}>
-        <Input
+        <PasswordInput
           name="confirmPassword"
-          type="password"
           required
           minLength={8}
           autoComplete="new-password"

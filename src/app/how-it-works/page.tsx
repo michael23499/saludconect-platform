@@ -271,7 +271,7 @@ export default function ComoFuncionaPage() {
           {FAQ.map((f) => (
             <details
               key={f.q}
-              className="group rounded-2xl border border-mist-200 bg-white p-5 open:border-brand-200 open:bg-gradient-to-br open:from-white open:to-brand-50/40 open:shadow-[var(--shadow-card)]"
+              className="group rounded-2xl border border-mist-200 bg-white p-5 open:border-brand-200 open:bg-gradient-to-br open:from-white open:to-brand-50/40 open:shadow-[var(--shadow-card)] dark:open:from-transparent dark:open:to-brand-500/10"
             >
               <summary className="flex cursor-pointer list-none items-start justify-between gap-4">
                 <span className="text-[15.5px] font-semibold text-ink-900">{f.q}</span>

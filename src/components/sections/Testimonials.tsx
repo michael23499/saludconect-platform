@@ -42,7 +42,7 @@ export function Testimonials() {
             <svg className="absolute right-6 top-6 h-8 w-8 text-brand-100" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
               <path d="M9.5 6c-3 0-5.5 2.6-5.5 6v6h6v-6H6.5c0-1.7 1.3-3 3-3V6zm9 0c-3 0-5.5 2.6-5.5 6v6h6v-6h-3.5c0-1.7 1.3-3 3-3V6z" />
             </svg>
-            <blockquote className="text-[15.5px] leading-relaxed text-ink-800">"{t.text}"</blockquote>
+            <blockquote className="text-[15.5px] leading-relaxed text-ink-800">“{t.text}”</blockquote>
             <figcaption className="mt-7 flex items-center gap-3">
               <Avatar name={t.avatar} size="md" />
               <div>

@@ -3,6 +3,7 @@ import { Stats } from "@/components/sections/Stats";
 import { ValueProps } from "@/components/sections/ValueProps";
 import { HowItWorks } from "@/components/sections/HowItWorks";
 import { Specialties } from "@/components/sections/Specialties";
+import { SpainCoverageMap } from "@/components/sections/SpainCoverageMap";
 import { ReputationSection } from "@/components/sections/Reputation";
 import { Testimonials } from "@/components/sections/Testimonials";
 import { Pricing } from "@/components/sections/Pricing";
@@ -16,6 +17,7 @@ export default function HomePage() {
       <ValueProps />
       <HowItWorks />
       <Specialties />
+      <SpainCoverageMap />
       <ReputationSection />
       <Testimonials />
       <Pricing />

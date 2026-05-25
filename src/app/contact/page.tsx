@@ -30,22 +30,10 @@ export default function ContactoPage() {
                   href: "mailto:info@saludconet.com",
                 },
                 {
-                  i: "☎",
-                  t: "604 89 09 00",
-                  s: "Lun a Vie · 9:00 - 18:00",
-                  href: "tel:+34604890900",
-                },
-                {
                   i: "◍",
-                  t: "clinicacapilarcastellana.es",
+                  t: "app.saludconet.com",
                   s: "Visita nuestra web",
-                  href: "https://clinicacapilarcastellana.es",
-                },
-                {
-                  i: "◷",
-                  t: "Calle Azahar 6, 28020 Madrid",
-                  s: "España",
-                  href: "https://maps.google.com/?q=Calle+Azahar+6,+28020+Madrid,+Spain",
+                  href: "https://app.saludconet.com",
                 },
               ].map((c) => (
                 <li key={c.t} className="flex items-start gap-4">

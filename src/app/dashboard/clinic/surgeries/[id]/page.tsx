@@ -1,0 +1,145 @@
+import { notFound } from "next/navigation";
+import { DashboardShell, PageHeader } from "@/components/dashboard/Shell";
+import { Avatar } from "@/components/ui/Avatar";
+import { VerifiedTag } from "@/components/ui/VerifiedTag";
+import { ApplicantActions } from "@/components/dashboard/ApplicantActions";
+import { EditSurgeryButton } from "@/components/dashboard/EditSurgeryModal";
+import { DeleteSurgeryButton } from "@/components/dashboard/DeleteSurgeryButton";
+import { SupervisionBanner } from "@/components/dashboard/SupervisionBanner";
+import { NAV_CLINICA } from "@/lib/dashboard-nav";
+import { formatDateLongEs } from "@/lib/dates";
+import { getDict } from "@/lib/i18n-server";
+import { requireRole } from "@backend/auth/guards";
+import { getSurgeryWithClinic } from "@backend/queries/surgeries";
+import { listApplicantsForSurgery, countConfirmedForSurgery } from "@backend/queries/applications";
+
+export const metadata = { title: "Detalle de cirugía · Clínica · SaludCoNet" };
+
+export default async function DetalleCirugiaPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const me = await requireRole("clinic");
+  const t = (await getDict()).dashboard.surgeries;
+  const isAdmin = me.profile.role === "admin";
+
+  const row = await getSurgeryWithClinic(id);
+  // Propiedad: una clínica solo ve sus cirugías; el admin (supervisión) ve cualquiera.
+  if (!row || (!isAdmin && row.surgery.clinicId !== me.profile.id)) notFound();
+  const { surgery, clinicName } = row;
+
+  const [applicants, confirmedCount] = await Promise.all([
+    listApplicantsForSurgery(id),
+    countConfirmedForSurgery(id),
+  ]);
+  const canConfirm = confirmedCount < surgery.vacancies;
+
+  const user = {
+    name: me.profile.fullName,
+    subtitle: isAdmin ? "Administrador" : me.profile.city ? `Clínica · ${me.profile.city}` : "Clínica",
+    avatarUrl: me.profile.avatarUrl,
+  };
+
+  const pending = applicants.filter((a) => a.application.status === "applied");
+  const decided = applicants.filter((a) => a.application.status !== "applied");
+
+  return (
+    <DashboardShell role="Clínica" user={user} nav={NAV_CLINICA}>
+      <PageHeader
+        backHref="/dashboard/clinic/surgeries"
+        backLabel={isAdmin ? t.detailBackAdmin : t.detailBack}
+        title={surgery.title}
+        subtitle={`${isAdmin ? `${clinicName} · ` : ""}${formatDateLongEs(surgery.date)}`}
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
+            <EditSurgeryButton surgery={surgery} asAdmin={isAdmin} />
+            <DeleteSurgeryButton surgeryId={surgery.id} asAdmin={isAdmin} />
+          </div>
+        }
+      />
+
+      {isAdmin && <SupervisionBanner />}
+
+      <div className="mb-6 grid gap-4 rounded-2xl border border-mist-200 bg-white p-6 md:grid-cols-4">
+        <Summary label={t.sumEstado} value={surgery.status === "filled" ? t.statusFilled : surgery.status === "open" ? t.open : surgery.status === "cancelled" ? t.statusCancelled : t.statusCompleted} />
+        <Summary label={t.sumPlazas} value={`${confirmedCount} / ${surgery.vacancies}`} />
+        <Summary label={t.sumHorario} value={surgery.startTime && surgery.endTime ? `${surgery.startTime}–${surgery.endTime}` : "—"} />
+        <Summary label={t.sumTarifa} value={surgery.ratePerHour ? `${surgery.ratePerHour} €/h` : t.rateTBD} />
+        {(surgery.city || surgery.address) && (
+          <div className="md:col-span-4">
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-mist-500">{t.sumUbicacion}</div>
+            <div className="mt-0.5 text-sm text-ink-800">
+              {[surgery.address, surgery.city].filter(Boolean).join(", ")}
+            </div>
+          </div>
+        )}
+        {surgery.description && (
+          <div className="md:col-span-4">
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-mist-500">{t.sumDescripcion}</div>
+            <p className="mt-0.5 whitespace-pre-line text-sm text-ink-800">{surgery.description}</p>
+          </div>
+        )}
+      </div>
+
+      <div className="rounded-2xl border border-mist-200 bg-white">
+        <div className="flex items-center justify-between border-b border-mist-100 p-5">
+          <div>
+            <div className="text-xs font-semibold uppercase tracking-wider text-mist-500">{t.candidates}</div>
+            <div className="text-lg font-semibold tracking-tight text-ink-900">
+              {pending.length} {pending.length === 1 ? t.pendingOne : t.pendingMany}
+            </div>
+          </div>
+        </div>
+
+        {applicants.length === 0 ? (
+          <div className="p-8 text-center text-sm text-mist-500">{t.noApplicants}</div>
+        ) : (
+          <ul className="divide-y divide-mist-100">
+            {[...pending, ...decided].map((a) => {
+              return (
+                <li key={a.application.id} className="flex flex-col gap-3 p-5 md:flex-row md:items-center">
+                  <Avatar name={a.proName} src={a.proAvatarUrl ?? undefined} size="md" />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-sm font-semibold text-ink-900">{a.proName}</span>
+                      {a.proVerified && <VerifiedTag label={t.verified} />}
+                    </div>
+                    <div className="mt-0.5 text-xs text-mist-500">
+                      {[a.headline, a.yearsExperience ? `${a.yearsExperience} ${t.yearsExp}` : null, a.proCity]
+                        .filter(Boolean)
+                        .join(" · ") || t.defaultTechnician}
+                    </div>
+                    {a.application.message && (
+                      <p className="mt-2 rounded-lg bg-mist-50 px-3 py-2 text-xs text-ink-700">
+                        “{a.application.message}”
+                      </p>
+                    )}
+                  </div>
+                  <div className="shrink-0 md:pl-4">
+                    <ApplicantActions
+                      applicationId={a.application.id}
+                      initialStatus={a.application.status}
+                      canConfirm={canConfirm}
+                      asAdmin={isAdmin}
+                    />
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+    </DashboardShell>
+  );
+}
+
+function Summary({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div className="text-[11px] font-semibold uppercase tracking-wider text-mist-500">{label}</div>
+      <div className="mt-0.5 text-sm font-semibold text-ink-900">{value}</div>
+    </div>
+  );
+}

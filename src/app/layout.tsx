@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
@@ -7,6 +8,7 @@ import { Providers } from "@/components/providers/Providers";
 import { ChatWidget } from "@/components/chat/ChatWidget";
 import { TopProgress } from "@/components/ui/TopProgress";
 import { getCurrentUser } from "@backend/auth";
+import { countUnreadNotifications } from "@backend/queries/notifications";
 import { getLang } from "@/lib/i18n-server";
 
 const inter = Inter({
@@ -45,6 +47,12 @@ const THEME_INIT = `
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const [current, lang] = await Promise.all([getCurrentUser(), getLang()]);
+  // Conteo de notificaciones sin leer para la campana del header (solo clínica
+  // y profesional; el admin no recibe notificaciones del marketplace).
+  const unread =
+    current?.profile && (current.profile.role === "clinic" || current.profile.role === "professional")
+      ? await countUnreadNotifications(current.profile.id)
+      : 0;
   const userForHeader = current
     ? {
         fullName: current.profile?.fullName ?? current.auth.fullNameFromProvider ?? current.auth.email ?? "",
@@ -56,13 +64,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html lang={lang} className={inter.variable} suppressHydrationWarning>
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: THEME_INIT }} />
-      </head>
       <body className="min-h-screen antialiased" suppressHydrationWarning>
+        {/* Aplica el tema antes de hidratar para evitar el flash. beforeInteractive
+            inyecta el script en el <head> del HTML inicial (patrón oficial Next). */}
+        <Script id="scn-theme-init" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: THEME_INIT }} />
         <Providers initialLang={lang}>
           <TopProgress />
-          <Header user={userForHeader} />
+          <Header user={userForHeader} unread={unread} />
           <main className="min-h-[calc(100vh-4rem)]">{children}</main>
           <Footer />
           <ChatWidget />

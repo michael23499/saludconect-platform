@@ -1,9 +1,23 @@
-import { and, desc, eq, gte, lte, ilike, or, type SQL } from "drizzle-orm";
+import { and, asc, desc, eq, gte, lte, ilike, or, type SQL } from "drizzle-orm";
 import { db, users, type User, type NewUser } from "../db";
 
 export async function getUserProfileById(id: string): Promise<User | null> {
   const rows = await db.select().from(users).where(eq(users.id, id)).limit(1);
   return rows[0] ?? null;
+}
+
+export type ClinicOption = { id: string; fullName: string; city: string | null };
+
+/**
+ * Clínicas activas (rol clinic, no suspendidas) para el selector del admin al
+ * publicar una cirugía en nombre de una clínica.
+ */
+export async function listClinicUsers(): Promise<ClinicOption[]> {
+  return db
+    .select({ id: users.id, fullName: users.fullName, city: users.city })
+    .from(users)
+    .where(and(eq(users.role, "clinic"), eq(users.suspended, false)))
+    .orderBy(asc(users.fullName));
 }
 
 export type UserFilters = {
@@ -70,6 +84,11 @@ export async function setUserVerified(id: string, verified: boolean): Promise<vo
 
 export async function setUserSuspended(id: string, suspended: boolean): Promise<void> {
   await db.update(users).set({ suspended, updatedAt: new Date() }).where(eq(users.id, id));
+}
+
+/** El profesional decide aparecer (o no) en el directorio público. */
+export async function setUserPublic(id: string, isPublic: boolean): Promise<void> {
+  await db.update(users).set({ isPublic, updatedAt: new Date() }).where(eq(users.id, id));
 }
 
 export async function updateUserProfile(

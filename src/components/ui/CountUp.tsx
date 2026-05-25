@@ -53,8 +53,16 @@ export function CountUp({
     const el = ref.current;
     if (!el) return;
 
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
     const start = () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      // Reduced motion: saltamos al valor final sin animar. Va dentro de start()
+      // (lo invoca el observer al entrar en vista), no en el cuerpo del effect.
+      if (reduce) {
+        setValue(to);
+        return;
+      }
       const t0 = performance.now();
       const tick = (now: number) => {
         const p = Math.min(1, (now - t0) / duration);
@@ -64,13 +72,6 @@ export function CountUp({
       };
       rafRef.current = requestAnimationFrame(tick);
     };
-
-    // Honor reduced motion
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduce) {
-      setValue(to);
-      return;
-    }
 
     const io = new IntersectionObserver(
       (entries) => {

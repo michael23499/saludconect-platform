@@ -53,6 +53,9 @@ export async function setUserVerifiedAction(userId: string, verified: boolean) {
   await requireRole("admin");
   await setUserVerified(userId, verified);
   revalidatePath(USERS_PATH);
+  // Verificar afecta también la cola de aprobaciones y los KPIs del home admin.
+  revalidatePath("/admin/approvals");
+  revalidatePath("/admin");
 }
 
 /**
@@ -66,6 +69,9 @@ export async function setUserSuspendedAction(userId: string, suspended: boolean)
   }
   await setUserSuspended(userId, suspended);
   revalidatePath(USERS_PATH);
+  // Suspender saca al usuario de la cola de aprobaciones y mueve los KPIs.
+  revalidatePath("/admin/approvals");
+  revalidatePath("/admin");
 }
 
 /** Edita los datos básicos de perfil de un usuario (nombre, teléfono, ciudad). */

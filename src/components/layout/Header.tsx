@@ -16,10 +16,16 @@ type HeaderUser = {
   role: "professional" | "clinic" | "admin" | null;
 };
 
-export function Header({ user }: { user: HeaderUser | null }) {
+export function Header({ user, unread = 0 }: { user: HeaderUser | null; unread?: number }) {
   const [open, setOpen] = useState(false);
   const path = usePathname();
   const { t, lang, setLang, theme, toggleTheme } = useApp();
+
+  // Campana de notificaciones: solo clínica y profesional (tienen ruta propia).
+  const bellHref =
+    user && (user.role === "clinic" || user.role === "professional")
+      ? `/dashboard/${user.role}/notifications`
+      : null;
 
   // Mientras el menú móvil está abierto: bloquea el scroll del fondo
   // (si no, el gesto de scroll se va a la página de detrás) y permite cerrar con Escape.
@@ -85,6 +91,8 @@ export function Header({ user }: { user: HeaderUser | null }) {
           <LangSwitch lang={lang} onChange={setLang} />
           <ThemeSwitch theme={theme} onToggle={toggleTheme} />
 
+          {bellHref && <NotificationBell href={bellHref} unread={unread} />}
+
           <span className="mx-1 h-6 w-px bg-mist-200" />
 
           {user ? (
@@ -109,18 +117,21 @@ export function Header({ user }: { user: HeaderUser | null }) {
             </>
           )}
         </div>
-        <button
-          type="button"
-          onClick={() => setOpen((s) => !s)}
-          aria-label={open ? "Cerrar menú" : "Abrir menú"}
-          aria-expanded={open}
-          aria-controls="mobile-menu"
-          className="relative z-10 inline-flex h-10 w-10 items-center justify-center rounded-xl border border-mist-200 text-ink-800 transition hover:bg-mist-50 lg:hidden"
-        >
-          <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            {open ? <path d="M6 6l12 12M18 6l-12 12" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
-          </svg>
-        </button>
+        <div className="flex items-center gap-2 lg:hidden">
+          {bellHref && <NotificationBell href={bellHref} unread={unread} />}
+          <button
+            type="button"
+            onClick={() => setOpen((s) => !s)}
+            aria-label={open ? "Cerrar menú" : "Abrir menú"}
+            aria-expanded={open}
+            aria-controls="mobile-menu"
+            className="relative z-10 inline-flex h-10 w-10 items-center justify-center rounded-xl border border-mist-200 text-ink-800 transition hover:bg-mist-50"
+          >
+            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              {open ? <path d="M6 6l12 12M18 6l-12 12" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* Mobile menu — full overlay above everything, taps outside to close */}
@@ -183,6 +194,26 @@ export function Header({ user }: { user: HeaderUser | null }) {
         </div>
       </div>
     </header>
+  );
+}
+
+function NotificationBell({ href, unread }: { href: string; unread: number }) {
+  return (
+    <Link
+      href={href}
+      aria-label={`Notificaciones${unread > 0 ? ` (${unread} sin leer)` : ""}`}
+      className="relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-mist-200 bg-white text-ink-700 transition hover:bg-mist-50"
+    >
+      <svg className="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+        <path d="M13.7 21a2 2 0 0 1-3.4 0" />
+      </svg>
+      {unread > 0 && (
+        <span className="absolute -right-0.5 -top-0.5 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-brand-600 px-1 text-[10px] font-semibold leading-none text-white">
+          {unread > 9 ? "9+" : unread}
+        </span>
+      )}
+    </Link>
   );
 }
 

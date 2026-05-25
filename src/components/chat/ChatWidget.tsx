@@ -178,6 +178,12 @@ function Icon({ name, className }: { name: string; className?: string }) {
   }
 }
 
+// Generador de id efímero para los mensajes del chat. A nivel módulo (no dentro
+// del componente) para no infringir la regla de pureza de render con Math.random.
+function stamp() {
+  return Math.random().toString(36).slice(2, 9);
+}
+
 export function ChatWidget() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>(initialMessages);
@@ -210,12 +216,13 @@ export function ChatWidget() {
 
   useEffect(() => {
     if (open) {
+      // Al abrir el chat marcamos los mensajes como leídos. setState puntual de
+      // apertura (no cascada): falso positivo de la regla.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setUnread(false);
       setTimeout(() => inputRef.current?.focus(), 250);
     }
   }, [open]);
-
-  const stamp = () => Math.random().toString(36).slice(2, 9);
 
   function showCategory(cat: CatId) {
     setMessages((prev) => [

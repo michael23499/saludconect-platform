@@ -48,7 +48,7 @@ export function Avatar({
   return (
     <span
       className={cn(
-        "inline-flex items-center justify-center overflow-hidden rounded-full font-semibold text-white bg-gradient-to-br",
+        "inline-flex items-center justify-center overflow-hidden rounded-full font-semibold leading-none text-white bg-gradient-to-br",
         ring,
         grad,
         sizes[size],
@@ -66,7 +66,7 @@ export function Avatar({
           className="h-full w-full rounded-full object-cover"
         />
       ) : (
-        initials
+        <span className="avatar-initials">{initials}</span>
       )}
     </span>
   );

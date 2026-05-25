@@ -1,42 +1,90 @@
 import { DashboardShell, PageHeader } from "@/components/dashboard/Shell";
-import { Button } from "@/components/ui/Button";
-import { Badge } from "@/components/ui/Badge";
-import { CalendarWorkspace } from "@/components/dashboard/CalendarWorkspace";
-import { PRO_CALENDAR } from "@/lib/mock-calendar";
-import { NAV_PRO, USER_PRO } from "@/lib/dashboard-nav";
+import { AvailabilityForm } from "@/components/dashboard/AvailabilityForm";
+import { ProAvailabilityCalendar, type ProSlot, type ProSurgery } from "@/components/dashboard/ProAvailabilityCalendar";
+import { ClinicAvailabilityCalendar, type ClinicSlot } from "@/components/dashboard/ClinicAvailabilityCalendar";
+import { SupervisionBanner } from "@/components/dashboard/SupervisionBanner";
+import { NAV_PRO } from "@/lib/dashboard-nav";
+import { getDict } from "@/lib/i18n-server";
+import { requireRole } from "@backend/auth/guards";
+import { listSlotsByProfessional, listOpenSlots } from "@backend/queries/availability";
+import { listConfirmedUpcomingForProfessional } from "@backend/queries/applications";
 
 export const metadata = { title: "Calendario · Profesional · SaludCoNet" };
 
-export default function ProfesionalCalendarioPage() {
+export default async function ProfesionalCalendarioPage() {
+  const me = await requireRole("professional");
+  const c = (await getDict()).dashboard.cal;
+  const isAdmin = me.profile.role === "admin";
+  const user = {
+    name: me.profile.fullName,
+    subtitle: isAdmin ? "Administrador" : me.profile.city ? `Técnico capilar · ${me.profile.city}` : "Técnico capilar",
+    avatarUrl: me.profile.avatarUrl,
+  };
+
+  // --- Supervisión (admin): ve el calendario global en modo solo lectura ---
+  if (isAdmin) {
+    const open = await listOpenSlots();
+    const adminSlots: ClinicSlot[] = open.map(({ slot, proName, proCity, proAvatarUrl, proVerified }) => ({
+      id: slot.id,
+      date: slot.date,
+      startTime: slot.startTime,
+      endTime: slot.endTime,
+      city: slot.city,
+      note: slot.note,
+      proName,
+      proCity,
+      proAvatarUrl,
+      proVerified,
+    }));
+    return (
+      <DashboardShell role="Profesional" user={user} nav={NAV_PRO}>
+        <SupervisionBanner scope="professional" />
+        <PageHeader
+          backHref="/dashboard/professional"
+          backLabel={c.back}
+          title={c.calAdminTitle}
+          subtitle={c.calAdminSub}
+        />
+        <ClinicAvailabilityCalendar slots={adminSlots} canBook={false} />
+      </DashboardShell>
+    );
+  }
+
+  // --- Flujo normal del profesional: publicar y gestionar disponibilidad ---
+  const [rows, confirmed] = await Promise.all([
+    listSlotsByProfessional(me.profile.id),
+    listConfirmedUpcomingForProfessional(me.profile.id),
+  ]);
+  const slots: ProSlot[] = rows.map((s) => ({
+    id: s.id,
+    date: s.date,
+    startTime: s.startTime,
+    endTime: s.endTime,
+    city: s.city,
+    note: s.note,
+    status: s.status,
+  }));
+  const proSurgeries: ProSurgery[] = confirmed.map(({ surgery, clinicName }) => ({
+    id: surgery.id,
+    date: surgery.date,
+    title: surgery.title,
+    clinicName,
+    startTime: surgery.startTime,
+    endTime: surgery.endTime,
+  }));
+
   return (
-    <DashboardShell role="Profesional" user={USER_PRO} nav={NAV_PRO}>
+    <DashboardShell role="Profesional" user={user} nav={NAV_PRO}>
       <PageHeader
-        title="Tu calendario"
-        subtitle="Gestiona disponibilidad, plantillas semanales y reservas en una sola vista."
-        actions={
-          <>
-            <Badge tone="success" className="hidden md:inline-flex">Sincronizado · hace 2 min</Badge>
-            <Button variant="secondary" size="sm">Exportar (.ics)</Button>
-            <Button size="sm">+ Nueva jornada</Button>
-          </>
-        }
+        backHref="/dashboard/professional"
+        backLabel={c.back}
+        title={c.calProTitle}
+        subtitle={c.calProSub}
       />
 
-      <CalendarWorkspace role="professional" data={PRO_CALENDAR} initialDate={new Date(2026, 4, 1)} />
-
-      <div className="mt-8 rounded-2xl border border-brand-100 bg-gradient-to-br from-brand-50 to-cyan-50 p-5 md:p-6">
-        <div className="grid gap-4 md:grid-cols-[1fr_auto] md:items-center">
-          <div>
-            <div className="text-xs font-semibold uppercase tracking-wider text-brand-700">Consejo de productividad</div>
-            <div className="mt-1 text-base font-semibold text-ink-900">
-              Las profesionales con disponibilidad publicada con +14 días reciben un 38% más de solicitudes.
-            </div>
-            <p className="mt-1 text-sm text-ink-800">
-              Aplica una plantilla a tu mes y deja que las clínicas reserven directamente sobre tus huecos abiertos.
-            </p>
-          </div>
-          <Button>Configurar plantilla por defecto</Button>
-        </div>
+      <div className="grid gap-6 lg:grid-cols-[380px_1fr]">
+        <AvailabilityForm />
+        <ProAvailabilityCalendar slots={slots} surgeries={proSurgeries} />
       </div>
     </DashboardShell>
   );

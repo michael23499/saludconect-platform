@@ -10,6 +10,8 @@ export function AddressAutocomplete({
   onSelect,
   onTextChange,
   d,
+  inputClassName,
+  placeholder,
 }: {
   value: string;
   /** Se llama al elegir una sugerencia (dirección + ciudad + CP + lat/lng). */
@@ -17,6 +19,9 @@ export function AddressAutocomplete({
   /** Se llama al teclear (texto libre), por si guardas lo escrito sin elegir. */
   onTextChange?: (v: string) => void;
   d?: Record<string, string>;
+  /** Clases del input. Por defecto el estilo del modal admin; pásalo para otros contextos. */
+  inputClassName?: string;
+  placeholder?: string;
 }) {
   const [text, setText] = useState(value);
   const [results, setResults] = useState<GeoResult[]>([]);
@@ -75,8 +80,8 @@ export function AddressAutocomplete({
         ref={inputRef}
         value={text}
         onChange={(e) => onChange(e.target.value)}
-        placeholder={d?.addressPlaceholder ?? "Empieza a escribir una dirección…"}
-        className={modalInputCls}
+        placeholder={placeholder ?? d?.addressPlaceholder ?? "Empieza a escribir una dirección…"}
+        className={inputClassName ?? modalInputCls}
         autoComplete="off"
       />
       {loading && (
