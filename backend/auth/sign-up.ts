@@ -114,7 +114,7 @@ export async function signUpAction(
     email,
     password,
     options: {
-      emailRedirectTo: `${origin}/auth/callback`,
+      emailRedirectTo: `${origin}/auth/confirm`,
       // Guardamos rol y datos en user_metadata: getCurrentUser lee full_name de
       // aquí, y conservamos la profesión/especialidad/tamaño que el usuario eligió
       // aunque el schema todavía no tenga columna para ellos (el marketplace solo

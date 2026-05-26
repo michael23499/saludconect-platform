@@ -45,7 +45,7 @@ export async function requestPasswordSetupLink(
     email,
     options: {
       shouldCreateUser: false,
-      emailRedirectTo: `${origin}/auth/callback?next=/set-password`,
+      emailRedirectTo: `${origin}/auth/confirm`,
     },
   });
 
