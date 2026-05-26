@@ -1,8 +1,10 @@
-import { and, asc, eq, gte } from "drizzle-orm";
+import { and, asc, eq, gte, inArray, getTableColumns } from "drizzle-orm";
 import {
   db,
   availabilitySlots,
   users,
+  professionals,
+  specialties,
   type AvailabilitySlot,
   type NewAvailabilitySlot,
 } from "../db";
@@ -28,13 +30,21 @@ export async function getAvailabilitySlotById(id: string): Promise<AvailabilityS
   return rows[0] ?? null;
 }
 
-/** Todas las franjas de un técnico (su propia gestión), por fecha ascendente. */
+/** Slot del técnico + nombre de la clínica que lo solicitó/reservó (si aplica). */
+export type ProfessionalSlot = AvailabilitySlot & { bookedByName: string | null };
+
+/** Todas las franjas de un técnico (su propia gestión), por fecha ascendente.
+ *  Incluye el nombre de la clínica para las franjas pendientes/reservadas. */
 export async function listSlotsByProfessional(
   professionalId: string,
-): Promise<AvailabilitySlot[]> {
+): Promise<ProfessionalSlot[]> {
   return db
-    .select()
+    .select({
+      ...getTableColumns(availabilitySlots),
+      bookedByName: users.fullName,
+    })
     .from(availabilitySlots)
+    .leftJoin(users, eq(users.id, availabilitySlots.bookedByClinicId))
     .where(eq(availabilitySlots.professionalId, professionalId))
     .orderBy(asc(availabilitySlots.date));
 }
@@ -88,10 +98,22 @@ export async function listOpenSlots(specialtyId?: string): Promise<SlotWithProfe
     .orderBy(asc(availabilitySlots.date));
 }
 
-/** Franjas que una clínica ya reservó (para su vista de reservas directas). */
+/** Slot reservado + ficha del profesional (para abrir su modal desde la reserva). */
+export type BookedSlotDetail = SlotWithProfessional & {
+  proType: "doctor" | "technician" | null;
+  specialtyName: string | null;
+  headline: string | null;
+  bio: string | null;
+  yearsExperience: number | null;
+  hourlyRate: number | null;
+};
+
+/** Franjas que una clínica solicitó (pendientes de confirmar) o ya tiene
+ *  confirmadas, para su vista de reservas directas. Incluye la ficha del
+ *  profesional para mostrarla en un modal al pulsar la reserva. */
 export async function listSlotsBookedByClinic(
   clinicId: string,
-): Promise<SlotWithProfessional[]> {
+): Promise<BookedSlotDetail[]> {
   return db
     .select({
       slot: availabilitySlots,
@@ -99,29 +121,78 @@ export async function listSlotsBookedByClinic(
       proCity: users.city,
       proAvatarUrl: users.avatarUrl,
       proVerified: users.verified,
+      proType: professionals.proType,
+      specialtyName: specialties.name,
+      headline: professionals.headline,
+      bio: professionals.bio,
+      yearsExperience: professionals.yearsExperience,
+      hourlyRate: professionals.hourlyRate,
     })
     .from(availabilitySlots)
     .innerJoin(users, eq(users.id, availabilitySlots.professionalId))
+    .leftJoin(professionals, eq(professionals.id, availabilitySlots.professionalId))
+    .leftJoin(specialties, eq(specialties.id, professionals.specialtyId))
     .where(
       and(
         eq(availabilitySlots.bookedByClinicId, clinicId),
-        eq(availabilitySlots.status, "booked"),
+        inArray(availabilitySlots.status, ["pending", "booked"]),
       ),
     )
     .orderBy(asc(availabilitySlots.date));
 }
 
-/** Reserva directa de la clínica: el hueco pasa a "booked". */
-export async function bookSlot(id: string, clinicId: string): Promise<void> {
-  await db
+/**
+ * Solicitud de reserva de la clínica: el hueco pasa de "open" a "pending"
+ * (bloqueado para otras clínicas) esperando que el técnico confirme. Atómico:
+ * el UPDATE solo prospera si seguía "open", evitando que dos clínicas reserven
+ * el mismo hueco a la vez. Devuelve true si la reserva se registró.
+ */
+export async function requestSlot(id: string, clinicId: string): Promise<boolean> {
+  const rows = await db
     .update(availabilitySlots)
     .set({
-      status: "booked",
+      status: "pending",
       bookedByClinicId: clinicId,
       bookedAt: new Date(),
       updatedAt: new Date(),
     })
-    .where(eq(availabilitySlots.id, id));
+    .where(and(eq(availabilitySlots.id, id), eq(availabilitySlots.status, "open")))
+    .returning({ id: availabilitySlots.id });
+  return rows.length > 0;
+}
+
+/** El técnico ACEPTA la solicitud: pending → booked. Atómico (solo si seguía
+ *  pendiente y es suyo). Devuelve true si se confirmó. */
+export async function acceptBooking(id: string, professionalId: string): Promise<boolean> {
+  const rows = await db
+    .update(availabilitySlots)
+    .set({ status: "booked", updatedAt: new Date() })
+    .where(
+      and(
+        eq(availabilitySlots.id, id),
+        eq(availabilitySlots.professionalId, professionalId),
+        eq(availabilitySlots.status, "pending"),
+      ),
+    )
+    .returning({ id: availabilitySlots.id });
+  return rows.length > 0;
+}
+
+/** El técnico RECHAZA la solicitud: pending → open de nuevo (se libera el hueco
+ *  y se desvincula la clínica). Atómico. Devuelve true si se liberó. */
+export async function rejectBooking(id: string, professionalId: string): Promise<boolean> {
+  const rows = await db
+    .update(availabilitySlots)
+    .set({ status: "open", bookedByClinicId: null, bookedAt: null, updatedAt: new Date() })
+    .where(
+      and(
+        eq(availabilitySlots.id, id),
+        eq(availabilitySlots.professionalId, professionalId),
+        eq(availabilitySlots.status, "pending"),
+      ),
+    )
+    .returning({ id: availabilitySlots.id });
+  return rows.length > 0;
 }
 
 /** El técnico retira una franja (o se cancela una reserva). */

@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { requireRole } from "../auth/guards";
 import { getUserProfileById } from "../queries/users";
 import { getSpecialtyBySlug } from "../queries/specialties";
-import { listProfessionalRecipientsForSpecialty } from "../queries/professionals";
+import { listProfessionalRecipientsForSpecialty, getProfessionalById } from "../queries/professionals";
 import {
   createSurgery,
   getSurgeryById,
@@ -19,7 +19,7 @@ import {
   getApplicationWithSurgery,
   getApplicationBySurgeryAndProfessional,
   updateApplicationStatus,
-  countConfirmedForSurgery,
+  countConfirmedByTypeForSurgery,
   listEngagedRecipientsForSurgery,
 } from "../queries/applications";
 import { notify, notifyMany } from "../notifications/notify";
@@ -98,9 +98,13 @@ export async function createSurgeryAction(
     return { error: "La fecha de la cirugía no puede ser anterior a hoy." };
   }
 
-  const vacancies = parseIntOrNull(formData.get("vacancies")) ?? 1;
-  if (vacancies < 1 || vacancies > 20) {
-    return { error: "El número de técnicos debe estar entre 1 y 20." };
+  const vacancies = parseIntOrNull(formData.get("vacancies")) ?? 0;
+  const doctorsNeeded = parseIntOrNull(formData.get("doctorsNeeded")) ?? 0;
+  if (vacancies < 0 || vacancies > 20 || doctorsNeeded < 0 || doctorsNeeded > 20) {
+    return { error: "El número de técnicos y de médicos debe estar entre 0 y 20." };
+  }
+  if (vacancies + doctorsNeeded < 1) {
+    return { error: "Indica al menos un técnico o un médico para la cirugía." };
   }
 
   const startTime = (formData.get("startTime") as string) || null;
@@ -122,40 +126,54 @@ export async function createSurgeryAction(
     city,
     address,
     vacancies,
+    doctorsNeeded,
     ratePerHour,
     urgent,
     status: "open",
   });
 
-  // Avisar a los técnicos compatibles (misma especialidad, disponibles).
-  const recipients = await listProfessionalRecipientsForSpecialty(specialty.id);
+  // Avisar a cada grupo SOLO si la cirugía lo necesita: técnicos si hay vacantes
+  // de técnico, médicos si hay vacantes de médico. Así la notificación llega a
+  // quien corresponde según lo que pide la cirugía.
   const when = formatDateEs(date);
   const horario = startTime && endTime ? ` (${startTime}–${endTime})` : "";
   const zona = city ? ` en ${city}` : "";
-  await notifyMany(
-    recipients.map((r) => ({
-      userId: r.id,
-      type: "new_surgery" as const,
-      title: `Nueva cirugía capilar${zona}`,
-      body: `${clinicName} busca ${vacancies} ${vacancies === 1 ? "técnico" : "técnicos"} para el ${when}${horario}.`,
-      link: `${PRO_SURGERIES}/${surgery.id}`,
-      email: {
-        to: r.email,
-        subject: `Nueva oportunidad: cirugía capilar el ${when}`,
-        html: renderEmail({
-          heading: "Nueva cirugía disponible",
-          intro: `Hola ${r.fullName.split(" ")[0]}, hay una nueva oportunidad que encaja con tu especialidad.`,
-          lines: [
-            `<b>${clinicName}</b> necesita <b>${vacancies}</b> ${vacancies === 1 ? "técnico" : "técnicos"}.`,
-            `📅 ${when}${horario}${zona}`,
-            ratePerHour ? `💶 ${ratePerHour} €/h orientativos` : "",
-          ].filter(Boolean),
-          ctaText: "Ver y postularme",
-          ctaPath: PRO_SURGERIES,
-        }),
-      },
-    })),
-  );
+  const specialtyId = specialty.id;
+  async function notifyGroup(
+    proType: "doctor" | "technician",
+    count: number,
+    sing: string,
+    plur: string,
+  ) {
+    if (count < 1) return;
+    const recipients = await listProfessionalRecipientsForSpecialty(specialtyId, proType);
+    await notifyMany(
+      recipients.map((r) => ({
+        userId: r.id,
+        type: "new_surgery" as const,
+        title: `Nueva cirugía capilar${zona}`,
+        body: `${clinicName} busca ${count} ${count === 1 ? sing : plur} para el ${when}${horario}.`,
+        link: `${PRO_SURGERIES}/${surgery.id}`,
+        email: {
+          to: r.email,
+          subject: `Nueva oportunidad: cirugía capilar el ${when}`,
+          html: renderEmail({
+            heading: "Nueva cirugía disponible",
+            intro: `Hola ${r.fullName.split(" ")[0]}, hay una nueva oportunidad que encaja con tu perfil.`,
+            lines: [
+              `<b>${clinicName}</b> necesita <b>${count}</b> ${count === 1 ? sing : plur}.`,
+              `📅 ${when}${horario}${zona}`,
+              ratePerHour ? `💶 ${ratePerHour} €/h orientativos` : "",
+            ].filter(Boolean),
+            ctaText: "Ver y postularme",
+            ctaPath: PRO_SURGERIES,
+          }),
+        },
+      })),
+    );
+  }
+  await notifyGroup("technician", vacancies, "técnico", "técnicos");
+  await notifyGroup("doctor", doctorsNeeded, "médico", "médicos");
 
   revalidatePath(CLINIC_SURGERIES);
   revalidatePath(PRO_SURGERIES);
@@ -254,16 +272,29 @@ export async function confirmApplicationAction(applicationId: string): Promise<A
   }
   if (row.application.status === "confirmed") return { ok: true };
 
-  const confirmed = await countConfirmedForSurgery(row.surgery.id);
-  if (confirmed >= row.surgery.vacancies) {
-    return { error: "Ya has cubierto todas las plazas de esta cirugía." };
+  // Las plazas se cuentan por TIPO: confirmar a un médico consume una plaza de
+  // médico; a un técnico, una de técnico. La cirugía queda "filled" solo cuando
+  // ambos tipos están cubiertos.
+  const prof = await getProfessionalById(row.application.professionalId);
+  const proType = prof?.proType ?? "technician";
+  const { doctors, technicians } = await countConfirmedByTypeForSurgery(row.surgery.id);
+  const limit = proType === "doctor" ? row.surgery.doctorsNeeded : row.surgery.vacancies;
+  const already = proType === "doctor" ? doctors : technicians;
+  if (already >= limit) {
+    return {
+      error:
+        proType === "doctor"
+          ? "Ya has cubierto todas las plazas de médico de esta cirugía."
+          : "Ya has cubierto todas las plazas de técnico de esta cirugía.",
+    };
   }
 
   await updateApplicationStatus(applicationId, "confirmed");
 
-  // ¿Se cubrieron todas las vacantes? → marcar la cirugía como cubierta.
-  const nowConfirmed = confirmed + 1;
-  if (nowConfirmed >= row.surgery.vacancies) {
+  // ¿Se cubrieron TODAS las plazas (médicos y técnicos)? → cirugía cubierta.
+  const nowDoctors = doctors + (proType === "doctor" ? 1 : 0);
+  const nowTechnicians = technicians + (proType === "technician" ? 1 : 0);
+  if (nowDoctors >= row.surgery.doctorsNeeded && nowTechnicians >= row.surgery.vacancies) {
     await updateSurgeryStatus(row.surgery.id, "filled");
   }
 
@@ -287,6 +318,43 @@ export async function confirmApplicationAction(applicationId: string): Promise<A
           ctaPath: `${PRO_SURGERIES}/${row.surgery.id}`,
         }),
       },
+    });
+  }
+
+  revalidatePath(`${CLINIC_SURGERIES}/${row.surgery.id}`);
+  revalidatePath(PRO_SURGERIES);
+  return { ok: true };
+}
+
+/**
+ * La clínica QUITA la plaza a un candidato ya confirmado (para cambiarlo por
+ * otro). La postulación vuelve a "applied" (sigue siendo candidato), se libera
+ * la plaza y, si la cirugía estaba cubierta, se reabre. Avisa al técnico.
+ */
+export async function unconfirmApplicationAction(applicationId: string): Promise<ActionResult> {
+  const clinic = await requireRole("clinic");
+  const isAdmin = clinic.profile.role === "admin";
+  const row = await getApplicationWithSurgery(applicationId);
+  if (!row) return { error: "La postulación ya no existe." };
+  if (!isAdmin && row.surgery.clinicId !== clinic.profile.id) {
+    return { error: "Esta cirugía no es tuya." };
+  }
+  if (row.application.status !== "confirmed") return { ok: true };
+
+  await updateApplicationStatus(applicationId, "applied");
+  // Si la cirugía estaba cubierta, vuelve a admitir postulaciones.
+  if (row.surgery.status === "filled") {
+    await updateSurgeryStatus(row.surgery.id, "open");
+  }
+
+  const pro = await getUserProfileById(row.application.professionalId);
+  if (pro) {
+    await notify({
+      userId: pro.id,
+      type: "application_rejected",
+      title: "Tu plaza ha cambiado",
+      body: `La clínica ha liberado tu plaza en «${row.surgery.title}». Sigues como candidato; te avisaremos si vuelven a confirmarte.`,
+      link: `${PRO_SURGERIES}/${row.surgery.id}`,
     });
   }
 
@@ -330,6 +398,7 @@ export type UpdateSurgeryInput = {
   city: string | null;
   address: string | null;
   vacancies: number;
+  doctorsNeeded: number;
   ratePerHour: number | null;
   urgent: boolean;
   status: Surgery["status"];
@@ -354,8 +423,16 @@ export async function updateSurgeryAction(
   }
 
   if (!/^\d{4}-\d{2}-\d{2}$/.test(data.date)) return { error: "Indica una fecha válida." };
-  if (data.vacancies < 1 || data.vacancies > 20) {
-    return { error: "El número de técnicos debe estar entre 1 y 20." };
+  if (
+    data.vacancies < 0 ||
+    data.vacancies > 20 ||
+    data.doctorsNeeded < 0 ||
+    data.doctorsNeeded > 20
+  ) {
+    return { error: "El número de técnicos y de médicos debe estar entre 0 y 20." };
+  }
+  if (data.vacancies + data.doctorsNeeded < 1) {
+    return { error: "Indica al menos un técnico o un médico para la cirugía." };
   }
 
   const newStart = data.startTime || null;
@@ -363,6 +440,17 @@ export async function updateSurgeryAction(
   const newCity = data.city?.trim() || null;
   const newAddress = data.address?.trim() || null;
   const newRate = data.ratePerHour ?? null;
+
+  // El estado abierta/cubierta se DERIVA de las plazas vs confirmados (por tipo);
+  // solo "cancelled" y "completed" son decisiones manuales que se respetan. Así,
+  // si la clínica AÑADE plazas, una cirugía "cubierta" vuelve a "abierta" sola
+  // (y al revés). Evita que quede "Cubierta" con plazas libres.
+  let finalStatus = data.status;
+  if (data.status !== "cancelled" && data.status !== "completed") {
+    const { doctors, technicians } = await countConfirmedByTypeForSurgery(surgeryId);
+    finalStatus =
+      technicians >= data.vacancies && doctors >= data.doctorsNeeded ? "filled" : "open";
+  }
 
   await updateSurgery(surgeryId, {
     title: data.title.trim() || "Microinjerto capilar",
@@ -373,9 +461,10 @@ export async function updateSurgeryAction(
     city: newCity,
     address: newAddress,
     vacancies: data.vacancies,
+    doctorsNeeded: data.doctorsNeeded,
     ratePerHour: data.ratePerHour,
     urgent: data.urgent,
-    status: data.status,
+    status: finalStatus,
   });
 
   // Avisar a los técnicos inscritos (postulados/confirmados) si cambian datos

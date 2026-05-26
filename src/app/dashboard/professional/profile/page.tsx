@@ -1,8 +1,8 @@
+import { redirect } from "next/navigation";
 import { DashboardShell, PageHeader } from "@/components/dashboard/Shell";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Avatar } from "@/components/ui/Avatar";
-import { EmptyState } from "@/components/dashboard/EmptyState";
 import { ProfileVisibilityToggle } from "@/components/dashboard/ProfileVisibilityToggle";
 import { NAV_PRO } from "@/lib/dashboard-nav";
 import { getDict } from "@/lib/i18n-server";
@@ -26,18 +26,8 @@ export default async function ProfesionalPerfilPage() {
   const specialty = professional?.specialtyId ? await getSpecialtyById(professional.specialtyId) : null;
   const specialtyName = specialty?.name ?? p.defaultTechnician;
 
-  if (isAdmin) {
-    return (
-      <DashboardShell role="Profesional" user={user} nav={NAV_PRO}>
-        <PageHeader backHref="/dashboard/professional" backLabel={p.back} title={p.title} />
-        <EmptyState
-          title={p.adminEmptyTitle}
-          text={p.adminEmptyText}
-          action={{ href: "/admin", label: p.adminEmptyAction }}
-        />
-      </DashboardShell>
-    );
-  }
+  // El administrador no tiene perfil de técnico: no es una sección suya.
+  if (isAdmin) redirect("/dashboard/professional");
 
   return (
     <DashboardShell role="Profesional" user={user} nav={NAV_PRO}>

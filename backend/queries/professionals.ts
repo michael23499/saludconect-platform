@@ -18,6 +18,7 @@ export type PublicProfessional = {
   hourlyRate: number | null;
   availableForWork: boolean;
   specialtyName: string | null;
+  proType: "doctor" | "technician";
 };
 
 const PUBLIC_PRO_COLUMNS = {
@@ -32,6 +33,7 @@ const PUBLIC_PRO_COLUMNS = {
   hourlyRate: professionals.hourlyRate,
   availableForWork: professionals.availableForWork,
   specialtyName: specialties.name,
+  proType: professionals.proType,
 } as const;
 
 export type PublicProfessionalFilters = {
@@ -107,22 +109,23 @@ export async function updateProfessional(
 export type NotifyRecipient = { id: string; email: string; fullName: string };
 
 /**
- * Técnicos a notificar cuando se publica una cirugía: misma especialidad,
- * disponibles y no suspendidos. Devuelve id + email + nombre para crear las
- * notificaciones in-app y mandar los emails.
+ * Profesionales a notificar cuando se publica una cirugía: misma especialidad,
+ * disponibles y no suspendidos. Si se indica `proType`, restringe al grupo
+ * correcto (médicos o técnicos) para que cada cirugía avise solo a quien busca.
  */
 export async function listProfessionalRecipientsForSpecialty(
   specialtyId: string,
+  proType?: "doctor" | "technician",
 ): Promise<NotifyRecipient[]> {
+  const conds = [
+    eq(professionals.specialtyId, specialtyId),
+    eq(professionals.availableForWork, true),
+    eq(users.suspended, false),
+  ];
+  if (proType) conds.push(eq(professionals.proType, proType));
   return db
     .select({ id: professionals.id, email: users.email, fullName: users.fullName })
     .from(professionals)
     .innerJoin(users, eq(users.id, professionals.id))
-    .where(
-      and(
-        eq(professionals.specialtyId, specialtyId),
-        eq(professionals.availableForWork, true),
-        eq(users.suspended, false),
-      ),
-    );
+    .where(and(...conds));
 }

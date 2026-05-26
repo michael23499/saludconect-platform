@@ -270,6 +270,14 @@ export function RegisterProfessionalForm() {
       <div className="grid gap-4 md:grid-cols-2">
         <TextField name="firstName" label={r.pfFirstName} required placeholder="Lucía" />
         <TextField name="lastName" label={r.pfLastName} required placeholder="Martín García" />
+        <SelectField
+          name="pro_type"
+          label={r.pfType}
+          options={[
+            { value: "technician", label: r.proTypeTechnician },
+            { value: "doctor", label: r.proTypeDoctor },
+          ]}
+        />
         <SelectField name="profesion" label={r.pfProfession} options={r.professions} />
         <SelectField name="especialidad" label={r.pfSpecialty} options={r.specialties} />
         <SelectField name="city" label={r.pfCity} options={r.regions} />

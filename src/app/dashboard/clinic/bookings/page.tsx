@@ -50,7 +50,7 @@ export default async function ClinicaReservasPage() {
         <div className="space-y-3">
           {reserved.map((s) => {
             const { day, mon } = dayMonth(s.date);
-            const complete = s.confirmedCount >= s.vacancies;
+            const complete = s.confirmedCount >= s.vacancies + s.doctorsNeeded;
             return (
               <Link
                 key={s.id}
@@ -77,7 +77,7 @@ export default async function ClinicaReservasPage() {
                 </div>
                 <div className="flex shrink-0 items-center gap-2 md:pl-4">
                   <div className="text-center">
-                    <div className="text-lg font-semibold text-emerald-700">{s.confirmedCount}/{s.vacancies}</div>
+                    <div className="text-lg font-semibold text-emerald-700">{s.confirmedCount}/{s.vacancies + s.doctorsNeeded}</div>
                     <div className="text-[10px] font-semibold uppercase tracking-wider text-mist-500">{c.bkConfirmed}</div>
                   </div>
                   <svg className="h-4 w-4 text-mist-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 6l6 6-6 6" /></svg>

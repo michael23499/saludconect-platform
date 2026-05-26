@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/Badge";
 import { CancelSlotButton } from "./CancelSlotButton";
+import { BookingDecisionButtons } from "./BookingDecisionButtons";
 import { MonthCalendar, type DayMark } from "./MonthCalendar";
 import { useApp } from "@/components/providers/Providers";
 import { formatDateEs } from "@/lib/dates";
@@ -15,7 +16,9 @@ export type ProSlot = {
   endTime: string | null;
   city: string | null;
   note: string | null;
-  status: "open" | "booked" | "cancelled";
+  status: "open" | "pending" | "booked" | "cancelled";
+  /** Nombre de la clínica que solicitó/reservó (en pending y booked). */
+  bookedByName: string | null;
 };
 
 export type ProSurgery = {
@@ -27,8 +30,9 @@ export type ProSurgery = {
   endTime: string | null;
 };
 
-const TONE: Record<ProSlot["status"], "brand" | "success" | "neutral"> = {
+const TONE: Record<ProSlot["status"], "brand" | "success" | "neutral" | "warning"> = {
   open: "brand",
+  pending: "warning",
   booked: "success",
   cancelled: "neutral",
 };
@@ -42,6 +46,7 @@ export function ProAvailabilityCalendar({ slots, surgeries = [] }: { slots: ProS
   const c = useApp().t.dashboard.cal;
   const statusLabel: Record<ProSlot["status"], string> = {
     open: c.avStatusOpen,
+    pending: c.avStatusPending,
     booked: c.avStatusBooked,
     cancelled: c.avStatusCancelled,
   };
@@ -52,7 +57,8 @@ export function ProAvailabilityCalendar({ slots, surgeries = [] }: { slots: ProS
   const marks: Record<string, DayMark> = {};
   for (const s of slots) {
     if (s.status === "cancelled") continue;
-    const tone = s.status === "booked" ? "success" : "brand";
+    const tone: DayMark["tone"] =
+      s.status === "booked" ? "success" : s.status === "pending" ? "warning" : "brand";
     const existing = marks[s.date];
     if (!existing) marks[s.date] = { count: 1, tone };
     else {
@@ -126,11 +132,21 @@ export function ProAvailabilityCalendar({ slots, surgeries = [] }: { slots: ProS
                     <Badge tone={TONE[s.status]}>{statusLabel[s.status]}</Badge>
                     {s.city && <span className="text-xs text-mist-500">· {s.city}</span>}
                   </div>
+                  {s.status === "pending" && s.bookedByName && (
+                    <div className="mt-0.5 text-xs text-amber-700">
+                      <span className="font-semibold">{s.bookedByName}</span> {c.avWantsToBook}
+                    </div>
+                  )}
+                  {s.status === "booked" && s.bookedByName && (
+                    <div className="mt-0.5 text-xs text-mist-500">{s.bookedByName}</div>
+                  )}
                   {s.note && <div className="mt-0.5 text-xs text-mist-500">{s.note}</div>}
                 </div>
-                {s.status !== "cancelled" && (
+                {s.status === "pending" ? (
+                  <BookingDecisionButtons slotId={s.id} />
+                ) : s.status !== "cancelled" ? (
                   <CancelSlotButton slotId={s.id} booked={s.status === "booked"} />
-                )}
+                ) : null}
               </li>
             ))}
           </ul>

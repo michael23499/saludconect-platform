@@ -7,6 +7,7 @@ import { ApplyButton } from "@/components/dashboard/ApplyButton";
 import { SupervisionBanner } from "@/components/dashboard/SupervisionBanner";
 import { NAV_PRO } from "@/lib/dashboard-nav";
 import { dayMonth, formatDateEs } from "@/lib/dates";
+import { formatNeeds } from "@/lib/surgery";
 import { getDict } from "@/lib/i18n-server";
 import { requireRole } from "@backend/auth/guards";
 import { getProfessionalById } from "@backend/queries/professionals";
@@ -37,7 +38,7 @@ export default async function CirugiasDisponiblesPage() {
   } else {
     const professional = await getProfessionalById(me.profile.id);
     if (!professional?.specialtyId) noSpecialty = true;
-    else items = await listOpenSurgeriesForProfessional(professional.specialtyId, me.profile.id);
+    else items = await listOpenSurgeriesForProfessional(professional.specialtyId, me.profile.id, professional.proType);
   }
 
   return (
@@ -95,7 +96,7 @@ export default async function CirugiasDisponiblesPage() {
                       <span className="inline-flex items-center gap-1"><MetaIcon name="clock" />{surgery.startTime}–{surgery.endTime}</span>
                     )}
                     <span className="inline-flex items-center gap-1">
-                      <MetaIcon name="users" />{surgery.vacancies} {surgery.vacancies === 1 ? t.technician : t.technicians}
+                      <MetaIcon name="users" />{formatNeeds(surgery.vacancies, surgery.doctorsNeeded, t)}
                     </span>
                     {surgery.ratePerHour ? (
                       <span className="font-semibold text-brand-700">{surgery.ratePerHour} €/h</span>

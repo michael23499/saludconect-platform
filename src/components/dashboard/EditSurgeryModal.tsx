@@ -62,6 +62,7 @@ function EditSurgeryModal({
   const [startTime, setStartTime] = useState(surgery.startTime ?? "");
   const [endTime, setEndTime] = useState(surgery.endTime ?? "");
   const [vacancies, setVacancies] = useState(String(surgery.vacancies));
+  const [doctors, setDoctors] = useState(String(surgery.doctorsNeeded));
   const [city, setCity] = useState(surgery.city ?? "");
   const [address, setAddress] = useState(surgery.address ?? "");
   const [rate, setRate] = useState(surgery.ratePerHour != null ? String(surgery.ratePerHour) : "");
@@ -87,7 +88,8 @@ function EditSurgeryModal({
       endTime: endTime || null,
       city: city.trim() || null,
       address: address.trim() || null,
-      vacancies: Number.parseInt(vacancies, 10) || 1,
+      vacancies: Number.parseInt(vacancies, 10) || 0,
+      doctorsNeeded: Number.parseInt(doctors, 10) || 0,
       ratePerHour: rate.trim() ? Number.parseInt(rate, 10) : null,
       urgent,
       status,
@@ -104,7 +106,7 @@ function EditSurgeryModal({
   }
 
   return (
-    <Modal onClose={onClose} maxWidth={560} labelledBy="edit-surgery-title">
+    <Modal onClose={onClose} maxWidth={760} labelledBy="edit-surgery-title">
       <ModalHeader
         icon={
           <svg className="h-6 w-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z" /></svg>
@@ -128,34 +130,9 @@ function EditSurgeryModal({
             <input className={modalInputCls} value={title} onChange={(e) => setTitle(e.target.value)} />
           </ModalField>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2">
             <ModalField label={s.fldDate}>
               <DatePicker value={date} onChange={setDate} minToday placeholder="—" />
-            </ModalField>
-            <ModalField label={s.fldVacancies}>
-              <input className={modalInputCls} type="number" min="1" max="20" value={vacancies} onChange={(e) => setVacancies(e.target.value)} />
-            </ModalField>
-            <ModalField label={s.fldStart}>
-              <input className={modalInputCls} type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
-            </ModalField>
-            <ModalField label={s.fldEnd}>
-              <input className={modalInputCls} type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
-            </ModalField>
-          </div>
-
-          <ModalField label={s.fldAddress}>
-            <AddressAutocomplete
-              value={address}
-              onSelect={(r) => { setAddress(r.address); if (r.city) setCity(r.city); }}
-              onTextChange={setAddress}
-              placeholder={s.addressPlaceholder}
-            />
-            {city && <p className="mt-1.5 text-xs text-mist-500">{s.cityLabel} <span className="font-medium text-ink-700">{city}</span></p>}
-          </ModalField>
-
-          <div className="grid grid-cols-2 gap-4">
-            <ModalField label={s.fldRateShort}>
-              <input className={modalInputCls} type="number" min="0" value={rate} onChange={(e) => setRate(e.target.value)} placeholder={s.rateOptional} />
             </ModalField>
             <ModalField label={s.fldStatus}>
               <select className={modalInputCls} value={status} onChange={(e) => setStatus(e.target.value as Surgery["status"])}>
@@ -164,21 +141,53 @@ function EditSurgeryModal({
                 ))}
               </select>
             </ModalField>
+
+            <ModalField label={s.fldVacanciesReq}>
+              <input className={modalInputCls} type="number" min="0" max="20" value={vacancies} onChange={(e) => setVacancies(e.target.value)} />
+            </ModalField>
+            <ModalField label={s.fldDoctorsReq}>
+              <input className={modalInputCls} type="number" min="0" max="20" value={doctors} onChange={(e) => setDoctors(e.target.value)} />
+            </ModalField>
+
+            <ModalField label={s.fldStart}>
+              <input className={modalInputCls} type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+            </ModalField>
+            <ModalField label={s.fldEnd}>
+              <input className={modalInputCls} type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
+            </ModalField>
+
+            <div className="sm:col-span-2">
+              <ModalField label={s.fldAddress}>
+                <AddressAutocomplete
+                  value={address}
+                  onSelect={(r) => { setAddress(r.address); if (r.city) setCity(r.city); }}
+                  onTextChange={setAddress}
+                  placeholder={s.addressPlaceholder}
+                />
+                {city && <p className="mt-1.5 text-xs text-mist-500">{s.cityLabel} <span className="font-medium text-ink-700">{city}</span></p>}
+              </ModalField>
+            </div>
+
+            <ModalField label={s.fldRateShort}>
+              <input className={modalInputCls} type="number" min="0" value={rate} onChange={(e) => setRate(e.target.value)} placeholder={s.rateOptional} />
+            </ModalField>
+
+            <div className="sm:col-span-2">
+              <ModalField label={s.fldDescription}>
+                <textarea
+                  rows={3}
+                  className="w-full rounded-sm border border-mist-200 bg-white px-3.5 py-2 text-sm text-ink-900 outline-none transition placeholder:text-mist-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
+              </ModalField>
+            </div>
+
+            <label className="flex cursor-pointer items-center gap-2.5 text-sm text-ink-800 select-none sm:col-span-2">
+              <input type="checkbox" checked={urgent} onChange={(e) => setUrgent(e.target.checked)} className="h-4 w-4 rounded border-mist-300" />
+              {s.urgentSimple}
+            </label>
           </div>
-
-          <ModalField label={s.fldDescription}>
-            <textarea
-              rows={3}
-              className="w-full rounded-sm border border-mist-200 bg-white px-3.5 py-2 text-sm text-ink-900 outline-none transition placeholder:text-mist-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            />
-          </ModalField>
-
-          <label className="flex cursor-pointer items-center gap-2.5 text-sm text-ink-800 select-none">
-            <input type="checkbox" checked={urgent} onChange={(e) => setUrgent(e.target.checked)} className="h-4 w-4 rounded border-mist-300" />
-            {s.urgentSimple}
-          </label>
 
           {error && <p className="text-sm text-red-600">{error}</p>}
         </ModalBody>

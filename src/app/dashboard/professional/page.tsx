@@ -8,6 +8,7 @@ import { SupervisionBanner } from "@/components/dashboard/SupervisionBanner";
 import { NAV_PRO } from "@/lib/dashboard-nav";
 import { getDict } from "@/lib/i18n-server";
 import { dayMonth, formatDateEs } from "@/lib/dates";
+import { formatNeeds } from "@/lib/surgery";
 import { requireRole } from "@backend/auth/guards";
 import { getProfessionalById } from "@backend/queries/professionals";
 import { listOpenSurgeriesForProfessional, listAllOpenSurgeries } from "@backend/queries/surgeries";
@@ -16,6 +17,8 @@ import {
   listConfirmedUpcomingForProfessional,
 } from "@backend/queries/applications";
 import { countUnreadNotifications } from "@backend/queries/notifications";
+import { listPendingReviewsForUser } from "@backend/queries/reviews";
+import { PendingReviews } from "@/components/dashboard/PendingReviews";
 import type { Application } from "@backend/db";
 
 export const metadata = { title: "Área del profesional · SaludCoNet" };
@@ -95,11 +98,14 @@ export default async function ProfesionalDashboardPage() {
   const professional = await getProfessionalById(me.profile.id);
   const specialtyId = professional?.specialtyId ?? null;
 
-  const [openSurgeries, myApplications, upcoming, unread] = await Promise.all([
-    specialtyId ? listOpenSurgeriesForProfessional(specialtyId, me.profile.id) : Promise.resolve([]),
+  const [openSurgeries, myApplications, upcoming, unread, pendingReviews] = await Promise.all([
+    specialtyId
+      ? listOpenSurgeriesForProfessional(specialtyId, me.profile.id, professional?.proType ?? "technician")
+      : Promise.resolve([]),
     listApplicationsByProfessional(me.profile.id),
     listConfirmedUpcomingForProfessional(me.profile.id),
     countUnreadNotifications(me.profile.id),
+    listPendingReviewsForUser(me.profile.id),
   ]);
 
   const activeApplications = myApplications.filter((a) => a.application.status === "applied");
@@ -121,6 +127,8 @@ export default async function ProfesionalDashboardPage() {
           </>
         }
       />
+
+      <PendingReviews items={pendingReviews} />
 
       <div className="grid gap-4 md:grid-cols-4">
         <Kpi label={h.kpiOpportunities} value={String(openSurgeries.length)} hint={h.kpiOpportunitiesHintMine} tone="up" />
@@ -161,7 +169,7 @@ export default async function ProfesionalDashboardPage() {
                       <div className="mt-0.5 flex items-center gap-1.5 text-xs text-mist-500">
                         <Avatar name={clinicName} src={clinicAvatarUrl ?? undefined} size="xs" />
                         <span>{clinicName}</span>
-                        <span>· {surgery.vacancies} {surgery.vacancies === 1 ? h.plazaOne : h.plazaMany}</span>
+                        <span>· {formatNeeds(surgery.vacancies, surgery.doctorsNeeded, sg)}</span>
                       </div>
                     </div>
                     <ApplyButton surgeryId={surgery.id} applicationId={myApplicationId} initialStatus={myStatus} />

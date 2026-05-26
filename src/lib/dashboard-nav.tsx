@@ -22,7 +22,7 @@ export const NAV_PRO: NavItem[] = [
   { href: "/dashboard/professional/notifications", label: "Notificaciones", icon: DASH_ICONS.bell },
   { href: "/dashboard/professional/messages", labelKey: "messages", icon: DASH_ICONS.chat },
   { href: "/dashboard/professional/documents", labelKey: "documents", icon: DASH_ICONS.doc },
-  { href: "/dashboard/professional/profile", labelKey: "myProfile", icon: DASH_ICONS.user },
+  { href: "/dashboard/professional/profile", labelKey: "myProfile", icon: DASH_ICONS.user, hideForAdmin: true },
   { href: "/dashboard/professional/settings", labelKey: "settings", icon: DASH_ICONS.cog },
 ];
 

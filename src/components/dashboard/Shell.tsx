@@ -9,7 +9,7 @@ import type { ReactNode } from "react";
 
 // `labelKey` (key de t.dashboard.nav) tiene prioridad para i18n; `label` queda
 // como fallback para navs aún no migrados (p.ej. admin).
-export type NavItem = { href: string; label?: string; labelKey?: string; icon: ReactNode; badge?: string };
+export type NavItem = { href: string; label?: string; labelKey?: string; icon: ReactNode; badge?: string; hideForAdmin?: boolean };
 
 export function DashboardShell({
   role,
@@ -146,7 +146,9 @@ function SidebarBody({
         </div>
       </div>
       <nav className="space-y-0.5 p-3">
-        {nav.map((n) => {
+        {nav
+          .filter((n) => !(user.subtitle === "Administrador" && n.hideForAdmin))
+          .map((n) => {
           const active = path === n.href;
           const label = n.labelKey
             ? (navDict as Record<string, string>)[n.labelKey] ?? n.labelKey

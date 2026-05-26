@@ -43,7 +43,14 @@ export async function ensureProfileFromMetadata(user: User | null | undefined): 
   if (role === "professional") {
     // Por ahora el marketplace arranca solo con "Microinjerto capilar".
     const capilar = await getSpecialtyBySlug(CAPILAR_SLUG);
-    await createProfessional({ id: user.id, specialtyId: capilar?.id ?? null, availableForWork: true });
+    // Médico o técnico según el alta; por defecto técnico.
+    const proType = m.pro_type === "doctor" ? "doctor" : "technician";
+    await createProfessional({
+      id: user.id,
+      proType,
+      specialtyId: capilar?.id ?? null,
+      availableForWork: true,
+    });
   } else {
     const specialties = Array.isArray(m.specialties)
       ? (m.specialties as unknown[]).filter((s): s is string => typeof s === "string" && s.trim().length > 0)

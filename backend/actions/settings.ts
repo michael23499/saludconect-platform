@@ -19,6 +19,7 @@ export type MyProfileInput = {
   lat: number | null;
   lng: number | null;
   // Solo profesional
+  proType?: "doctor" | "technician";
   headline?: string;
   bio?: string;
   yearsExperience?: number | null;
@@ -52,6 +53,7 @@ export async function updateMyProfileAction(data: MyProfileInput): Promise<Updat
 
   if (me.profile.role === "professional") {
     await updateProfessional(me.profile.id, {
+      ...(data.proType ? { proType: data.proType } : {}),
       headline: data.headline?.trim() || null,
       bio: data.bio?.trim() || null,
       yearsExperience: data.yearsExperience ?? null,

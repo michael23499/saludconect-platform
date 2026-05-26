@@ -10,7 +10,7 @@ const MONTHS = [
   "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
 ];
 
-export type DayMark = { count: number; tone?: "brand" | "success" | "neutral" };
+export type DayMark = { count: number; tone?: "brand" | "success" | "neutral" | "warning" };
 
 /** Fecha local → "YYYY-MM-DD" (sin saltos de zona horaria). */
 function ymd(d: Date): string {
@@ -23,6 +23,7 @@ const TONE_DOT: Record<NonNullable<DayMark["tone"]>, string> = {
   brand: "bg-brand-500",
   success: "bg-emerald-500",
   neutral: "bg-mist-400",
+  warning: "bg-amber-500",
 };
 
 /**

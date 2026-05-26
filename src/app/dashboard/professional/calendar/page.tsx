@@ -63,6 +63,7 @@ export default async function ProfesionalCalendarioPage() {
     city: s.city,
     note: s.note,
     status: s.status,
+    bookedByName: s.bookedByName,
   }));
   const proSurgeries: ProSurgery[] = confirmed.map(({ surgery, clinicName }) => ({
     id: surgery.id,

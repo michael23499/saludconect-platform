@@ -6,6 +6,7 @@ import { Avatar } from "@/components/ui/Avatar";
 import { Field, Input, Textarea } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { MultiSelectMenu } from "@/components/ui/MultiSelectMenu";
+import { SelectMenu } from "@/components/ui/SelectMenu";
 import { AddressAutocomplete } from "@/components/admin/AddressAutocomplete";
 import { useApp } from "@/components/providers/Providers";
 import { updateMyProfileAction, uploadMyAvatarAction, type MyProfileInput } from "@backend/actions/settings";
@@ -22,6 +23,8 @@ export type AccountData = {
   lng: number | null;
   avatarUrl: string | null;
   specialtyName: string | null;
+  /** Solo profesional: médico o técnico. */
+  proType?: "doctor" | "technician";
   headline: string;
   bio: string;
   yearsExperience: string;
@@ -55,6 +58,7 @@ export function AccountSettingsForm({ account }: { account: AccountData }) {
   const [coords, setCoords] = useState<{ lat: number | null; lng: number | null }>({ lat: account.lat, lng: account.lng });
   const [avatarUrl, setAvatarUrl] = useState(account.avatarUrl);
   // Profesional
+  const [proType, setProType] = useState<"doctor" | "technician">(account.proType ?? "technician");
   const [headline, setHeadline] = useState(account.headline);
   const [bio, setBio] = useState(account.bio);
   const [years, setYears] = useState(account.yearsExperience);
@@ -101,6 +105,7 @@ export function AccountSettingsForm({ account }: { account: AccountData }) {
       ...(isClinic
         ? { clinicName: fullName, specialties, about, website }
         : {
+            proType,
             headline,
             bio,
             yearsExperience: years.trim() ? Number.parseInt(years, 10) : null,
@@ -213,6 +218,16 @@ export function AccountSettingsForm({ account }: { account: AccountData }) {
             </>
           ) : (
             <>
+              <Field label={t.register.pfType}>
+                <SelectMenu
+                  value={proType}
+                  onChange={(v) => setProType(v as "doctor" | "technician")}
+                  options={[
+                    { value: "technician", label: t.dashboard.surgeries.typeTechnician },
+                    { value: "doctor", label: t.dashboard.surgeries.typeDoctor },
+                  ]}
+                />
+              </Field>
               <Field label="Especialidad" hint="Por ahora solo microinjerto capilar.">
                 <Input value={account.specialtyName ?? "Técnico capilar"} disabled className="opacity-70" />
               </Field>

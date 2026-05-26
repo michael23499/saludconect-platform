@@ -96,6 +96,13 @@ export async function signUpAction(
       ? formData.getAll("especialidades").filter((v): v is string => typeof v === "string" && v.trim().length > 0)
       : [];
 
+  // Nombre para saludar en el correo: la persona de contacto (clínica) o el
+  // nombre de pila (profesional). Si falta, cae al nombre completo.
+  const contactName =
+    role === "clinic"
+      ? (cleanField(formData.get("contact")) ?? fullName)
+      : (cleanField(formData.get("firstName")) ?? fullName);
+
   const origin = await getRequestOrigin();
   const supabase = await createClient();
 
@@ -109,6 +116,7 @@ export async function signUpAction(
       data: {
         role,
         full_name: fullName,
+        contact_name: contactName,
         phone: cleanField(formData.get("phone")),
         city: cleanField(formData.get("city")),
         address: cleanField(formData.get("address")),
@@ -116,6 +124,7 @@ export async function signUpAction(
         lat: parseCoord(formData.get("lat")),
         lng: parseCoord(formData.get("lng")),
         profession: cleanField(formData.get("profesion")),
+        pro_type: cleanField(formData.get("pro_type")),
         specialty_choice: cleanField(formData.get("especialidad")),
         team_size: cleanField(formData.get("tamano")),
         specialties: specialties.length ? specialties : null,
