@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="light only" />
     <meta name="supported-color-schemes" content="light" />
-    <title>Establece tu contraseña · SaludCoNet</title>
+    <title>Confirma tu correo · SaludCoNet</title>
     <style>
       body, table, td { margin: 0; padding: 0; }
       img { border: 0; line-height: 100%; outline: none; text-decoration: none; }
@@ -21,7 +21,7 @@
   </head>
   <body style="margin: 0; padding: 0; background-color: #f4f6f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #0f1b2d; -webkit-font-smoothing: antialiased;">
     <div style="display: none; max-height: 0; overflow: hidden; mso-hide: all;">
-      Verifica tu email y establece tu contraseña en SaludCoNet.
+      Confirma tu correo para activar tu cuenta en SaludCoNet.
     </div>
 
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#f4f6f9" style="background-color: #f4f6f9;">
@@ -46,17 +46,17 @@
             <tr>
               <td class="card" style="background-color: #ffffff; padding: 38px 44px;">
                 <h1 class="h1" style="margin: 0 0 12px; font-size: 24px; line-height: 1.25; font-weight: 700; letter-spacing: -0.02em; color: #0f1b2d;">
-                  Establece tu contraseña
+                  Confirma tu correo
                 </h1>
                 <p style="margin: 0 0 26px; font-size: 15px; line-height: 1.6; color: #5b6675;">
-                  Estás a un paso de acceder con email y contraseña a tu cuenta de <strong style="color: #0f1b2d;">SaludCoNet</strong>. Pulsa el botón para verificarte y crear tu contraseña.
+                  Gracias por unirte a <strong style="color: #0f1b2d;">SaludCoNet</strong>. Solo falta un paso: confirma tu dirección de correo para activar tu cuenta y empezar.
                 </p>
 
                 <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin: 0 0 26px;">
                   <tr>
                     <td align="center" style="background-color: #052F59; border-radius: 999px; box-shadow: 0 10px 24px -10px rgba(5,47,89,0.55);">
-                      <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=magiclink&next=/set-password" class="cta" style="display: inline-block; padding: 15px 38px; color: #ffffff; font-size: 15px; font-weight: 600; line-height: 1; border-radius: 999px;">
-                        Establecer contraseña
+                      <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=signup" class="cta" style="display: inline-block; padding: 15px 38px; color: #ffffff; font-size: 15px; font-weight: 600; line-height: 1; border-radius: 999px;">
+                        Confirmar mi correo
                       </a>
                     </td>
                   </tr>
@@ -66,7 +66,7 @@
                   Si el botón no funciona, copia y pega este enlace en tu navegador:
                 </p>
                 <p style="margin: 0; font-size: 12px; line-height: 1.5; word-break: break-all;">
-                  <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=magiclink&next=/set-password" style="color: #01ABD4;">{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=magiclink&next=/set-password</a>
+                  <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=signup" style="color: #01ABD4;">{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=signup</a>
                 </p>
 
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin: 26px 0 20px;">
@@ -76,7 +76,7 @@
                 </table>
 
                 <p style="margin: 0; font-size: 13px; line-height: 1.6; color: #8a94ab;">
-                  Este enlace caduca en <strong style="color: #6b7793;">1 hora</strong>. Si no fuiste tú quien lo solicitó, puedes ignorar este email — tu cuenta sigue segura.
+                  Si no has creado una cuenta en SaludCoNet, puedes ignorar este mensaje sin problema.
                 </p>
               </td>
             </tr>

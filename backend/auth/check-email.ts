@@ -61,3 +61,22 @@ export async function checkEmailStatus(email: string): Promise<EmailStatus> {
     providers: row?.providers ?? [],
   };
 }
+
+/**
+ * Devuelve el id de auth.users para un email, o null si no existe.
+ *
+ * Lo necesita el alta por contraseña: con la confirmación de email activada,
+ * `supabase.auth.signUp()` devuelve `data.user = null` (sin sesión y, según la
+ * versión del SDK, sin el user) aunque la cuenta SÍ se crea. Recuperamos el id
+ * aquí para poder insertar el perfil. Seguro porque el alta valida antes que el
+ * email no existía: el id que recuperamos es el de la cuenta recién creada.
+ */
+export async function getAuthUserIdByEmail(email: string): Promise<string | null> {
+  const normalized = email.trim().toLowerCase();
+  if (!normalized.includes("@")) return null;
+  const result = await db.execute<{ id: string }>(
+    sql`SELECT id FROM auth.users WHERE email = ${normalized} LIMIT 1`,
+  );
+  const row = (result as unknown as Array<{ id: string }>)[0];
+  return row?.id ?? null;
+}

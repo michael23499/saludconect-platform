@@ -118,6 +118,10 @@ export const clinics = pgTable("clinics", {
     .references(() => users.id, { onDelete: "cascade" }),
   // Nombre comercial del centro (puede diferir del fullName del usuario).
   clinicName: text("clinic_name"),
+  // Especialidades del centro (lista). Una clínica puede ofrecer varias. Son
+  // etiquetas de perfil (las del catálogo de marketing del registro); el motor
+  // de cirugías sigue operando por la specialtyId de cada cirugía.
+  specialties: text("specialties").array(),
   about: text("about"),
   website: text("website"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

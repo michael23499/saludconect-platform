@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { isAuthenticated } from "@backend/auth/guards";
+import { rateLimit } from "@backend/auth/rate-limit";
 
 // Server-side para cumplir la política de Nominatim (User-Agent identificable,
 // un único origen) y evitar CORS. force-dynamic: depende del query.
@@ -16,9 +16,12 @@ export type GeoResult = {
 };
 
 export async function GET(request: NextRequest) {
-  // Solo usuarios autenticados (evita exponer un proxy abierto a Nominatim).
-  if (!(await isAuthenticated())) {
-    return new NextResponse("Unauthorized", { status: 401 });
+  // Abierto también a invitados porque el formulario de registro (sin sesión)
+  // necesita el autocompletado. Para no exponer un proxy abierto a Nominatim,
+  // limitamos por IP; combinado con el debounce del cliente, sobra para uso real.
+  const allowed = await rateLimit("geocode", 30, 60_000);
+  if (!allowed) {
+    return new NextResponse("Too Many Requests", { status: 429 });
   }
 
   const q = request.nextUrl.searchParams.get("q")?.trim() ?? "";
