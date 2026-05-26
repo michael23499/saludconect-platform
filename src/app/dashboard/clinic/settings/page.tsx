@@ -36,6 +36,7 @@ export default async function AjustesPage() {
     yearsExperience: "",
     hourlyRate: "",
     clinicName: clinic?.clinicName ?? "",
+    specialties: clinic?.specialties ?? [],
     about: clinic?.about ?? "",
     website: clinic?.website ?? "",
   };

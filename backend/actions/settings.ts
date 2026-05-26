@@ -25,6 +25,7 @@ export type MyProfileInput = {
   hourlyRate?: number | null;
   // Solo clínica
   clinicName?: string;
+  specialties?: string[];
   about?: string;
   website?: string;
 };
@@ -57,8 +58,10 @@ export async function updateMyProfileAction(data: MyProfileInput): Promise<Updat
       hourlyRate: data.hourlyRate ?? null,
     });
   } else if (me.profile.role === "clinic") {
+    const specialties = (data.specialties ?? []).map((s) => s.trim()).filter(Boolean);
     await updateClinic(me.profile.id, {
       clinicName: data.clinicName?.trim() || null,
+      specialties: specialties.length ? specialties : null,
       about: data.about?.trim() || null,
       website: data.website?.trim() || null,
     });

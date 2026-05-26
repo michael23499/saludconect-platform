@@ -38,6 +38,7 @@ export default async function ProfesionalAjustesPage() {
     yearsExperience: professional?.yearsExperience != null ? String(professional.yearsExperience) : "",
     hourlyRate: professional?.hourlyRate != null ? String(professional.hourlyRate) : "",
     clinicName: "",
+    specialties: [],
     about: "",
     website: "",
   };

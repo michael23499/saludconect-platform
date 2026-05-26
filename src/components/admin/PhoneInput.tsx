@@ -14,12 +14,18 @@ export function PhoneInput({
   onChange,
   placeholder,
   d,
+  rounded = "sm",
 }: {
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
   d?: Record<string, string>;
+  /** Radio de las esquinas exteriores. "sm" en el admin; "xl" para encajar con los inputs del registro. */
+  rounded?: "sm" | "xl";
 }) {
+  // Clases explícitas (no interpoladas) para que Tailwind no las purgue.
+  const leftRadius = rounded === "xl" ? "rounded-l-xl" : "rounded-l-sm";
+  const rightRadius = rounded === "xl" ? "rounded-r-xl" : "rounded-r-sm";
   const [{ country, number }, setState] = useState(() => {
     const p = parsePhone(value);
     return { country: p.country, number: groupDigits(p.number) };
@@ -61,7 +67,7 @@ export function PhoneInput({
           onClick={toggle}
           aria-haspopup="listbox"
           aria-expanded={open}
-          className="flex shrink-0 items-center gap-1.5 rounded-l-sm border border-mist-200 bg-mist-50/60 px-3 text-sm text-ink-700 transition hover:bg-mist-100"
+          className={`flex shrink-0 items-center gap-1.5 ${leftRadius} border border-mist-200 bg-mist-50/60 px-3 text-sm text-ink-700 transition hover:bg-mist-100`}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={flagUrl(country.code)} alt={country.name} width={20} height={15} className="w-5 rounded-sm" />
@@ -74,7 +80,7 @@ export function PhoneInput({
           value={number}
           onChange={(e) => { const n = groupDigits(e.target.value); setState((s) => ({ ...s, number: n })); emit(country, n); }}
           placeholder={placeholder ?? "600 000 000"}
-          className="min-w-0 flex-1 rounded-r-sm border border-l-0 border-mist-200 bg-white px-3.5 text-sm text-ink-900 outline-none transition placeholder:text-mist-400 focus:border-brand-500"
+          className={`min-w-0 flex-1 ${rightRadius} border border-l-0 border-mist-200 bg-white px-3.5 text-sm text-ink-900 outline-none transition placeholder:text-mist-400 focus:border-brand-500`}
         />
       </div>
 

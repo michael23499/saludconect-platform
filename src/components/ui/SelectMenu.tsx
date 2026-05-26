@@ -46,6 +46,10 @@ export function SelectMenu({
   const triggerRef = useRef<HTMLButtonElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
+  // Al elegir una opción el dropdown se cierra de forma síncrona; el click puede
+  // "reasignarse" al trigger (ghost click) y reabrirlo. Marcamos el instante del
+  // cierre para que el trigger ignore ese click fantasma inmediato.
+  const closedAtRef = useRef(0);
   const id = useId();
 
   const showSearch = searchable ?? normalized.length > searchAfter;
@@ -133,7 +137,13 @@ export function SelectMenu({
         aria-expanded={open}
         aria-controls={`${id}-list`}
         aria-label={ariaLabel}
-        onClick={() => !disabled && setOpen((o) => !o)}
+        onClick={() => {
+          if (disabled) return;
+          // Ignora el click fantasma que llega al trigger justo tras elegir una
+          // opción (si no, reabriría el menú recién cerrado).
+          if (Date.now() - closedAtRef.current < 300) return;
+          setOpen((o) => !o);
+        }}
         onKeyDown={(e) => {
           if (!open && (e.key === "ArrowDown" || e.key === "Enter" || e.key === " ")) {
             e.preventDefault();
@@ -222,6 +232,7 @@ export function SelectMenu({
                       setValue(o.value);
                       setOpen(false);
                       setQuery("");
+                      closedAtRef.current = Date.now();
                       triggerRef.current?.focus();
                     }}
                     className={cn(

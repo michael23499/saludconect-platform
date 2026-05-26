@@ -23,7 +23,6 @@ export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const token_hash = searchParams.get("token_hash");
   const type = searchParams.get("type") as EmailOtpType | null;
-  const next = safeNext(searchParams.get("next")) ?? "/set-password";
 
   if (!token_hash || !type) {
     return NextResponse.redirect(`${origin}/login?error=missing_token`);
@@ -35,5 +34,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/login?error=invalid_or_expired`);
   }
 
+  // Destino tras verificar. El alta (signup) → pantalla de bienvenida "cuenta
+  // confirmada"; recovery/invitación → establecer contraseña. `next` explícito
+  // (si es interno) tiene prioridad.
+  const fallback = type === "signup" || type === "email" ? "/auth/confirmed" : "/set-password";
+  const next = safeNext(searchParams.get("next")) ?? fallback;
   return NextResponse.redirect(`${origin}${next}`);
 }

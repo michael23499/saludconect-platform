@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
-import { Logo } from "@/components/ui/Logo";
 import { useApp } from "@/components/providers/Providers";
+import { RegisterFormProvider } from "@/components/register/RegisterFormContext";
 import { cn } from "@/lib/cn";
 
 type Role = "clinic" | "professional" | null;
@@ -45,10 +45,10 @@ export function RegisterShell({
   return (
     <div className="relative mx-auto grid w-full max-w-7xl gap-10 px-5 py-12 md:grid-cols-[1.05fr_1.4fr] md:px-8 md:py-16">
       <aside className="md:sticky md:top-24 md:self-start">
-        <Logo />
+        {/* El logo ya vive en el navbar global; aquí lo omitimos para no duplicarlo. */}
         {/* key fuerza el re-montaje al cambiar de rol → reanima el bloque */}
         <div key={role ?? "default"} className="scale-in">
-          <h1 className="mt-6 text-balance text-3xl font-semibold tracking-tight text-ink-900 md:text-4xl">
+          <h1 className="text-balance text-3xl font-semibold tracking-tight text-ink-900 md:text-4xl">
             {copy.pre}
             <span className="text-gradient-brand">{copy.hi}</span>
             {copy.suf}
@@ -116,11 +116,15 @@ export function RegisterShell({
           </button>
         </div>
 
-        <div key={role ?? "empty"} className="scale-in">
-          {role === null && emptyState}
-          {role === "clinic" && formClinica}
-          {role === "professional" && formProfesional}
-        </div>
+        {/* El provider va por FUERA del div con `key`: este se re-monta al
+            cambiar de rol (reanima), pero los valores escritos persisten. */}
+        <RegisterFormProvider>
+          <div key={role ?? "empty"} className="scale-in">
+            {role === null && emptyState}
+            {role === "clinic" && formClinica}
+            {role === "professional" && formProfesional}
+          </div>
+        </RegisterFormProvider>
 
         {footer}
       </div>

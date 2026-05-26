@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation";
 import { Avatar } from "@/components/ui/Avatar";
 import { Field, Input, Textarea } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { MultiSelectMenu } from "@/components/ui/MultiSelectMenu";
 import { AddressAutocomplete } from "@/components/admin/AddressAutocomplete";
+import { useApp } from "@/components/providers/Providers";
 import { updateMyProfileAction, uploadMyAvatarAction, type MyProfileInput } from "@backend/actions/settings";
 
 export type AccountData = {
@@ -25,6 +27,7 @@ export type AccountData = {
   yearsExperience: string;
   hourlyRate: string;
   clinicName: string;
+  specialties: string[];
   about: string;
   website: string;
 };
@@ -41,6 +44,7 @@ const FIELD_INPUT =
  */
 export function AccountSettingsForm({ account }: { account: AccountData }) {
   const router = useRouter();
+  const { t } = useApp();
   const isClinic = account.role === "clinic";
 
   const [fullName, setFullName] = useState(account.fullName);
@@ -56,6 +60,7 @@ export function AccountSettingsForm({ account }: { account: AccountData }) {
   const [years, setYears] = useState(account.yearsExperience);
   const [rate, setRate] = useState(account.hourlyRate);
   // Clínica (el nombre del centro = fullName; aquí solo datos promocionales)
+  const [specialties, setSpecialties] = useState<string[]>(account.specialties);
   const [about, setAbout] = useState(account.about);
   const [website, setWebsite] = useState(account.website);
 
@@ -94,7 +99,7 @@ export function AccountSettingsForm({ account }: { account: AccountData }) {
       lat: coords.lat,
       lng: coords.lng,
       ...(isClinic
-        ? { clinicName: fullName, about, website }
+        ? { clinicName: fullName, specialties, about, website }
         : {
             headline,
             bio,
@@ -185,6 +190,16 @@ export function AccountSettingsForm({ account }: { account: AccountData }) {
 
           {isClinic ? (
             <>
+              <div className="md:col-span-2">
+                <Field label="Especialidades" hint="Las áreas que ofrece tu centro. Puedes elegir varias.">
+                  <MultiSelectMenu
+                    options={t.register.specialties}
+                    values={specialties}
+                    onChange={setSpecialties}
+                    placeholder={t.register.cfSpecialtiesPlaceholder}
+                  />
+                </Field>
+              </div>
               <div className="md:col-span-2">
                 <Field label="Sitio web">
                   <Input type="url" value={website} onChange={(e) => setWebsite(e.target.value)} placeholder="https://tuclinica.com" />

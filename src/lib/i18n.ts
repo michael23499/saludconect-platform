@@ -136,6 +136,12 @@ const RAW = {
       cityOptional: "Ciudad (opcional)",
       cityPlaceholder: "Madrid, Barcelona…",
       completeRegister: "Completar registro",
+      // Confirmación de cuenta (tras verificar el correo)
+      confirmedTitle: "¡Cuenta confirmada!",
+      confirmedSubtitle: "Tu correo está verificado. Ya puedes empezar a usar SaludCoNet.",
+      confirmedGoPanel: "Ir a mi panel",
+      confirmedCompleteProfile: "Completar mi perfil",
+      confirmedGoLogin: "Iniciar sesión",
       // User menu
       mAccount: "Cuenta",
       mPreferences: "Preferencias",
@@ -1060,6 +1066,8 @@ const RAW = {
       // Formularios — común
       selectPlaceholder: "Selecciona…",
       passwordPlaceholder: "Mínimo 10 caracteres",
+      searchCountry: "Buscar país…",
+      noCountryResults: "Sin resultados",
       // Formulario clínica
       cfBadge: "Registro de clínica",
       cfName: "Nombre de la clínica",
@@ -1092,6 +1100,19 @@ const RAW = {
       pfSubmit: "Continuar — completar perfil",
       professions: ["Médico/a", "Enfermero/a", "Fisioterapeuta", "Odontólogo/a", "Psicólogo/a", "Dermatólogo/a", "Pediatra", "Cardiólogo/a", "Ginecólogo/a", "Auxiliar de enfermería"],
       specialties: ["Microinjerto capilar", "Dermatología", "Cardiología", "Pediatría", "Odontología", "Fisioterapia", "Psicología", "Enfermería general", "Ginecología", "Traumatología", "Oftalmología", "Radiología", "Anestesia"],
+      // Estados del alta
+      creating: "Creando cuenta…",
+      confirmEmailTitle: "Confirma tu correo",
+      confirmEmailPre: "Te hemos enviado un enlace de confirmación a",
+      confirmEmailSuf: "Ábrelo para activar tu cuenta y empezar.",
+      // Dirección con autocompletado
+      pfAddress: "Dirección",
+      addressPlaceholder: "Escribe la dirección y elige una sugerencia…",
+      // Especialidades de la clínica (multi-selección)
+      cfSpecialties: "Especialidades",
+      cfSpecialtiesPlaceholder: "Elige una o varias…",
+      // Provincias de España (para el selector de ubicación del profesional)
+      regions: ["A Coruña", "Álava", "Albacete", "Alicante", "Almería", "Asturias", "Ávila", "Badajoz", "Baleares", "Barcelona", "Burgos", "Cáceres", "Cádiz", "Cantabria", "Castellón", "Ceuta", "Ciudad Real", "Córdoba", "Cuenca", "Girona", "Granada", "Guadalajara", "Gipuzkoa", "Huelva", "Huesca", "Jaén", "La Rioja", "Las Palmas", "León", "Lleida", "Lugo", "Madrid", "Málaga", "Melilla", "Murcia", "Navarra", "Ourense", "Palencia", "Pontevedra", "Salamanca", "Santa Cruz de Tenerife", "Segovia", "Sevilla", "Soria", "Tarragona", "Teruel", "Toledo", "Valencia", "Valladolid", "Vizcaya", "Zamora", "Zaragoza"],
     },
     pages: {
       clinics: {
@@ -1653,6 +1674,12 @@ const RAW = {
       cityOptional: "City (optional)",
       cityPlaceholder: "Madrid, Barcelona…",
       completeRegister: "Complete registration",
+      // Account confirmation (after verifying email)
+      confirmedTitle: "Account confirmed!",
+      confirmedSubtitle: "Your email is verified. You can start using SaludCoNet now.",
+      confirmedGoPanel: "Go to my dashboard",
+      confirmedCompleteProfile: "Complete my profile",
+      confirmedGoLogin: "Sign in",
       // User menu
       mAccount: "Account",
       mPreferences: "Preferences",
@@ -2577,6 +2604,8 @@ const RAW = {
       // Forms — common
       selectPlaceholder: "Select…",
       passwordPlaceholder: "At least 10 characters",
+      searchCountry: "Search country…",
+      noCountryResults: "No results",
       // Clinic form
       cfBadge: "Clinic registration",
       cfName: "Clinic name",
@@ -2609,6 +2638,19 @@ const RAW = {
       pfSubmit: "Continue — complete profile",
       professions: ["Doctor", "Nurse", "Physiotherapist", "Dentist", "Psychologist", "Dermatologist", "Pediatrician", "Cardiologist", "Gynecologist", "Nursing assistant"],
       specialties: ["Hair micrograft", "Dermatology", "Cardiology", "Pediatrics", "Dentistry", "Physiotherapy", "Psychology", "General nursing", "Gynecology", "Traumatology", "Ophthalmology", "Radiology", "Anesthesia"],
+      // Sign-up states
+      creating: "Creating account…",
+      confirmEmailTitle: "Confirm your email",
+      confirmEmailPre: "We've sent a confirmation link to",
+      confirmEmailSuf: "Open it to activate your account and get started.",
+      // Address autocomplete
+      pfAddress: "Address",
+      addressPlaceholder: "Type the address and pick a suggestion…",
+      // Clinic specialties (multi-select)
+      cfSpecialties: "Specialties",
+      cfSpecialtiesPlaceholder: "Pick one or more…",
+      // Spanish provinces (location selector for professionals)
+      regions: ["A Coruña", "Álava", "Albacete", "Alicante", "Almería", "Asturias", "Ávila", "Badajoz", "Baleares", "Barcelona", "Burgos", "Cáceres", "Cádiz", "Cantabria", "Castellón", "Ceuta", "Ciudad Real", "Córdoba", "Cuenca", "Girona", "Granada", "Guadalajara", "Gipuzkoa", "Huelva", "Huesca", "Jaén", "La Rioja", "Las Palmas", "León", "Lleida", "Lugo", "Madrid", "Málaga", "Melilla", "Murcia", "Navarra", "Ourense", "Palencia", "Pontevedra", "Salamanca", "Santa Cruz de Tenerife", "Segovia", "Sevilla", "Soria", "Tarragona", "Teruel", "Toledo", "Valencia", "Valladolid", "Vizcaya", "Zamora", "Zaragoza"],
     },
     pages: {
       clinics: {
