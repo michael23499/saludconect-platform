@@ -18,6 +18,10 @@ type Ctx = {
   setText: (name: string, value: string) => void;
   setBool: (name: string, value: boolean) => void;
   setList: (name: string, value: string[]) => void;
+  // true cuando el alta ya se envió y se muestra "confirma tu correo": permite
+  // ocultar las pestañas de rol y el pie (ya no aplican en ese estado).
+  submitted: boolean;
+  setSubmitted: (v: boolean) => void;
 };
 
 const RegisterFormCtx = createContext<Ctx | null>(null);
@@ -26,6 +30,7 @@ export function RegisterFormProvider({ children }: { children: ReactNode }) {
   const [text, setTextState] = useState<Record<string, string>>({});
   const [bool, setBoolState] = useState<Record<string, boolean>>({});
   const [list, setListState] = useState<Record<string, string[]>>({});
+  const [submitted, setSubmittedState] = useState(false);
 
   const setText = useCallback((name: string, value: string) => {
     setTextState((s) => ({ ...s, [name]: value }));
@@ -36,9 +41,10 @@ export function RegisterFormProvider({ children }: { children: ReactNode }) {
   const setList = useCallback((name: string, value: string[]) => {
     setListState((s) => ({ ...s, [name]: value }));
   }, []);
+  const setSubmitted = useCallback((v: boolean) => setSubmittedState(v), []);
 
   return (
-    <RegisterFormCtx.Provider value={{ text, bool, list, setText, setBool, setList }}>
+    <RegisterFormCtx.Provider value={{ text, bool, list, setText, setBool, setList, submitted, setSubmitted }}>
       {children}
     </RegisterFormCtx.Provider>
   );
@@ -75,6 +81,12 @@ export function useRegisterList(name: string) {
     values: ctx.list[name] ?? EMPTY,
     setValues: (v: string[]) => ctx.setList(name, v),
   };
+}
+
+/** Estado "alta enviada": para ocultar pestañas/pie cuando se confirma el correo. */
+export function useRegisterSubmitted() {
+  const ctx = useCtx();
+  return { submitted: ctx.submitted, setSubmitted: ctx.setSubmitted };
 }
 
 const EMPTY: string[] = [];

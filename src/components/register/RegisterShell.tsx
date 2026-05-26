@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { useApp } from "@/components/providers/Providers";
-import { RegisterFormProvider } from "@/components/register/RegisterFormContext";
+import { RegisterFormProvider, useRegisterSubmitted } from "@/components/register/RegisterFormContext";
 import { cn } from "@/lib/cn";
 
 type Role = "clinic" | "professional" | null;
@@ -80,7 +80,47 @@ export function RegisterShell({
         </p>
       </aside>
 
-      <div className="rounded-3xl border border-mist-200 bg-white p-6 shadow-[var(--shadow-card)] md:p-10">
+      <RegisterFormProvider>
+        <RegisterCard
+          role={role}
+          onSelect={select}
+          emptyState={emptyState}
+          formClinica={formClinica}
+          formProfesional={formProfesional}
+          footer={footer}
+        />
+      </RegisterFormProvider>
+    </div>
+  );
+}
+
+/**
+ * Tarjeta del formulario. Vive dentro del provider para poder reaccionar a
+ * `submitted`: cuando el alta ya se envió (pantalla "confirma tu correo"), las
+ * pestañas de rol y el pie (Google/términos) ya no aplican y se ocultan.
+ */
+function RegisterCard({
+  role,
+  onSelect,
+  emptyState,
+  formClinica,
+  formProfesional,
+  footer,
+}: {
+  role: Role;
+  onSelect: (next: Exclude<Role, null>) => void;
+  emptyState: ReactNode;
+  formClinica: ReactNode;
+  formProfesional: ReactNode;
+  footer: ReactNode;
+}) {
+  const { t } = useApp();
+  const r = t.register;
+  const { submitted } = useRegisterSubmitted();
+
+  return (
+    <div className="rounded-3xl border border-mist-200 bg-white p-6 shadow-[var(--shadow-card)] md:p-10">
+      {!submitted && (
         <div className="relative grid grid-cols-2 rounded-2xl bg-mist-100 p-1">
           <span
             aria-hidden
@@ -92,7 +132,7 @@ export function RegisterShell({
           />
           <button
             type="button"
-            onClick={() => select("clinic")}
+            onClick={() => onSelect("clinic")}
             className={cn(
               "relative z-10 rounded-xl px-4 py-3 text-center text-sm transition-colors duration-200",
               role === "clinic"
@@ -104,7 +144,7 @@ export function RegisterShell({
           </button>
           <button
             type="button"
-            onClick={() => select("professional")}
+            onClick={() => onSelect("professional")}
             className={cn(
               "relative z-10 rounded-xl px-4 py-3 text-center text-sm transition-colors duration-200",
               role === "professional"
@@ -115,19 +155,15 @@ export function RegisterShell({
             {r.tabPro}
           </button>
         </div>
+      )}
 
-        {/* El provider va por FUERA del div con `key`: este se re-monta al
-            cambiar de rol (reanima), pero los valores escritos persisten. */}
-        <RegisterFormProvider>
-          <div key={role ?? "empty"} className="scale-in">
-            {role === null && emptyState}
-            {role === "clinic" && formClinica}
-            {role === "professional" && formProfesional}
-          </div>
-        </RegisterFormProvider>
-
-        {footer}
+      <div key={role ?? "empty"} className="scale-in">
+        {role === null && emptyState}
+        {role === "clinic" && formClinica}
+        {role === "professional" && formProfesional}
       </div>
+
+      {!submitted && footer}
     </div>
   );
 }

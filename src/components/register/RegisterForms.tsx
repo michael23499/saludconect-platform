@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, type ComponentProps } from "react";
+import { useActionState, useEffect, type ComponentProps } from "react";
 import { useFormStatus } from "react-dom";
 import { Badge } from "@/components/ui/Badge";
 import { Field, Input } from "@/components/ui/Input";
@@ -13,7 +13,7 @@ import { Spinner } from "@/components/ui/Spinner";
 import { useApp } from "@/components/providers/Providers";
 import { AddressAutocomplete } from "@/components/admin/AddressAutocomplete";
 import { PhoneInput } from "@/components/admin/PhoneInput";
-import { useRegisterText, useRegisterBool, useRegisterList } from "@/components/register/RegisterFormContext";
+import { useRegisterText, useRegisterBool, useRegisterList, useRegisterSubmitted } from "@/components/register/RegisterFormContext";
 import { signUpAction, type SignUpState } from "@backend/auth/sign-up";
 
 const SUBMIT_SHADOW =
@@ -328,6 +328,13 @@ function SubmitButton({ label }: { label: string }) {
 function ConfirmEmailView({ email }: { email: string }) {
   const { t } = useApp();
   const r = t.register;
+  const { setSubmitted } = useRegisterSubmitted();
+  // Al mostrarse "confirma tu correo", marca el alta como enviada para que la
+  // card oculte las pestañas de rol y el pie (ya no aplican).
+  useEffect(() => {
+    setSubmitted(true);
+    return () => setSubmitted(false);
+  }, [setSubmitted]);
   return (
     <div className="mt-6">
       <div className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-6 text-center scale-in">
