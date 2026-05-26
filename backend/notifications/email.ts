@@ -8,7 +8,7 @@ import "server-only";
  * app sigue: las notificaciones in-app son el canal principal y siempre se crean.
  */
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
-const FROM = process.env.RESEND_FROM ?? "SaludCoNet <no-reply@saludconet.com>";
+const FROM = process.env.RESEND_FROM ?? "SaludCoNet <info@saludconet.com>";
 
 export type EmailContent = { to: string | string[]; subject: string; html: string };
 

@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
+import { ensureProfileFromMetadata } from "@backend/auth/ensure-profile";
 
 /**
  * Solo aceptamos `next` si es un path interno absoluto. Evita open-redirect.
@@ -29,9 +30,20 @@ export async function GET(request: NextRequest) {
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.verifyOtp({ type, token_hash });
+  const { data, error } = await supabase.auth.verifyOtp({ type, token_hash });
   if (error) {
     return NextResponse.redirect(`${origin}/login?error=invalid_or_expired`);
+  }
+
+  // Alta confirmada: AHORA materializamos el perfil en public.users desde el
+  // user_metadata que guardó signUpAction (antes no existía). Idempotente; si
+  // falla, el usuario queda con sesión y los guards lo llevan a /complete-profile.
+  if (type === "signup" || type === "email") {
+    try {
+      await ensureProfileFromMetadata(data.user);
+    } catch {
+      // No bloqueamos la confirmación por un fallo al crear el perfil.
+    }
   }
 
   // Destino tras verificar. El alta (signup) → pantalla de bienvenida "cuenta
