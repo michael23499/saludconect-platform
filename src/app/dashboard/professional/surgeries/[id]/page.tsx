@@ -7,6 +7,7 @@ import { ApplyButton } from "@/components/dashboard/ApplyButton";
 import { SupervisionBanner } from "@/components/dashboard/SupervisionBanner";
 import { NAV_PRO } from "@/lib/dashboard-nav";
 import { formatDateLongEs } from "@/lib/dates";
+import { formatNeeds } from "@/lib/surgery";
 import { getDict } from "@/lib/i18n-server";
 import { requireRole } from "@backend/auth/guards";
 import { getSurgeryWithClinic } from "@backend/queries/surgeries";
@@ -64,7 +65,7 @@ export default async function DetalleCirugiaProfesionalPage({
                 {surgery.city || surgery.address ? [surgery.city, surgery.address].filter(Boolean).join(" · ") : t.detailLocationTBD}
               </Detail>
               <Detail icon="users" label={t.detailVacancies}>
-                {surgery.vacancies} {surgery.vacancies === 1 ? t.technician : t.technicians}
+                {formatNeeds(surgery.vacancies, surgery.doctorsNeeded, t)}
               </Detail>
               <Detail icon="clock" label={t.detailRate}>
                 {surgery.ratePerHour ? <span className="font-semibold text-brand-700">{surgery.ratePerHour} €/h</span> : t.rateTBD}

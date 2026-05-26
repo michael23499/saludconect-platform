@@ -43,7 +43,7 @@ export function Modal({
         role="dialog"
         aria-modal="true"
         aria-labelledby={labelledBy}
-        className="scale-in relative w-full overflow-hidden rounded-2xl bg-white shadow-2xl"
+        className="scale-in relative max-h-[92vh] w-full overflow-y-auto overflow-x-hidden rounded-2xl bg-white shadow-2xl"
         style={{ maxWidth }}
       >
         {children}
@@ -72,7 +72,7 @@ export function ModalHeader({
   closeLabel?: string;
 }) {
   return (
-    <div className="flex items-center gap-4 bg-brand-600 px-6 py-6 text-white">
+    <div className="sticky top-0 z-10 flex items-center gap-4 bg-brand-600 px-6 py-6 text-white">
       <span className="flex shrink-0 items-center justify-center">{icon}</span>
       <div className="min-w-0 flex-1">
         {eyebrow && <div className="mb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/55">{eyebrow}</div>}

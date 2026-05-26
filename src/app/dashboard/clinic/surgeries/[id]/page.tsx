@@ -1,8 +1,7 @@
 import { notFound } from "next/navigation";
 import { DashboardShell, PageHeader } from "@/components/dashboard/Shell";
-import { Avatar } from "@/components/ui/Avatar";
-import { VerifiedTag } from "@/components/ui/VerifiedTag";
 import { ApplicantActions } from "@/components/dashboard/ApplicantActions";
+import { ApplicantProfileModal } from "@/components/dashboard/ApplicantProfileModal";
 import { EditSurgeryButton } from "@/components/dashboard/EditSurgeryModal";
 import { DeleteSurgeryButton } from "@/components/dashboard/DeleteSurgeryButton";
 import { SupervisionBanner } from "@/components/dashboard/SupervisionBanner";
@@ -11,7 +10,8 @@ import { formatDateLongEs } from "@/lib/dates";
 import { getDict } from "@/lib/i18n-server";
 import { requireRole } from "@backend/auth/guards";
 import { getSurgeryWithClinic } from "@backend/queries/surgeries";
-import { listApplicantsForSurgery, countConfirmedForSurgery } from "@backend/queries/applications";
+import { listApplicantsForSurgery, countConfirmedByTypeForSurgery } from "@backend/queries/applications";
+import { getRatingSummaries } from "@backend/queries/reviews";
 
 export const metadata = { title: "Detalle de cirugía · Clínica · SaludCoNet" };
 
@@ -30,11 +30,21 @@ export default async function DetalleCirugiaPage({
   if (!row || (!isAdmin && row.surgery.clinicId !== me.profile.id)) notFound();
   const { surgery, clinicName } = row;
 
-  const [applicants, confirmedCount] = await Promise.all([
+  const [applicants, confirmed] = await Promise.all([
     listApplicantsForSurgery(id),
-    countConfirmedForSurgery(id),
+    countConfirmedByTypeForSurgery(id),
   ]);
-  const canConfirm = confirmedCount < surgery.vacancies;
+  // Plazas por tipo: confirmar a un médico/técnico solo si queda hueco de SU tipo.
+  const canConfirmTech = confirmed.technicians < surgery.vacancies;
+  const canConfirmDoctor = confirmed.doctors < surgery.doctorsNeeded;
+  // Resumen de plazas mostrando solo los tipos que la cirugía pide.
+  const plazasValue =
+    [
+      surgery.vacancies > 0 ? `${confirmed.technicians}/${surgery.vacancies} ${t.technicians}` : null,
+      surgery.doctorsNeeded > 0 ? `${confirmed.doctors}/${surgery.doctorsNeeded} ${t.doctors}` : null,
+    ]
+      .filter(Boolean)
+      .join(" · ") || `0/${surgery.vacancies}`;
 
   const user = {
     name: me.profile.fullName,
@@ -44,6 +54,8 @@ export default async function DetalleCirugiaPage({
 
   const pending = applicants.filter((a) => a.application.status === "applied");
   const decided = applicants.filter((a) => a.application.status !== "applied");
+  // Puntuación media de cada candidato (su reputación como profesional).
+  const ratings = await getRatingSummaries(applicants.map((a) => a.application.professionalId));
 
   return (
     <DashboardShell role="Clínica" user={user} nav={NAV_CLINICA}>
@@ -64,7 +76,7 @@ export default async function DetalleCirugiaPage({
 
       <div className="mb-6 grid gap-4 rounded-2xl border border-mist-200 bg-white p-6 md:grid-cols-4">
         <Summary label={t.sumEstado} value={surgery.status === "filled" ? t.statusFilled : surgery.status === "open" ? t.open : surgery.status === "cancelled" ? t.statusCancelled : t.statusCompleted} />
-        <Summary label={t.sumPlazas} value={`${confirmedCount} / ${surgery.vacancies}`} />
+        <Summary label={t.sumPlazas} value={plazasValue} />
         <Summary label={t.sumHorario} value={surgery.startTime && surgery.endTime ? `${surgery.startTime}–${surgery.endTime}` : "—"} />
         <Summary label={t.sumTarifa} value={surgery.ratePerHour ? `${surgery.ratePerHour} €/h` : t.rateTBD} />
         {(surgery.city || surgery.address) && (
@@ -98,25 +110,26 @@ export default async function DetalleCirugiaPage({
         ) : (
           <ul className="divide-y divide-mist-100">
             {[...pending, ...decided].map((a) => {
+              const proType = a.proType ?? "technician";
+              const canConfirm = proType === "doctor" ? canConfirmDoctor : canConfirmTech;
+              const rating = ratings[a.application.professionalId];
               return (
                 <li key={a.application.id} className="flex flex-col gap-3 p-5 md:flex-row md:items-center">
-                  <Avatar name={a.proName} src={a.proAvatarUrl ?? undefined} size="md" />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-sm font-semibold text-ink-900">{a.proName}</span>
-                      {a.proVerified && <VerifiedTag label={t.verified} />}
-                    </div>
-                    <div className="mt-0.5 text-xs text-mist-500">
-                      {[a.headline, a.yearsExperience ? `${a.yearsExperience} ${t.yearsExp}` : null, a.proCity]
-                        .filter(Boolean)
-                        .join(" · ") || t.defaultTechnician}
-                    </div>
-                    {a.application.message && (
-                      <p className="mt-2 rounded-lg bg-mist-50 px-3 py-2 text-xs text-ink-700">
-                        “{a.application.message}”
-                      </p>
-                    )}
-                  </div>
+                  <ApplicantProfileModal
+                    proName={a.proName}
+                    proAvatarUrl={a.proAvatarUrl}
+                    proVerified={a.proVerified}
+                    proType={proType}
+                    specialtyName={a.specialtyName}
+                    proCity={a.proCity}
+                    yearsExperience={a.yearsExperience}
+                    hourlyRate={a.hourlyRate}
+                    headline={a.headline}
+                    bio={a.bio}
+                    message={a.application.message}
+                    ratingAverage={rating?.average ?? 0}
+                    ratingCount={rating?.count ?? 0}
+                  />
                   <div className="shrink-0 md:pl-4">
                     <ApplicantActions
                       applicationId={a.application.id}

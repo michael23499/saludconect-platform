@@ -82,6 +82,12 @@ export const specialties = pgTable("specialties", {
 export type Specialty = typeof specialties.$inferSelect;
 export type NewSpecialty = typeof specialties.$inferInsert;
 
+// Tipo de profesional: una cirugía puede necesitar un MÉDICO (lidera/realiza la
+// intervención) o un TÉCNICO (apoyo: extracción, implantación, conteo…). Cada
+// profesional es de UN solo tipo y la notificación de cada cirugía va al grupo
+// correcto. Por compatibilidad, los perfiles existentes quedan como "technician".
+export const professionalTypeEnum = pgEnum("professional_type", ["doctor", "technician"]);
+
 /**
  * Perfil extendido del profesional/técnico (1:1 con users de rol professional).
  * Vive aparte de `users` para no ensuciar la tabla base de auth y porque solo
@@ -91,6 +97,8 @@ export const professionals = pgTable("professionals", {
   id: uuid("id")
     .primaryKey()
     .references(() => users.id, { onDelete: "cascade" }),
+  // Médico o técnico. Rige a quién se notifica una cirugía según lo que pida.
+  proType: professionalTypeEnum("pro_type").notNull().default("technician"),
   // Especialidad principal. Nullable durante el onboarding por si se completa
   // en dos pasos; en la práctica el form la exige (capilar).
   specialtyId: uuid("specialty_id").references(() => specialties.id),
@@ -161,8 +169,11 @@ export const surgeries = pgTable("surgeries", {
   endTime: text("end_time"),
   city: text("city"),
   address: text("address"),
-  // Nº de técnicos que necesita la clínica = vacantes a cubrir.
+  // Nº de TÉCNICOS que necesita la clínica (vacantes de técnico a cubrir).
   vacancies: integer("vacancies").notNull().default(1),
+  // Nº de MÉDICOS que necesita (independiente de los técnicos). Una cirugía
+  // puede pedir solo técnicos, solo médicos o ambos.
+  doctorsNeeded: integer("doctors_needed").notNull().default(0),
   // Tarifa orientativa en €/h (entero). Opcional.
   ratePerHour: integer("rate_per_hour"),
   urgent: boolean("urgent").notNull().default(false),
@@ -226,10 +237,12 @@ export type NewApplication = typeof applications.$inferInsert;
 // (sin proceso de postulación). Al reservar, el hueco pasa a "booked" y se avisa
 // al técnico. Es el complemento de las cirugías de Fase 1.
 
-// open: el técnico lo ofrece · booked: una clínica lo reservó
-// cancelled: el técnico lo retiró (o la reserva se canceló)
+// open: el técnico lo ofrece (libre y visible) · pending: una clínica lo solicitó
+// y queda BLOQUEADO esperando que el técnico acepte/rechace · booked: el técnico
+// aceptó (reserva confirmada) · cancelled: el técnico lo retiró (o se canceló)
 export const availabilityStatusEnum = pgEnum("availability_status", [
   "open",
+  "pending",
   "booked",
   "cancelled",
 ]);
@@ -300,4 +313,72 @@ export type NotificationType =
   | "surgery_updated" // a los inscritos: la clínica cambió datos de la cirugía
   | "surgery_cancelled" // a los inscritos: la cirugía fue retirada/eliminada
   | "slot_booked" // al técnico: una clínica reservó su disponibilidad (Fase 2)
-  | "surgery_invitation"; // al técnico: una clínica le invitó a una cirugía desde el directorio
+  | "slot_requested" // al técnico: una clínica solicitó reservarle; debe aceptar/rechazar
+  | "booking_confirmed" // a la clínica: el técnico confirmó la reserva solicitada
+  | "booking_declined" // a la clínica: el técnico rechazó la reserva (el hueco se liberó)
+  | "surgery_invitation" // al técnico: una clínica le invitó a una cirugía desde el directorio
+  | "review_request"; // a ambos: el trabajo terminó, valora tu experiencia
+
+// ===========================================================================
+// VALORACIONES — reputación bidireccional tras un trabajo
+// ===========================================================================
+// Cuando un trabajo termina (una cirugía confirmada o una reserva de
+// disponibilidad aceptada cuya fecha ya pasó), ambas partes pueden valorarse:
+// la clínica al profesional y el profesional a la clínica. Estrellas (1-5) +
+// comentario opcional. El "contexto" identifica de qué trabajo proviene.
+
+export const reviewContextEnum = pgEnum("review_context", ["surgery", "slot"]);
+
+export const reviews = pgTable(
+  "reviews",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    // Quien valora y quien es valorado (ambos son users: clínica o profesional).
+    raterId: uuid("rater_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    ratedId: uuid("rated_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    // De qué trabajo nace la valoración: una cirugía o una reserva (slot).
+    contextType: reviewContextEnum("context_type").notNull(),
+    // Id de la cirugía o del slot (sin FK porque apunta a dos tablas posibles).
+    contextId: uuid("context_id").notNull(),
+    // Puntuación de 1 a 5 estrellas.
+    rating: integer("rating").notNull(),
+    comment: text("comment"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  // Una sola valoración por (quien valora, a quién, trabajo concreto).
+  (t) => [
+    unique("reviews_rater_rated_context_uq").on(t.raterId, t.ratedId, t.contextType, t.contextId),
+  ],
+);
+
+export type Review = typeof reviews.$inferSelect;
+export type NewReview = typeof reviews.$inferInsert;
+
+// ===========================================================================
+// EQUIPO DE LA CLÍNICA — profesionales de confianza guardados
+// ===========================================================================
+// La clínica guarda técnicos/médicos que ya conoce (todos profesionales
+// registrados) para invitarlos rápido a sus cirugías sin buscarlos cada vez.
+// Es un vínculo clínica → profesional; un profesional una sola vez por equipo.
+
+export const clinicTeam = pgTable(
+  "clinic_team",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    clinicId: uuid("clinic_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    professionalId: uuid("professional_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [unique("clinic_team_clinic_pro_uq").on(t.clinicId, t.professionalId)],
+);
+
+export type ClinicTeamRow = typeof clinicTeam.$inferSelect;
+export type NewClinicTeamRow = typeof clinicTeam.$inferInsert;

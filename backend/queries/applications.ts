@@ -5,6 +5,7 @@ import {
   surgeries,
   users,
   professionals,
+  specialties,
   type Application,
   type NewApplication,
   type Surgery,
@@ -74,6 +75,25 @@ export async function countConfirmedForSurgery(surgeryId: string): Promise<numbe
   return rows[0]?.n ?? 0;
 }
 
+/** Confirmados desglosados por tipo de profesional (médicos vs técnicos). */
+export async function countConfirmedByTypeForSurgery(
+  surgeryId: string,
+): Promise<{ doctors: number; technicians: number }> {
+  const rows = await db
+    .select({ proType: professionals.proType, n: sql<number>`count(*)::int` })
+    .from(applications)
+    .innerJoin(professionals, eq(professionals.id, applications.professionalId))
+    .where(and(eq(applications.surgeryId, surgeryId), eq(applications.status, "confirmed")))
+    .groupBy(professionals.proType);
+  let doctors = 0;
+  let technicians = 0;
+  for (const r of rows) {
+    if (r.proType === "doctor") doctors = r.n;
+    else technicians = r.n;
+  }
+  return { doctors, technicians };
+}
+
 export type ApplicantForSurgery = {
   application: Application;
   proName: string;
@@ -82,6 +102,10 @@ export type ApplicantForSurgery = {
   proVerified: boolean;
   headline: string | null;
   yearsExperience: number | null;
+  bio: string | null;
+  hourlyRate: number | null;
+  specialtyName: string | null;
+  proType: "doctor" | "technician" | null;
 };
 
 /** Candidatos (técnicos postulados) a una cirugía, para el panel de la clínica. */
@@ -97,10 +121,15 @@ export async function listApplicantsForSurgery(
       proVerified: users.verified,
       headline: professionals.headline,
       yearsExperience: professionals.yearsExperience,
+      bio: professionals.bio,
+      hourlyRate: professionals.hourlyRate,
+      specialtyName: specialties.name,
+      proType: professionals.proType,
     })
     .from(applications)
     .innerJoin(users, eq(users.id, applications.professionalId))
     .leftJoin(professionals, eq(professionals.id, applications.professionalId))
+    .leftJoin(specialties, eq(specialties.id, professionals.specialtyId))
     .where(eq(applications.surgeryId, surgeryId))
     .orderBy(desc(applications.createdAt));
 }

@@ -8,6 +8,7 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import {
   confirmApplicationAction,
   rejectApplicationAction,
+  unconfirmApplicationAction,
   type ActionResult,
 } from "@backend/actions/surgeries";
 
@@ -49,7 +50,36 @@ export function ApplicantActions({
     else run(fn, next);
   }
 
-  if (status === "confirmed") return <Badge tone="success">{s.confirmedBadge}</Badge>;
+  if (status === "confirmed")
+    return (
+      <div className="flex flex-col items-end gap-1">
+        <div className="flex items-center gap-2">
+          <Badge tone="success">{s.confirmedBadge}</Badge>
+          <button
+            type="button"
+            disabled={pending}
+            onClick={() => handle(() => unconfirmApplicationAction(applicationId), "applied")}
+            className="rounded-sm border border-mist-200 px-2.5 py-1 text-xs font-medium text-ink-700 transition hover:bg-mist-50 disabled:opacity-50"
+          >
+            {s.unconfirm}
+          </button>
+        </div>
+        {error && <span className="text-[11px] text-red-600">{error}</span>}
+        <ConfirmDialog
+          open={!!confirm}
+          title={s.adminActionTitle}
+          message={s.adminConfirmAction}
+          confirmLabel={s.confirm}
+          cancelLabel={s.cancel}
+          pending={pending}
+          onConfirm={() => {
+            if (confirm) run(confirm.fn, confirm.next);
+            setConfirm(null);
+          }}
+          onClose={() => setConfirm(null)}
+        />
+      </div>
+    );
   if (status === "rejected") return <Badge tone="neutral">{s.discardedBadge}</Badge>;
   if (status === "withdrawn") return <Badge tone="neutral">{s.withdrewBadge}</Badge>;
 

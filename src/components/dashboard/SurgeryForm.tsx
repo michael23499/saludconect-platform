@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Field, Input, Textarea, Checkbox } from "@/components/ui/Input";
 import { Spinner } from "@/components/ui/Spinner";
 import { DatePicker } from "@/components/ui/DatePicker";
+import { SelectMenu } from "@/components/ui/SelectMenu";
 import { AddressAutocomplete } from "@/components/admin/AddressAutocomplete";
 import { useApp } from "@/components/providers/Providers";
 import {
@@ -46,6 +47,7 @@ export function SurgeryForm({
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("17:00");
   const [vacancies, setVacancies] = useState("2");
+  const [doctors, setDoctors] = useState("0");
   // La ciudad NO se pre-rellena: se deriva solo de la dirección elegida.
   const [city, setCity] = useState("");
   const [address, setAddress] = useState("");
@@ -74,20 +76,19 @@ export function SurgeryForm({
           {isAdmin && (
             <div className="md:col-span-2">
               <Field label={s.fldClinic}>
-                <select
+                <SelectMenu
                   name="clinicId"
-                  required
                   value={clinicId}
-                  onChange={(e) => setClinicId(e.target.value)}
-                  className={FIELD_INPUT}
-                >
-                  <option value="">{s.chooseClinic}</option>
-                  {clinics.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.fullName}{c.city ? ` · ${c.city}` : ""}
-                    </option>
-                  ))}
-                </select>
+                  onChange={setClinicId}
+                  placeholder={s.chooseClinic}
+                  ariaLabel={s.fldClinic}
+                  searchable
+                  options={clinics.map((c) => ({
+                    value: c.id,
+                    label: c.fullName,
+                    hint: c.city ?? undefined,
+                  }))}
+                />
               </Field>
             </div>
           )}
@@ -102,20 +103,32 @@ export function SurgeryForm({
             </Field>
           </div>
 
-          <Field label={s.fldDateReq}>
-            <DatePicker name="date" value={date} onChange={setDate} minToday placeholder="—" />
-          </Field>
+          <div className="md:col-span-2">
+            <Field label={s.fldDateReq}>
+              <DatePicker name="date" value={date} onChange={setDate} minToday placeholder="—" />
+            </Field>
+          </div>
           <Field label={s.fldVacanciesReq}>
             <Input
               name="vacancies"
               type="number"
-              min="1"
+              min="0"
               max="20"
-              required
               value={vacancies}
               onChange={(e) => setVacancies(e.target.value)}
             />
           </Field>
+          <Field label={s.fldDoctorsReq}>
+            <Input
+              name="doctorsNeeded"
+              type="number"
+              min="0"
+              max="20"
+              value={doctors}
+              onChange={(e) => setDoctors(e.target.value)}
+            />
+          </Field>
+          <p className="md:col-span-2 -mt-2 text-xs text-mist-500">{s.fldNeedsHint}</p>
 
           <Field label={s.fldStart}>
             <Input name="startTime" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
@@ -202,8 +215,17 @@ export function SurgeryForm({
                 {title || "Microinjerto capilar"}
               </div>
               <div className="text-xs text-mist-500">
-                {city || s.previewCity} · {vacancies || "—"}{" "}
-                {vacancies === "1" ? s.technician : s.technicians}
+                {city || s.previewCity} ·{" "}
+                {[
+                  Number(vacancies) > 0
+                    ? `${vacancies} ${vacancies === "1" ? s.technician : s.technicians}`
+                    : null,
+                  Number(doctors) > 0
+                    ? `${doctors} ${doctors === "1" ? s.doctor : s.doctors}`
+                    : null,
+                ]
+                  .filter(Boolean)
+                  .join(" · ") || "—"}
               </div>
             </div>
             {urgent && <Badge tone="warning">{s.urgent}</Badge>}

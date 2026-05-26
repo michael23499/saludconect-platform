@@ -7,7 +7,9 @@ import { getUserProfileById } from "../queries/users";
 import {
   createAvailabilitySlot,
   getAvailabilitySlotById,
-  bookSlot,
+  requestSlot,
+  acceptBooking,
+  rejectBooking,
   cancelSlot,
 } from "../queries/availability";
 import { notify } from "../notifications/notify";
@@ -95,8 +97,8 @@ export async function cancelAvailabilityAction(slotId: string): Promise<ActionRe
 
   await cancelSlot(slotId);
 
-  // Si había una reserva, avisar a la clínica que la había reservado.
-  if (slot.status === "booked" && slot.bookedByClinicId) {
+  // Si había una reserva (confirmada o pendiente), avisar a la clínica.
+  if ((slot.status === "booked" || slot.status === "pending") && slot.bookedByClinicId) {
     const clinic = await getUserProfileById(slot.bookedByClinicId);
     if (clinic) {
       await notify({
@@ -125,9 +127,15 @@ export async function cancelAvailabilityAction(slotId: string): Promise<ActionRe
   return { ok: true };
 }
 
+function timeOf(slot: { startTime: string | null; endTime: string | null }): string {
+  return slot.startTime && slot.endTime ? ` (${slot.startTime}–${slot.endTime})` : "";
+}
+
 /**
- * La clínica reserva directamente una franja de disponibilidad de un técnico
- * (sin proceso de postulación). Avisa al técnico. Los admins solo supervisan.
+ * La clínica SOLICITA una franja de disponibilidad de un técnico. El hueco pasa
+ * a "pending" (bloqueado para otras clínicas) y se avisa al técnico para que la
+ * confirme o rechace. La reserva no es firme hasta que el técnico acepta. Los
+ * admins solo supervisan.
  */
 export async function bookSlotAction(slotId: string): Promise<ActionResult> {
   const clinic = await requireRole("clinic");
@@ -139,23 +147,25 @@ export async function bookSlotAction(slotId: string): Promise<ActionResult> {
   if (!slot) return { error: "Esta disponibilidad ya no existe." };
   if (slot.status !== "open") return { error: "Esta disponibilidad ya no está libre." };
 
-  await bookSlot(slotId, clinic.profile.id);
+  // Transición atómica open → pending: si otra clínica se adelantó, falla aquí.
+  const ok = await requestSlot(slotId, clinic.profile.id);
+  if (!ok) return { error: "Otra clínica acaba de reservar este hueco. Prueba con otra fecha." };
 
   const pro = await getUserProfileById(slot.professionalId);
   if (pro) {
-    const horario = slot.startTime && slot.endTime ? ` (${slot.startTime}–${slot.endTime})` : "";
+    const horario = timeOf(slot);
     await notify({
       userId: pro.id,
-      type: "slot_booked",
-      title: "¡Te han reservado!",
-      body: `${clinic.profile.fullName} ha reservado tu disponibilidad del ${formatDateEs(slot.date)}${horario}.`,
+      type: "slot_requested",
+      title: "Nueva solicitud de reserva",
+      body: `${clinic.profile.fullName} quiere reservar tu disponibilidad del ${formatDateEs(slot.date)}${horario}. Acéptala o recházala desde tu calendario.`,
       link: PRO_CAL,
       email: {
         to: pro.email,
-        subject: "Una clínica ha reservado tu disponibilidad",
+        subject: "Una clínica quiere reservar tu disponibilidad",
         html: renderEmail({
-          heading: "¡Te han reservado!",
-          intro: `${clinic.profile.fullName} ha reservado tu disponibilidad.`,
+          heading: "Tienes una solicitud de reserva",
+          intro: `${clinic.profile.fullName} quiere reservar tu disponibilidad. Confírmala o recházala desde tu calendario.`,
           lines: [`📅 ${formatDateEs(slot.date)}${horario}`],
           ctaText: "Ver mi calendario",
           ctaPath: PRO_CAL,
@@ -166,5 +176,91 @@ export async function bookSlotAction(slotId: string): Promise<ActionResult> {
 
   revalidatePath(CLINIC_CAL);
   revalidatePath(PRO_CAL);
+  return { ok: true };
+}
+
+/** El técnico ACEPTA una solicitud de reserva: pasa a confirmada. Avisa a la clínica. */
+export async function acceptBookingAction(slotId: string): Promise<ActionResult> {
+  const pro = await requireRole("professional");
+  if (pro.profile.role === "admin") return { error: "Los administradores solo supervisan." };
+
+  const slot = await getAvailabilitySlotById(slotId);
+  if (!slot) return { error: "Esta solicitud ya no existe." };
+  if (slot.professionalId !== pro.profile.id) return { error: "Esta solicitud no es tuya." };
+  if (slot.status !== "pending") return { error: "Esta solicitud ya no está pendiente." };
+
+  const ok = await acceptBooking(slotId, pro.profile.id);
+  if (!ok) return { error: "No se pudo confirmar; quizá la solicitud cambió de estado." };
+
+  if (slot.bookedByClinicId) {
+    const clinic = await getUserProfileById(slot.bookedByClinicId);
+    if (clinic) {
+      const horario = timeOf(slot);
+      await notify({
+        userId: clinic.id,
+        type: "booking_confirmed",
+        title: "Reserva confirmada",
+        body: `${pro.profile.fullName} ha confirmado tu reserva del ${formatDateEs(slot.date)}${horario}.`,
+        link: CLINIC_CAL,
+        email: {
+          to: clinic.email,
+          subject: "Tu reserva ha sido confirmada",
+          html: renderEmail({
+            heading: "Reserva confirmada",
+            intro: `${pro.profile.fullName} ha confirmado la disponibilidad que reservaste.`,
+            lines: [`📅 ${formatDateEs(slot.date)}${horario}`],
+            ctaText: "Ver mis reservas",
+            ctaPath: CLINIC_CAL,
+          }),
+        },
+      });
+    }
+  }
+
+  revalidatePath(PRO_CAL);
+  revalidatePath(CLINIC_CAL);
+  return { ok: true };
+}
+
+/** El técnico RECHAZA una solicitud: el hueco se libera. Avisa a la clínica. */
+export async function rejectBookingAction(slotId: string): Promise<ActionResult> {
+  const pro = await requireRole("professional");
+  if (pro.profile.role === "admin") return { error: "Los administradores solo supervisan." };
+
+  const slot = await getAvailabilitySlotById(slotId);
+  if (!slot) return { error: "Esta solicitud ya no existe." };
+  if (slot.professionalId !== pro.profile.id) return { error: "Esta solicitud no es tuya." };
+  if (slot.status !== "pending") return { error: "Esta solicitud ya no está pendiente." };
+
+  const clinicId = slot.bookedByClinicId;
+  const ok = await rejectBooking(slotId, pro.profile.id);
+  if (!ok) return { error: "No se pudo rechazar; quizá la solicitud cambió de estado." };
+
+  if (clinicId) {
+    const clinic = await getUserProfileById(clinicId);
+    if (clinic) {
+      await notify({
+        userId: clinic.id,
+        type: "booking_declined",
+        title: "Reserva rechazada",
+        body: `${pro.profile.fullName} no puede atender tu reserva del ${formatDateEs(slot.date)}. El hueco vuelve a estar disponible para otras clínicas.`,
+        link: CLINIC_CAL,
+        email: {
+          to: clinic.email,
+          subject: "Una reserva no pudo confirmarse",
+          html: renderEmail({
+            heading: "Reserva no confirmada",
+            intro: `${pro.profile.fullName} no puede atender la disponibilidad que reservaste. El hueco vuelve a estar libre.`,
+            lines: [`📅 ${formatDateEs(slot.date)}`],
+            ctaText: "Buscar otros técnicos",
+            ctaPath: CLINIC_CAL,
+          }),
+        },
+      });
+    }
+  }
+
+  revalidatePath(PRO_CAL);
+  revalidatePath(CLINIC_CAL);
   return { ok: true };
 }

@@ -13,6 +13,8 @@ import {
   type SurgeryWithCounts,
 } from "@backend/queries/surgeries";
 import { countUnreadNotifications } from "@backend/queries/notifications";
+import { listPendingReviewsForUser } from "@backend/queries/reviews";
+import { PendingReviews } from "@/components/dashboard/PendingReviews";
 import type { Surgery } from "@backend/db";
 
 export const metadata = { title: "Área de la clínica · SaludCoNet" };
@@ -42,11 +44,12 @@ export default async function ClinicaDashboardPage() {
     avatarUrl: me.profile.avatarUrl,
   };
 
-  const [surgeries, unread] = await Promise.all([
+  const [surgeries, unread, pendingReviews] = await Promise.all([
     isAdmin
       ? listAllSurgeriesWithCounts()
       : listSurgeriesByClinicWithCounts(me.profile.id),
     countUnreadNotifications(me.profile.id),
+    isAdmin ? Promise.resolve([]) : listPendingReviewsForUser(me.profile.id),
   ]);
   const list: (SurgeryWithCounts & { clinicName?: string })[] = surgeries;
 
@@ -54,7 +57,7 @@ export default async function ClinicaDashboardPage() {
   const pendingApplicants = list.reduce((acc, s) => acc + s.pendingCount, 0);
   const openVacancies = list
     .filter((s) => s.status === "open")
-    .reduce((acc, s) => acc + Math.max(0, s.vacancies - s.confirmedCount), 0);
+    .reduce((acc, s) => acc + Math.max(0, s.vacancies + s.doctorsNeeded - s.confirmedCount), 0);
   const firstName = me.profile.fullName.split(" ")[0];
 
   return (
@@ -80,6 +83,8 @@ export default async function ClinicaDashboardPage() {
           )}
         </div>
       </div>
+
+      {!isAdmin && <PendingReviews items={pendingReviews} />}
 
       <div className="grid gap-4 md:grid-cols-4">
         <Kpi label={h.kpiOpen} value={String(openCount)} hint={isAdmin ? h.kpiOpenHintAll : h.kpiOpenHintClinic} tone="up" />
@@ -128,7 +133,7 @@ export default async function ClinicaDashboardPage() {
                       </div>
                       <div className="mt-0.5 text-xs text-mist-500">
                         {s.clinicName ? `${s.clinicName} · ` : ""}
-                        {formatDateEs(s.date)} · {s.confirmedCount}/{s.vacancies} {h.plazasWord}
+                        {formatDateEs(s.date)} · {s.confirmedCount}/{s.vacancies + s.doctorsNeeded} {h.plazasWord}
                         {s.pendingCount > 0 ? ` · ${s.pendingCount} ${s.pendingCount === 1 ? h.pendingOne : h.pendingMany}` : ""}
                       </div>
                     </div>

@@ -33,6 +33,7 @@ export default async function ProfesionalAjustesPage() {
     lng: me.profile.lng,
     avatarUrl: me.profile.avatarUrl,
     specialtyName: specialty?.name ?? null,
+    proType: professional?.proType ?? "technician",
     headline: professional?.headline ?? "",
     bio: professional?.bio ?? "",
     yearsExperience: professional?.yearsExperience != null ? String(professional.yearsExperience) : "",

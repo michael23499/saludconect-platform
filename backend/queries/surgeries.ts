@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, gte, inArray, isNull, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gt, gte, inArray, isNull, sql } from "drizzle-orm";
 import {
   db,
   surgeries,
@@ -49,6 +49,7 @@ export async function updateSurgery(
       | "city"
       | "address"
       | "vacancies"
+      | "doctorsNeeded"
       | "ratePerHour"
       | "urgent"
       | "status"
@@ -79,7 +80,11 @@ export type SurgeryForProfessional = {
 export async function listOpenSurgeriesForProfessional(
   specialtyId: string,
   professionalUserId: string,
+  proType: "doctor" | "technician",
 ): Promise<SurgeryForProfessional[]> {
+  // Cada profesional solo ve las cirugías que necesitan SU tipo: un técnico las
+  // que tienen vacantes de técnico; un médico, las que piden médicos.
+  const needsMyType = proType === "doctor" ? gt(surgeries.doctorsNeeded, 0) : gt(surgeries.vacancies, 0);
   const rows = await db
     .select({
       surgery: surgeries,
@@ -102,6 +107,7 @@ export async function listOpenSurgeriesForProfessional(
       and(
         eq(surgeries.specialtyId, specialtyId),
         eq(surgeries.status, "open"),
+        needsMyType,
         gte(surgeries.date, todayStr()),
         isNull(surgeries.deletedAt),
       ),
