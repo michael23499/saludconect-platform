@@ -2,41 +2,32 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { checkEmailStatus, getAuthUserIdByEmail } from "./check-email";
+import { checkEmailStatus } from "./check-email";
 import { dashboardPathForRole } from "./paths";
 import { getRequestOrigin } from "./origin";
 import { rateLimit } from "./rate-limit";
-import { createUserProfile } from "../queries/users";
-import { createProfessional } from "../queries/professionals";
-import { createClinic } from "../queries/clinics";
-import { getSpecialtyBySlug } from "../queries/specialties";
-import { CAPILAR_SLUG } from "../db/seed-data";
+import { ensureProfileFromMetadata } from "./ensure-profile";
 
 export type SignUpState =
   | null
   | { kind: "error"; message: string }
-  // Supabase tiene la confirmación de email activada: el alta quedó creada pero
-  // el usuario debe confirmar su correo antes de tener sesión. La UI muestra
-  // "revisa tu correo" en vez de redirigir.
+  // Confirmación de email activada: la cuenta de Supabase Auth se creó, pero el
+  // perfil NO se materializa hasta que el usuario confirma el correo. La UI
+  // muestra "revisa tu correo".
   | { kind: "confirm-email"; email: string };
 
 /** Mínimo de caracteres de contraseña, alineado con setPasswordAction. */
 const MIN_PASSWORD = 8;
 
 /**
- * Alta con email + contraseña desde /register (clínica o profesional). A
- * diferencia de /complete-profile (que completa el perfil de un usuario YA
- * autenticado, p.ej. vía Google), aquí creamos la cuenta de Supabase Auth y el
- * perfil de public.users en un solo paso, porque el formulario ya recoge rol,
- * nombre y datos de contacto.
+ * Alta con email + contraseña desde /register (clínica o profesional).
  *
- * Robusto ante las dos configuraciones de Supabase:
- *   - "Confirm email" OFF → signUp devuelve sesión → redirigimos al dashboard.
- *   - "Confirm email" ON  → signUp NO devuelve sesión → estado "confirm-email";
- *     al confirmar, /auth/callback encuentra el perfil y entra al dashboard.
- *
- * El perfil se inserta vía Drizzle (conexión directa, sin RLS) usando el id que
- * devuelve signUp, así que existe desde el primer momento en ambos casos.
+ * Importante: NO creamos el perfil en public.users aquí. Guardamos todos los
+ * datos del formulario en el `user_metadata` de Supabase Auth y el perfil se
+ * materializa (ensureProfileFromMetadata) SOLO cuando el usuario confirma el
+ * correo (en /auth/confirm) — o al instante si la confirmación está desactivada
+ * y signUp ya devuelve sesión. Así la BD solo tiene cuentas confirmadas, sin
+ * perfiles "fantasma" de altas que nunca se verifican.
  */
 export async function signUpAction(
   _prev: SignUpState,
@@ -99,13 +90,11 @@ export async function signUpAction(
     };
   }
 
-  const phone = cleanField(formData.get("phone"));
-  const city = cleanField(formData.get("city"));
-  const address = cleanField(formData.get("address"));
-  const postalCode = cleanField(formData.get("postalCode"));
-  // Coordenadas que vienen del autocompletado de dirección (Nominatim).
-  const lat = parseCoord(formData.get("lat"));
-  const lng = parseCoord(formData.get("lng"));
+  // Especialidades de la clínica (multi-select). Para profesional no aplica.
+  const specialties =
+    role === "clinic"
+      ? formData.getAll("especialidades").filter((v): v is string => typeof v === "string" && v.trim().length > 0)
+      : [];
 
   const origin = await getRequestOrigin();
   const supabase = await createClient();
@@ -115,80 +104,44 @@ export async function signUpAction(
     password,
     options: {
       emailRedirectTo: `${origin}/auth/confirm`,
-      // Guardamos rol y datos en user_metadata: getCurrentUser lee full_name de
-      // aquí, y conservamos la profesión/especialidad/tamaño que el usuario eligió
-      // aunque el schema todavía no tenga columna para ellos (el marketplace solo
-      // opera en capilar por ahora).
+      // TODO el alta vive aquí hasta que se confirme el correo: ensureProfileFromMetadata
+      // lee estos campos para crear el perfil. lat/lng/specialties incluidos.
       data: {
         role,
         full_name: fullName,
-        phone,
-        city,
-        address,
+        phone: cleanField(formData.get("phone")),
+        city: cleanField(formData.get("city")),
+        address: cleanField(formData.get("address")),
+        postal_code: cleanField(formData.get("postalCode")),
+        lat: parseCoord(formData.get("lat")),
+        lng: parseCoord(formData.get("lng")),
         profession: cleanField(formData.get("profesion")),
         specialty_choice: cleanField(formData.get("especialidad")),
         team_size: cleanField(formData.get("tamano")),
+        specialties: specialties.length ? specialties : null,
       },
     },
   });
 
-  // El id del usuario recién creado. Con la confirmación de email activada, el
-  // SDK devuelve data.user=null (sin error) aunque la cuenta sí se creó, así que
-  // lo recuperamos por email. El email es nuevo (validado arriba), no hay riesgo
-  // de coger el id de otra cuenta.
-  const userId = data.user?.id ?? (await getAuthUserIdByEmail(email));
-  if (error || !userId) {
-    return { kind: "error", message: prettifySignUpError(error?.message) };
+  if (error) {
+    return { kind: "error", message: prettifySignUpError(error.message) };
   }
 
-  // Crea el perfil base + el perfil extendido según el rol. Todo idempotente
-  // (onConflictDoNothing): si el usuario reintenta, no revienta.
-  try {
-    await createUserProfile({
-      id: userId,
-      email,
-      fullName,
-      role,
-      phone,
-      city,
-      address,
-      postalCode,
-      lat,
-      lng,
-      verified: false,
-    });
-
-    if (role === "professional") {
-      // Por ahora el marketplace arranca solo con "Microinjerto capilar".
-      const capilar = await getSpecialtyBySlug(CAPILAR_SLUG);
-      await createProfessional({
-        id: userId,
-        specialtyId: capilar?.id ?? null,
-        availableForWork: true,
-      });
-    } else {
-      // Una clínica puede ofrecer varias especialidades (multi-select).
-      const specialties = formData
-        .getAll("especialidades")
-        .filter((v): v is string => typeof v === "string" && v.trim().length > 0);
-      await createClinic({
-        id: userId,
-        clinicName: fullName,
-        specialties: specialties.length ? specialties : null,
-      });
-    }
-  } catch {
-    return {
-      kind: "error",
-      message: "Tu cuenta se creó pero no pudimos completar el perfil. Inicia sesión para terminar.",
-    };
-  }
-
-  // Con sesión (confirmación desactivada) entramos directos al panel. Sin
-  // sesión, pedimos confirmar el correo. El redirect debe ir FUERA del try.
+  // Confirmación DESACTIVADA → signUp ya devuelve sesión: materializamos el
+  // perfil ahora mismo desde el metadata y entramos al panel.
   if (data.session) {
-    redirect(dashboardPathForRole(role));
+    try {
+      await ensureProfileFromMetadata(data.user);
+    } catch {
+      return {
+        kind: "error",
+        message: "Tu cuenta se creó pero no pudimos completar el perfil. Inicia sesión para terminar.",
+      };
+    }
+    redirect(dashboardPathForRole(role)); // fuera del try (redirect lanza)
   }
+
+  // Confirmación ACTIVADA → el perfil se crea al confirmar el correo (/auth/confirm).
   return { kind: "confirm-email", email };
 }
 
