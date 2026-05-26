@@ -168,7 +168,7 @@ export async function inviteUserAction(
   // Email libre → enviamos la invitación y pre-creamos el perfil con el rol
   // elegido (admin entra verificado; el resto sigue el flujo de verificación).
   const { data, error } = await supabase.auth.admin.inviteUserByEmail(email, {
-    redirectTo: `${origin}/auth/callback?next=/set-password`,
+    redirectTo: `${origin}/auth/confirm`,
     data: { full_name: fullName },
   });
   if (error || !data?.user) {
