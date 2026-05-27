@@ -3,6 +3,7 @@ import { SettingsTabs } from "@/components/dashboard/SettingsTabs";
 import type { AccountData } from "@/components/dashboard/AccountSettingsForm";
 import { NAV_PRO } from "@/lib/dashboard-nav";
 import { getDict } from "@/lib/i18n-server";
+import { buildDashboardUser } from "@/lib/dashboard-user";
 import { requireRole } from "@backend/auth/guards";
 import { getProfessionalById } from "@backend/queries/professionals";
 import { getSpecialtyById } from "@backend/queries/specialties";
@@ -13,11 +14,7 @@ export default async function ProfesionalAjustesPage() {
   const me = await requireRole("professional");
   const p = (await getDict()).dashboard.prof;
   const isAdmin = me.profile.role === "admin";
-  const user = {
-    name: me.profile.fullName,
-    subtitle: isAdmin ? "Administrador" : me.profile.city ? `Técnico capilar · ${me.profile.city}` : "Técnico capilar",
-    avatarUrl: me.profile.avatarUrl,
-  };
+  const user = buildDashboardUser(me.profile, { isAdmin, roleLabel: "Técnico capilar" });
 
   const professional = await getProfessionalById(me.profile.id);
   const specialty = professional?.specialtyId ? await getSpecialtyById(professional.specialtyId) : null;
@@ -39,6 +36,7 @@ export default async function ProfesionalAjustesPage() {
     yearsExperience: professional?.yearsExperience != null ? String(professional.yearsExperience) : "",
     hourlyRate: professional?.hourlyRate != null ? String(professional.hourlyRate) : "",
     clinicName: "",
+    contactName: "",
     specialties: [],
     about: "",
     website: "",

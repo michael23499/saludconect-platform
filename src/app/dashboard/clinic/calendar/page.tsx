@@ -4,6 +4,7 @@ import { BookedSlotRow } from "@/components/dashboard/BookedSlotRow";
 import { SupervisionBanner } from "@/components/dashboard/SupervisionBanner";
 import { NAV_CLINICA } from "@/lib/dashboard-nav";
 import { getDict } from "@/lib/i18n-server";
+import { buildDashboardUser } from "@/lib/dashboard-user";
 import { requireRole } from "@backend/auth/guards";
 import {
   listOpenSlots,
@@ -20,11 +21,7 @@ export default async function ClinicaCalendarioPage() {
   const me = await requireRole("clinic");
   const c = (await getDict()).dashboard.cal;
   const isAdmin = me.profile.role === "admin";
-  const user = {
-    name: me.profile.fullName,
-    subtitle: isAdmin ? "Administrador" : me.profile.city ? `Clínica · ${me.profile.city}` : "Clínica",
-    avatarUrl: me.profile.avatarUrl,
-  };
+  const user = buildDashboardUser(me.profile, { isAdmin, roleLabel: "Clínica" });
 
   const specialty = await getSpecialtyBySlug(CAPILAR_SLUG);
   const [openSlots, myBookings] = await Promise.all([

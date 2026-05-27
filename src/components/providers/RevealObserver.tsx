@@ -3,8 +3,14 @@ import { useEffect } from "react";
 
 /**
  * One IntersectionObserver for the whole page. Watches every `.fade-up`
- * element and adds the `.in` modifier when it enters the viewport, so the
- * CSS animation runs on scroll instead of on mount.
+ * element and marks it with the `data-revealed` attribute when it enters the
+ * viewport, so the CSS animation runs on scroll instead of on mount.
+ *
+ * We tag with a data attribute (not a `.in` className) on purpose: this observer
+ * lives in the layout and mutates the DOM directly, which can run before a
+ * deferred subtree (e.g. a page behind a loading boundary) finishes hydrating.
+ * If we mutated `className`, React would flag a hydration mismatch on that
+ * subtree; a data attribute it doesn't own is invisible to reconciliation.
  *
  * Users with `prefers-reduced-motion: reduce` get the final state
  * immediately — the global media query in globals.css already short-circuits
@@ -15,7 +21,9 @@ export function RevealObserver() {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     if (reduce) {
-      document.querySelectorAll<HTMLElement>(".fade-up").forEach((el) => el.classList.add("in"));
+      document
+        .querySelectorAll<HTMLElement>(".fade-up")
+        .forEach((el) => el.setAttribute("data-revealed", ""));
       return;
     }
 
@@ -25,7 +33,7 @@ export function RevealObserver() {
       (entries) => {
         for (const entry of entries) {
           if (entry.isIntersecting) {
-            entry.target.classList.add("in");
+            entry.target.setAttribute("data-revealed", "");
             io.unobserve(entry.target);
           }
         }

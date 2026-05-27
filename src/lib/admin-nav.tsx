@@ -9,6 +9,8 @@ export const ADMIN_ICONS = {
   flag: <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 21V4l13 4-5 3 5 3-13 0" /></svg>,
   surgery: <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12h3l2 5 4-12 2 7h2" /><circle cx="19.5" cy="12" r="1.6" /></svg>,
   pro: <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M5 21a7 7 0 0114 0" /></svg>,
+  doc: <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8l-5-5z" /><path d="M14 3v5h5" /></svg>,
+  bell: <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.7 21a2 2 0 01-3.4 0" /></svg>,
 };
 
 // Cada sección del admin es ya una ruta propia (/admin/approvals, etc.).
@@ -17,10 +19,12 @@ export const ADMIN_ICONS = {
 export const NAV_ADMIN: NavItem[] = [
   { href: "/admin", labelKey: "overview", icon: ADMIN_ICONS.home },
   { href: "/admin/users", labelKey: "users", icon: ADMIN_ICONS.team },
-  { href: "/dashboard/clinic/surgeries", label: "Supervisar cirugías", icon: ADMIN_ICONS.surgery },
+  { href: "/dashboard/clinic/surgeries", label: "Vista de clínicas", icon: ADMIN_ICONS.surgery },
   { href: "/dashboard/professional/surgeries", label: "Vista profesional", icon: ADMIN_ICONS.pro },
-  { href: "/admin/approvals", labelKey: "approvals", icon: ADMIN_ICONS.check, badge: "8" },
+  { href: "/admin/approvals", labelKey: "approvals", icon: ADMIN_ICONS.check },
   { href: "/admin/payments", labelKey: "payments", icon: ADMIN_ICONS.card },
   { href: "/admin/stats", labelKey: "stats", icon: ADMIN_ICONS.chart },
+  { href: "/admin/content", labelKey: "content", icon: ADMIN_ICONS.doc },
   { href: "/admin/moderation", labelKey: "moderation", icon: ADMIN_ICONS.flag },
+  { href: "/admin/notifications", labelKey: "notifications", icon: ADMIN_ICONS.bell },
 ];

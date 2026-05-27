@@ -10,6 +10,7 @@ import { DatePicker } from "@/components/ui/DatePicker";
 import { SelectMenu } from "@/components/ui/SelectMenu";
 import { AddressAutocomplete } from "@/components/admin/AddressAutocomplete";
 import { useApp } from "@/components/providers/Providers";
+import { errorText } from "@/lib/errors";
 import {
   createSurgeryAction,
   type CreateSurgeryState,
@@ -34,7 +35,8 @@ export function SurgeryForm({
   isAdmin?: boolean;
   clinics?: ClinicOption[];
 }) {
-  const s = useApp().t.dashboard.surgeries;
+  const t = useApp().t;
+  const s = t.dashboard.surgeries;
   const [state, formAction] = useActionState<CreateSurgeryState, FormData>(
     createSurgeryAction,
     null,
@@ -193,7 +195,7 @@ export function SurgeryForm({
 
         {state?.error && (
           <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {state.error}
+            {errorText(state.error, t)}
           </div>
         )}
 

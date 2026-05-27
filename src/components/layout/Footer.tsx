@@ -33,6 +33,7 @@ export async function Footer() {
         { href: "/legal/legal-notice", label: f.lResourcesLegal },
         { href: "/legal/terms", label: f.lResourcesTerms },
         { href: "/legal/cookies", label: f.lResourcesCookies },
+        { href: "/legal/reservations", label: f.lResourcesReservations },
       ],
     },
   ];

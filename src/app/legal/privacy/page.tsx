@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { LegalLayout } from "@/components/legal/LegalLayout";
-import { getDict } from "@/lib/i18n-server";
+import { LegalBody } from "@/components/legal/LegalBody";
+import { getDict, getLang } from "@/lib/i18n-server";
+import { getSiteContent } from "@backend/queries/site-content";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = (await getDict()).legal.privacy;
@@ -9,10 +11,18 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function PrivacidadPage() {
   const t = (await getDict()).legal.privacy;
+  const override = await getSiteContent("privacy", await getLang());
+  if (override) {
+    const hasTitle = override.trim().startsWith("# ");
+    return (
+      <LegalLayout title={hasTitle ? undefined : t.title}>
+        <LegalBody text={override} />
+      </LegalLayout>
+    );
+  }
   return (
     <LegalLayout
       title={t.title}
-      updated={t.updated}
       intro={t.intro}
     >
       <h2>{t.s1h}</h2>

@@ -1,5 +1,5 @@
 import { cn } from "@/lib/cn";
-import type { ComponentProps, ReactNode } from "react";
+import { forwardRef, type ComponentProps, type ReactNode } from "react";
 
 export function Field({
   label,
@@ -43,19 +43,22 @@ export function Input({ className, ...props }: ComponentProps<"input">) {
   );
 }
 
-export function Textarea({ className, ...props }: ComponentProps<"textarea">) {
-  return (
-    <textarea
-      suppressHydrationWarning
-      className={cn(
-        "w-full min-h-28 rounded-xl border border-mist-200 bg-white px-4 py-3 text-[15px] text-ink-900 placeholder:text-mist-400",
-        "focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 outline-none transition resize-y",
-        className
-      )}
-      {...props}
-    />
-  );
-}
+export const Textarea = forwardRef<HTMLTextAreaElement, ComponentProps<"textarea">>(
+  function Textarea({ className, ...props }, ref) {
+    return (
+      <textarea
+        ref={ref}
+        suppressHydrationWarning
+        className={cn(
+          "w-full min-h-28 rounded-xl border border-mist-200 bg-white px-4 py-3 text-[15px] text-ink-900 placeholder:text-mist-400",
+          "focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 outline-none transition resize-y",
+          className
+        )}
+        {...props}
+      />
+    );
+  },
+);
 
 export function Select({ className, children, ...props }: ComponentProps<"select">) {
   return (

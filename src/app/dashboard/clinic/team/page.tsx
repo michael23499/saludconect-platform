@@ -4,6 +4,7 @@ import { TeamList, type TeamCardData } from "@/components/dashboard/TeamList";
 import { NAV_CLINICA } from "@/lib/dashboard-nav";
 import { getDict } from "@/lib/i18n-server";
 import { formatDateEs } from "@/lib/dates";
+import { buildDashboardUser } from "@/lib/dashboard-user";
 import { requireRole } from "@backend/auth/guards";
 import { listClinicTeam } from "@backend/queries/team";
 import { getRatingSummaries } from "@backend/queries/reviews";
@@ -15,11 +16,7 @@ export default async function EquipoPage() {
   const me = await requireRole("clinic");
   const m = (await getDict()).dashboard.misc;
   const isAdmin = me.profile.role === "admin";
-  const user = {
-    name: me.profile.fullName,
-    subtitle: isAdmin ? "Administrador" : me.profile.city ? `Clínica · ${me.profile.city}` : "Clínica",
-    avatarUrl: me.profile.avatarUrl,
-  };
+  const user = buildDashboardUser(me.profile, { isAdmin, roleLabel: "Clínica" });
 
   if (isAdmin) {
     return (

@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/Badge";
+import { useActionToast } from "@/lib/use-action-toast";
 import { inviteToSurgeryAction } from "@backend/actions/surgeries";
 
 export type InviteSurgeryOption = { id: string; title: string; dateLabel: string };
@@ -19,10 +20,10 @@ export function InviteToSurgeryButton({
   surgeries: InviteSurgeryOption[];
 }) {
   const router = useRouter();
+  const { report } = useActionToast();
   const [open, setOpen] = useState(false);
   const [sel, setSel] = useState("");
   const [pending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
 
   if (done) return <Badge tone="success">Invitación enviada</Badge>;
@@ -40,11 +41,8 @@ export function InviteToSurgeryButton({
 
   function invite() {
     if (!sel) return;
-    setError(null);
     startTransition(async () => {
-      const res = await inviteToSurgeryAction(sel, professionalId);
-      if ("error" in res) setError(res.error);
-      else {
+      if (report(await inviteToSurgeryAction(sel, professionalId))) {
         setDone(true);
         router.refresh();
       }
@@ -94,7 +92,6 @@ export function InviteToSurgeryButton({
           Cancelar
         </button>
       </div>
-      {error && <span className="text-xs text-red-600">{error}</span>}
     </div>
   );
 }

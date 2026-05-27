@@ -4,6 +4,8 @@ import { EmptyState } from "@/components/dashboard/EmptyState";
 import { NAV_PRO } from "@/lib/dashboard-nav";
 import { getDict } from "@/lib/i18n-server";
 import { dayMonth, formatDateEs } from "@/lib/dates";
+import { APPLICATION_STATUS_TONE } from "@/lib/status-colors";
+import { buildDashboardUser } from "@/lib/dashboard-user";
 import { requireRole } from "@backend/auth/guards";
 import {
   listApplicationsByProfessional,
@@ -12,13 +14,6 @@ import {
 import type { Application } from "@backend/db";
 
 export const metadata = { title: "Reservas · Profesional · SaludCoNet" };
-
-const APP_TONE: Record<Application["status"], "success" | "warning" | "neutral"> = {
-  applied: "warning",
-  confirmed: "success",
-  rejected: "neutral",
-  withdrawn: "neutral",
-};
 
 export default async function ProfesionalReservasPage() {
   const me = await requireRole("professional");
@@ -30,11 +25,7 @@ export default async function ProfesionalReservasPage() {
     withdrawn: c.appWithdrawn,
   };
   const isAdmin = me.profile.role === "admin";
-  const user = {
-    name: me.profile.fullName,
-    subtitle: isAdmin ? "Administrador" : me.profile.city ? `Técnico capilar · ${me.profile.city}` : "Técnico capilar",
-    avatarUrl: me.profile.avatarUrl,
-  };
+  const user = buildDashboardUser(me.profile, { isAdmin, roleLabel: "Técnico capilar" });
 
   const [upcoming, all] = await Promise.all([
     listConfirmedUpcomingForProfessional(me.profile.id),
@@ -106,7 +97,7 @@ export default async function ProfesionalReservasPage() {
                       <div className="truncate text-sm font-semibold text-ink-900">{surgery.title}</div>
                       <div className="mt-0.5 text-xs text-mist-500">{clinicName} · {formatDateEs(surgery.date)}</div>
                     </div>
-                    <Badge tone={APP_TONE[application.status]}>{appLabel[application.status]}</Badge>
+                    <Badge tone={APPLICATION_STATUS_TONE[application.status]}>{appLabel[application.status]}</Badge>
                   </li>
                 );
               })}

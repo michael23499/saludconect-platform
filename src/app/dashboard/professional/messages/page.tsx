@@ -2,6 +2,7 @@ import { DashboardShell, PageHeader } from "@/components/dashboard/Shell";
 import { EmptyState } from "@/components/dashboard/EmptyState";
 import { NAV_PRO } from "@/lib/dashboard-nav";
 import { getDict } from "@/lib/i18n-server";
+import { buildDashboardUser } from "@/lib/dashboard-user";
 import { requireRole } from "@backend/auth/guards";
 
 export const metadata = { title: "Mensajes · Profesional · SaludCoNet" };
@@ -10,11 +11,7 @@ export default async function ProfesionalMensajesPage() {
   const me = await requireRole("professional");
   const m = (await getDict()).dashboard.misc;
   const isAdmin = me.profile.role === "admin";
-  const user = {
-    name: me.profile.fullName,
-    subtitle: isAdmin ? "Administrador" : me.profile.city ? `Técnico capilar · ${me.profile.city}` : "Técnico capilar",
-    avatarUrl: me.profile.avatarUrl,
-  };
+  const user = buildDashboardUser(me.profile, { isAdmin, roleLabel: "Técnico capilar" });
 
   return (
     <DashboardShell role="Profesional" user={user} nav={NAV_PRO}>

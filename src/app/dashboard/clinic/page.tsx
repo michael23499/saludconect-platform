@@ -6,6 +6,8 @@ import { SupervisionBanner } from "@/components/dashboard/SupervisionBanner";
 import { NAV_CLINICA } from "@/lib/dashboard-nav";
 import { getDict } from "@/lib/i18n-server";
 import { dayMonth, formatDateEs } from "@/lib/dates";
+import { SURGERY_STATUS_TONE } from "@/lib/status-colors";
+import { buildDashboardUser } from "@/lib/dashboard-user";
 import { requireRole } from "@backend/auth/guards";
 import {
   listSurgeriesByClinicWithCounts,
@@ -13,18 +15,12 @@ import {
   type SurgeryWithCounts,
 } from "@backend/queries/surgeries";
 import { countUnreadNotifications } from "@backend/queries/notifications";
+import { getClinicById } from "@backend/queries/clinics";
 import { listPendingReviewsForUser } from "@backend/queries/reviews";
 import { PendingReviews } from "@/components/dashboard/PendingReviews";
 import type { Surgery } from "@backend/db";
 
 export const metadata = { title: "Área de la clínica · SaludCoNet" };
-
-const STATUS_TONE: Record<Surgery["status"], "success" | "warning" | "neutral" | "brand"> = {
-  open: "brand",
-  filled: "success",
-  cancelled: "neutral",
-  completed: "neutral",
-};
 
 export default async function ClinicaDashboardPage() {
   const me = await requireRole("clinic");
@@ -38,18 +34,15 @@ export default async function ClinicaDashboardPage() {
     cancelled: sg.statusCancelled,
     completed: sg.statusCompleted,
   };
-  const user = {
-    name: me.profile.fullName,
-    subtitle: isAdmin ? "Administrador" : me.profile.city ? `Clínica · ${me.profile.city}` : "Clínica",
-    avatarUrl: me.profile.avatarUrl,
-  };
+  const user = buildDashboardUser(me.profile, { isAdmin, roleLabel: "Clínica" });
 
-  const [surgeries, unread, pendingReviews] = await Promise.all([
+  const [surgeries, unread, pendingReviews, clinic] = await Promise.all([
     isAdmin
       ? listAllSurgeriesWithCounts()
       : listSurgeriesByClinicWithCounts(me.profile.id),
     countUnreadNotifications(me.profile.id),
     isAdmin ? Promise.resolve([]) : listPendingReviewsForUser(me.profile.id),
+    isAdmin ? Promise.resolve(null) : getClinicById(me.profile.id),
   ]);
   const list: (SurgeryWithCounts & { clinicName?: string })[] = surgeries;
 
@@ -58,7 +51,9 @@ export default async function ClinicaDashboardPage() {
   const openVacancies = list
     .filter((s) => s.status === "open")
     .reduce((acc, s) => acc + Math.max(0, s.vacancies + s.doctorsNeeded - s.confirmedCount), 0);
-  const firstName = me.profile.fullName.split(" ")[0];
+  // Saludamos por el nombre del RESPONSABLE (persona de contacto), no por el del
+  // centro. Fallback al fullName (clínicas antiguas sin contacto o vista admin).
+  const firstName = (clinic?.contactName?.trim() || me.profile.fullName).split(" ")[0];
 
   return (
     <DashboardShell role="Clínica" user={user} nav={NAV_CLINICA}>
@@ -129,7 +124,7 @@ export default async function ClinicaDashboardPage() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <span className="truncate text-sm font-semibold text-ink-900">{s.title}</span>
-                        <Badge tone={STATUS_TONE[s.status]}>{statusLabel[s.status]}</Badge>
+                        <Badge tone={SURGERY_STATUS_TONE[s.status]}>{statusLabel[s.status]}</Badge>
                       </div>
                       <div className="mt-0.5 text-xs text-mist-500">
                         {s.clinicName ? `${s.clinicName} · ` : ""}

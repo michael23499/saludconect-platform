@@ -24,6 +24,20 @@ export type AdminStats = {
  * `count(*) filter (...)` para no traer filas a memoria. Excluye el rol admin
  * de las "aprobaciones pendientes" (los admins entran verificados).
  */
+/**
+ * Conteo barato (un solo count) de perfiles pendientes de aprobación, para el
+ * badge del nav admin. Mismos criterios que `pendingApprovals` de getAdminStats:
+ * sin verificar, sin suspender y que no sean admin.
+ */
+export async function countPendingApprovals(): Promise<number> {
+  const [r] = await db
+    .select({
+      n: sql<number>`(count(*) filter (where ${users.verified} = false and ${users.suspended} = false and ${users.role} <> 'admin'))::int`,
+    })
+    .from(users);
+  return r?.n ?? 0;
+}
+
 export async function getAdminStats(): Promise<AdminStats> {
   const [u] = await db
     .select({

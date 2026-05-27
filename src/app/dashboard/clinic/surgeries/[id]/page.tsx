@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import { DashboardShell, PageHeader } from "@/components/dashboard/Shell";
 import { ApplicantActions } from "@/components/dashboard/ApplicantActions";
+import { AttendanceControl } from "@/components/dashboard/AttendanceControl";
+import { CommitmentNotice } from "@/components/dashboard/CommitmentNotice";
 import { ApplicantProfileModal } from "@/components/dashboard/ApplicantProfileModal";
 import { EditSurgeryButton } from "@/components/dashboard/EditSurgeryModal";
 import { DeleteSurgeryButton } from "@/components/dashboard/DeleteSurgeryButton";
@@ -8,6 +10,7 @@ import { SupervisionBanner } from "@/components/dashboard/SupervisionBanner";
 import { NAV_CLINICA } from "@/lib/dashboard-nav";
 import { formatDateLongEs } from "@/lib/dates";
 import { getDict } from "@/lib/i18n-server";
+import { buildDashboardUser } from "@/lib/dashboard-user";
 import { requireRole } from "@backend/auth/guards";
 import { getSurgeryWithClinic } from "@backend/queries/surgeries";
 import { listApplicantsForSurgery, countConfirmedByTypeForSurgery } from "@backend/queries/applications";
@@ -46,14 +49,13 @@ export default async function DetalleCirugiaPage({
       .filter(Boolean)
       .join(" · ") || `0/${surgery.vacancies}`;
 
-  const user = {
-    name: me.profile.fullName,
-    subtitle: isAdmin ? "Administrador" : me.profile.city ? `Clínica · ${me.profile.city}` : "Clínica",
-    avatarUrl: me.profile.avatarUrl,
-  };
+  const user = buildDashboardUser(me.profile, { isAdmin, roleLabel: "Clínica" });
 
   const pending = applicants.filter((a) => a.application.status === "applied");
   const decided = applicants.filter((a) => a.application.status !== "applied");
+  // Tras la fecha, la clínica puede marcar la asistencia de los confirmados.
+  const datePassed = surgery.date < new Date().toISOString().slice(0, 10);
+  const hasConfirmed = confirmed.technicians + confirmed.doctors > 0;
   // Puntuación media de cada candidato (su reputación como profesional).
   const ratings = await getRatingSummaries(applicants.map((a) => a.application.professionalId));
 
@@ -95,6 +97,12 @@ export default async function DetalleCirugiaPage({
         )}
       </div>
 
+      {hasConfirmed && surgery.status !== "cancelled" && (
+        <div className="mb-6">
+          <CommitmentNotice audience="clinic" date={surgery.date} startTime={surgery.startTime} />
+        </div>
+      )}
+
       <div className="rounded-2xl border border-mist-200 bg-white">
         <div className="flex items-center justify-between border-b border-mist-100 p-5">
           <div>
@@ -130,13 +138,19 @@ export default async function DetalleCirugiaPage({
                     ratingAverage={rating?.average ?? 0}
                     ratingCount={rating?.count ?? 0}
                   />
-                  <div className="shrink-0 md:pl-4">
+                  <div className="flex shrink-0 flex-col items-end gap-3 md:pl-4">
                     <ApplicantActions
                       applicationId={a.application.id}
                       initialStatus={a.application.status}
                       canConfirm={canConfirm}
                       asAdmin={isAdmin}
                     />
+                    {a.application.status === "confirmed" && datePassed && (
+                      <AttendanceControl
+                        applicationId={a.application.id}
+                        initial={a.application.attended}
+                      />
+                    )}
                   </div>
                 </li>
               );

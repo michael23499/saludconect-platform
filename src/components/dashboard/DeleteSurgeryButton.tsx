@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useApp } from "@/components/providers/Providers";
+import { useActionToast } from "@/lib/use-action-toast";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { deleteSurgeryAction } from "@backend/actions/surgeries";
 
@@ -20,19 +21,16 @@ export function DeleteSurgeryButton({
 }) {
   const router = useRouter();
   const s = useApp().t.dashboard.surgeries;
+  const { report } = useActionToast();
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
 
   function doDelete() {
-    setError(null);
     startTransition(async () => {
-      const res = await deleteSurgeryAction(surgeryId);
-      if ("error" in res) {
-        setError(res.error);
-        setOpen(false);
-      } else {
+      if (report(await deleteSurgeryAction(surgeryId))) {
         router.push("/dashboard/clinic/surgeries");
+      } else {
+        setOpen(false);
       }
     });
   }
@@ -48,7 +46,6 @@ export function DeleteSurgeryButton({
         <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" /><path d="M10 11v6M14 11v6" /></svg>
         {pending ? s.deleting : s.deleteCta}
       </button>
-      {error && <span className="self-center text-xs text-red-600">{error}</span>}
       <ConfirmDialog
         open={open}
         title={s.delTitle}

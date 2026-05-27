@@ -5,6 +5,8 @@ import { useFormStatus } from "react-dom";
 import { Field, Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
+import { AnimatedCheckbox } from "@/components/ui/AnimatedCheckbox";
+import { PolicyConsentLabel } from "@/components/legal/PolicyConsentLabel";
 import { useApp } from "@/components/providers/Providers";
 import { completeProfileAction } from "@backend/actions/profile";
 
@@ -17,6 +19,7 @@ export function CompleteProfileForm({ defaultFullName, email }: Props) {
   const { t } = useApp();
   const a = t.auth;
   const [role, setRole] = useState<"professional" | "clinic">("professional");
+  const [policyAccepted, setPolicyAccepted] = useState(false);
 
   return (
     <form action={completeProfileAction} className="mt-8 space-y-4">
@@ -76,6 +79,16 @@ export function CompleteProfileForm({ defaultFullName, email }: Props) {
       <Field label={a.cityOptional}>
         <Input name="city" type="text" placeholder={a.cityPlaceholder} />
       </Field>
+
+      <AnimatedCheckbox
+        name="policy_consent"
+        required
+        checked={policyAccepted}
+        onCheckedChange={setPolicyAccepted}
+        className="mt-1"
+      >
+        <PolicyConsentLabel />
+      </AnimatedCheckbox>
 
       <SubmitButton />
     </form>

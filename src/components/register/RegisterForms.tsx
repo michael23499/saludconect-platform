@@ -11,6 +11,7 @@ import { AnimatedCheckbox } from "@/components/ui/AnimatedCheckbox";
 import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
 import { useApp } from "@/components/providers/Providers";
+import { PolicyConsentLabel } from "@/components/legal/PolicyConsentLabel";
 import { AddressAutocomplete } from "@/components/admin/AddressAutocomplete";
 import { PhoneInput } from "@/components/admin/PhoneInput";
 import { useRegisterText, useRegisterBool, useRegisterList, useRegisterSubmitted } from "@/components/register/RegisterFormContext";
@@ -191,6 +192,20 @@ function CheckField({
   );
 }
 
+/**
+ * Consentimiento de la Política de Reservas (obligatorio en ambos registros).
+ * Reutiliza CheckField + la etiqueta compartida PolicyConsentLabel; el campo
+ * `policy_consent` lo valida signUpAction y la aceptación se sella en el perfil
+ * con la versión vigente de la política.
+ */
+function PolicyConsentField() {
+  return (
+    <CheckField name="policy_consent" required className="mt-1">
+      <PolicyConsentLabel />
+    </CheckField>
+  );
+}
+
 /* ------------------------------------------------------------------ */
 /* Formulario de clínica                                              */
 /* ------------------------------------------------------------------ */
@@ -243,6 +258,7 @@ export function RegisterClinicForm() {
         <strong>{r.cfTrialPlan}</strong>
         {r.cfTrial3}
       </CheckField>
+      <PolicyConsentField />
       <ErrorBox message={error} />
       <SubmitButton label={r.cfSubmit} />
     </form>
@@ -297,6 +313,7 @@ export function RegisterProfessionalForm() {
       <CheckField name="docs_consent" required className="mt-1">
         {r.pfConsent}
       </CheckField>
+      <PolicyConsentField />
       <ErrorBox message={error} />
       <SubmitButton label={r.pfSubmit} />
     </form>

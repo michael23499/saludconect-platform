@@ -30,6 +30,7 @@ export type AccountData = {
   yearsExperience: string;
   hourlyRate: string;
   clinicName: string;
+  contactName: string;
   specialties: string[];
   about: string;
   website: string;
@@ -64,6 +65,7 @@ export function AccountSettingsForm({ account }: { account: AccountData }) {
   const [years, setYears] = useState(account.yearsExperience);
   const [rate, setRate] = useState(account.hourlyRate);
   // Clínica (el nombre del centro = fullName; aquí solo datos promocionales)
+  const [contactName, setContactName] = useState(account.contactName);
   const [specialties, setSpecialties] = useState<string[]>(account.specialties);
   const [about, setAbout] = useState(account.about);
   const [website, setWebsite] = useState(account.website);
@@ -103,7 +105,7 @@ export function AccountSettingsForm({ account }: { account: AccountData }) {
       lat: coords.lat,
       lng: coords.lng,
       ...(isClinic
-        ? { clinicName: fullName, specialties, about, website }
+        ? { clinicName: fullName, contactName, specialties, about, website }
         : {
             proType,
             headline,
@@ -195,6 +197,11 @@ export function AccountSettingsForm({ account }: { account: AccountData }) {
 
           {isClinic ? (
             <>
+              <div className="md:col-span-2">
+                <Field label="Persona de contacto" hint="El responsable del centro. Te saludamos por su nombre en el panel.">
+                  <Input value={contactName} onChange={(e) => setContactName(e.target.value)} placeholder="Nombre y apellidos del responsable" />
+                </Field>
+              </div>
               <div className="md:col-span-2">
                 <Field label="Especialidades" hint="Las áreas que ofrece tu centro. Puedes elegir varias.">
                   <MultiSelectMenu

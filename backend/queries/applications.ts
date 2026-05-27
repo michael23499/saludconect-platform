@@ -10,6 +10,7 @@ import {
   type NewApplication,
   type Surgery,
 } from "../db";
+import type { CancelledBy } from "../policy/reservation";
 
 /**
  * Crea una postulación. Devuelve null si el técnico ya se había postulado a esa
@@ -65,6 +66,65 @@ export async function updateApplicationStatus(
     .update(applications)
     .set({ status, updatedAt: new Date() })
     .where(eq(applications.id, id));
+}
+
+/**
+ * Confirma la plaza de un candidato: status → confirmed y sella `confirmedAt`
+ * (nace el compromiso de colaboración). Solo fija confirmedAt si aún no lo tenía,
+ * para que reconfirmar tras un unconfirm no falsee la fecha del compromiso.
+ */
+export async function confirmApplication(id: string): Promise<void> {
+  await db
+    .update(applications)
+    .set({
+      status: "confirmed",
+      confirmedAt: sql`coalesce(${applications.confirmedAt}, now())`,
+      updatedAt: new Date(),
+    })
+    .where(eq(applications.id, id));
+}
+
+/**
+ * Registra la cancelación de una reserva YA confirmada: cambia el estado y deja
+ * constancia de quién canceló, cuándo y por qué (alimenta la fiabilidad). El
+ * `status` final es "withdrawn" (lo cancela el profesional) o "rejected" (la
+ * clínica retira a un confirmado).
+ */
+export async function recordApplicationCancellation(
+  id: string,
+  opts: { status: "withdrawn" | "rejected"; cancelledBy: CancelledBy; reason: string | null },
+): Promise<void> {
+  await db
+    .update(applications)
+    .set({
+      status: opts.status,
+      cancelledBy: opts.cancelledBy,
+      cancelledAt: new Date(),
+      cancelReason: opts.reason,
+      updatedAt: new Date(),
+    })
+    .where(eq(applications.id, id));
+}
+
+/**
+ * Marca la asistencia de un profesional confirmado tras la cirugía: attended
+ * true (asistió) o false (no se presentó, no-show). Alimenta la fiabilidad.
+ */
+export async function setApplicationAttendance(id: string, attended: boolean): Promise<void> {
+  await db
+    .update(applications)
+    .set({ attended, attendanceMarkedAt: new Date(), updatedAt: new Date() })
+    .where(eq(applications.id, id));
+}
+
+/** Postulaciones CONFIRMADAS de una cirugía (para avisar/registrar al cancelarla). */
+export async function listConfirmedApplicationsForSurgery(
+  surgeryId: string,
+): Promise<Application[]> {
+  return db
+    .select()
+    .from(applications)
+    .where(and(eq(applications.surgeryId, surgeryId), eq(applications.status, "confirmed")));
 }
 
 export async function countConfirmedForSurgery(surgeryId: string): Promise<number> {

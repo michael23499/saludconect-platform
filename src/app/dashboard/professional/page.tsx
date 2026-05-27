@@ -9,6 +9,8 @@ import { NAV_PRO } from "@/lib/dashboard-nav";
 import { getDict } from "@/lib/i18n-server";
 import { dayMonth, formatDateEs } from "@/lib/dates";
 import { formatNeeds } from "@/lib/surgery";
+import { APPLICATION_STATUS_TONE } from "@/lib/status-colors";
+import { buildDashboardUser } from "@/lib/dashboard-user";
 import { requireRole } from "@backend/auth/guards";
 import { getProfessionalById } from "@backend/queries/professionals";
 import { listOpenSurgeriesForProfessional, listAllOpenSurgeries } from "@backend/queries/surgeries";
@@ -23,13 +25,6 @@ import type { Application } from "@backend/db";
 
 export const metadata = { title: "Área del profesional · SaludCoNet" };
 
-const APP_TONE: Record<Application["status"], "success" | "warning" | "neutral"> = {
-  applied: "warning",
-  confirmed: "success",
-  rejected: "neutral",
-  withdrawn: "neutral",
-};
-
 export default async function ProfesionalDashboardPage() {
   const me = await requireRole("professional");
   const dict = (await getDict()).dashboard;
@@ -42,11 +37,7 @@ export default async function ProfesionalDashboardPage() {
     rejected: h.appRejected,
     withdrawn: h.appWithdrawn,
   };
-  const user = {
-    name: me.profile.fullName,
-    subtitle: isAdmin ? "Administrador" : me.profile.city ? `Técnico capilar · ${me.profile.city}` : "Técnico capilar",
-    avatarUrl: me.profile.avatarUrl,
-  };
+  const user = buildDashboardUser(me.profile, { isAdmin, roleLabel: "Técnico capilar" });
 
   // --- Modo supervisión (admin): oportunidades globales, sin datos propios ---
   if (isAdmin) {
@@ -196,7 +187,7 @@ export default async function ProfesionalDashboardPage() {
                     <div className="truncate text-sm font-semibold text-ink-900">{surgery.title}</div>
                     <div className="mt-0.5 text-xs text-mist-500">{clinicName} · {formatDateEs(surgery.date)}</div>
                   </div>
-                  <Badge tone={APP_TONE[application.status]}>{appLabel[application.status]}</Badge>
+                  <Badge tone={APPLICATION_STATUS_TONE[application.status]}>{appLabel[application.status]}</Badge>
                 </li>
               ))}
             </ul>
@@ -217,20 +208,25 @@ export default async function ProfesionalDashboardPage() {
             {upcoming.map(({ application, surgery, clinicName }) => {
               const { day, mon } = dayMonth(surgery.date);
               return (
-                <li key={application.id} className="flex items-center gap-4 p-4">
-                  <div className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50">
-                    <div className="text-base font-semibold leading-none text-emerald-700">{day}</div>
-                    <div className="text-[10px] uppercase tracking-wider text-emerald-600">{mon}</div>
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-semibold text-ink-900">{surgery.title}</div>
-                    <div className="mt-0.5 text-xs text-mist-500">
-                      {clinicName}
-                      {surgery.startTime && surgery.endTime ? ` · ${surgery.startTime}–${surgery.endTime}` : ""}
-                      {surgery.city ? ` · ${surgery.city}` : ""}
+                <li key={application.id}>
+                  <Link
+                    href={`/dashboard/professional/surgeries/${surgery.id}`}
+                    className="flex items-center gap-4 p-4 transition hover:bg-mist-50"
+                  >
+                    <div className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50">
+                      <div className="text-base font-semibold leading-none text-emerald-700">{day}</div>
+                      <div className="text-[10px] uppercase tracking-wider text-emerald-600">{mon}</div>
                     </div>
-                  </div>
-                  <Badge tone="success">{h.confirmedBadge}</Badge>
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-sm font-semibold text-ink-900">{surgery.title}</div>
+                      <div className="mt-0.5 text-xs text-mist-500">
+                        {clinicName}
+                        {surgery.startTime && surgery.endTime ? ` · ${surgery.startTime}–${surgery.endTime}` : ""}
+                        {surgery.city ? ` · ${surgery.city}` : ""}
+                      </div>
+                    </div>
+                    <Badge tone="success">{h.confirmedBadge}</Badge>
+                  </Link>
                 </li>
               );
             })}

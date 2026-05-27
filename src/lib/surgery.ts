@@ -13,3 +13,8 @@ export function formatNeeds(
   if (doctorsNeeded > 0) parts.push(`${doctorsNeeded} ${doctorsNeeded === 1 ? w.doctor : w.doctors}`);
   return parts.join(" · ") || `0 ${w.technicians}`;
 }
+
+/** " (HH:MM–HH:MM)" o "" si falta alguna hora. Para textos de aviso/notificación. */
+export function formatSchedule(start: string | null, end: string | null): string {
+  return start && end ? ` (${start}–${end})` : "";
+}

@@ -6,6 +6,7 @@ import { MetaIcon } from "@/components/ui/MetaIcon";
 import { NAV_CLINICA } from "@/lib/dashboard-nav";
 import { getDict } from "@/lib/i18n-server";
 import { dayMonth, formatDateEs } from "@/lib/dates";
+import { buildDashboardUser } from "@/lib/dashboard-user";
 import { requireRole } from "@backend/auth/guards";
 import {
   listSurgeriesByClinicWithCounts,
@@ -19,11 +20,7 @@ export default async function ClinicaReservasPage() {
   const me = await requireRole("clinic");
   const c = (await getDict()).dashboard.cal;
   const isAdmin = me.profile.role === "admin";
-  const user = {
-    name: me.profile.fullName,
-    subtitle: isAdmin ? "Administrador" : me.profile.city ? `Clínica · ${me.profile.city}` : "Clínica",
-    avatarUrl: me.profile.avatarUrl,
-  };
+  const user = buildDashboardUser(me.profile, { isAdmin, roleLabel: "Clínica" });
 
   const all: (SurgeryWithCounts & { clinicName?: string })[] = isAdmin
     ? await listAllSurgeriesWithCounts()

@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { DICT, type Lang, type Dict } from "@/lib/i18n";
 import { RevealObserver } from "@/components/providers/RevealObserver";
+import { ToastProvider } from "@/components/providers/ToastProvider";
 
 type Theme = "light" | "dark";
 type Ctx = {
@@ -69,7 +70,7 @@ export function Providers({
   return (
     <AppContext.Provider value={{ lang, setLang, t: DICT[lang], theme, setTheme, toggleTheme }}>
       <RevealObserver />
-      {children}
+      <ToastProvider>{children}</ToastProvider>
     </AppContext.Provider>
   );
 }

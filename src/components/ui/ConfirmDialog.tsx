@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { Modal, ModalFooter, modalBtnSecondary } from "@/components/ui/Modal";
 
 /**
@@ -7,6 +8,10 @@ import { Modal, ModalFooter, modalBtnSecondary } from "@/components/ui/Modal";
  * Controlado: el padre maneja `open` y ejecuta la acción en `onConfirm`.
  * `tone` cambia el color del botón principal (brand = acción normal, danger =
  * destructiva). Dark-safe vía el Modal del proyecto.
+ *
+ * `children` (opcional) se renderiza bajo el mensaje: úsalo para contenido extra
+ * como un campo de motivo. `confirmDisabled` bloquea el botón principal (p.ej.
+ * hasta que se rellene ese motivo) sin tocar el resto del flujo.
  */
 export function ConfirmDialog({
   open,
@@ -16,6 +21,8 @@ export function ConfirmDialog({
   cancelLabel = "Cancelar",
   tone = "brand",
   pending = false,
+  confirmDisabled = false,
+  children,
   onConfirm,
   onClose,
 }: {
@@ -26,6 +33,8 @@ export function ConfirmDialog({
   cancelLabel?: string;
   tone?: "brand" | "danger";
   pending?: boolean;
+  confirmDisabled?: boolean;
+  children?: ReactNode;
   onConfirm: () => void;
   onClose: () => void;
 }) {
@@ -57,10 +66,11 @@ export function ConfirmDialog({
             <p className="mt-1 text-sm text-mist-500">{message}</p>
           </div>
         </div>
+        {children && <div className="mt-4">{children}</div>}
       </div>
       <ModalFooter>
         <button type="button" onClick={onClose} disabled={pending} className={modalBtnSecondary}>{cancelLabel}</button>
-        <button type="button" onClick={onConfirm} disabled={pending} className={confirmCls}>{confirmLabel}</button>
+        <button type="button" onClick={onConfirm} disabled={pending || confirmDisabled} className={confirmCls}>{confirmLabel}</button>
       </ModalFooter>
     </Modal>
   );

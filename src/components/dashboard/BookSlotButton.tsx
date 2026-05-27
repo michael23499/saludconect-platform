@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useApp } from "@/components/providers/Providers";
+import { useActionToast } from "@/lib/use-action-toast";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { bookSlotAction } from "@backend/actions/availability";
 
@@ -21,17 +22,15 @@ export function BookSlotButton({
   dateLabel: string;
 }) {
   const router = useRouter();
-  const c = useApp().t.dashboard.cal;
+  const t = useApp().t;
+  const c = t.dashboard.cal;
+  const { report } = useActionToast();
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
 
   function doBook() {
-    setError(null);
     startTransition(async () => {
-      const res = await bookSlotAction(slotId);
-      if ("error" in res) setError(res.error);
-      else router.refresh();
+      if (report(await bookSlotAction(slotId), t.toasts.booked)) router.refresh();
       setOpen(false);
     });
   }
@@ -46,7 +45,6 @@ export function BookSlotButton({
       >
         {pending ? c.avBooking : c.avBook}
       </button>
-      {error && <span className="text-xs text-red-600">{error}</span>}
       <ConfirmDialog
         open={open}
         title={c.bookTitle}

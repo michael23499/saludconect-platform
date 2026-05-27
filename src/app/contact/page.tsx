@@ -1,10 +1,7 @@
 import type { Metadata } from "next";
 import { Section } from "@/components/ui/Section";
 import { Badge } from "@/components/ui/Badge";
-import { Field, Input, Textarea } from "@/components/ui/Input";
-import { SelectMenu } from "@/components/ui/SelectMenu";
-import { AnimatedCheckbox } from "@/components/ui/AnimatedCheckbox";
-import { Button } from "@/components/ui/Button";
+import { ContactForm } from "@/components/contact/ContactForm";
 import { getDict } from "@/lib/i18n-server";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -14,6 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 const CONTACT_META = [
   { i: "✉", href: "mailto:info@saludconet.com" },
+  { i: "☎", href: "tel:+34722310252" },
   { i: "◍", href: "https://app.saludconet.com" },
 ];
 
@@ -57,33 +55,7 @@ export default async function ContactoPage() {
             </ul>
           </div>
 
-          <form className="rounded-3xl border border-mist-200 bg-white p-7 shadow-[var(--shadow-card)] md:p-10">
-            <div className="text-xs font-semibold uppercase tracking-wider text-brand-700">{t.formEyebrow}</div>
-            <div className="mt-1 text-xl font-semibold tracking-tight text-ink-900">{t.formHeading}</div>
-            <div className="mt-6 grid gap-4 md:grid-cols-2">
-              <Field label={t.fieldName}><Input placeholder={t.fieldNamePlaceholder} required /></Field>
-              <Field label={t.fieldEmail}><Input type="email" placeholder={t.fieldEmailPlaceholder} required /></Field>
-              <Field label={t.fieldCompany} className="md:col-span-2"><Input placeholder={t.fieldCompanyPlaceholder} /></Field>
-              <Field label={t.fieldSubject} className="md:col-span-2">
-                <SelectMenu
-                  name="asunto"
-                  placeholder={t.subjectPlaceholder}
-                  options={t.subjectOptions}
-                />
-              </Field>
-              <Field label={t.fieldMessage} className="md:col-span-2">
-                <Textarea placeholder={t.fieldMessagePlaceholder} />
-              </Field>
-            </div>
-            <AnimatedCheckbox className="mt-5" name="privacy" required>
-              {t.consentPre}
-              <a href="/legal/privacy" className="font-semibold text-brand-700 underline-offset-4 hover:underline">
-                {t.consentLink}
-              </a>
-              {t.consentSuf}
-            </AnimatedCheckbox>
-            <Button size="lg" className="mt-5 w-full justify-center">{t.submit}</Button>
-          </form>
+          <ContactForm />
         </div>
       </section>
 

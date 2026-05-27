@@ -9,6 +9,7 @@ import { createProfessional } from "../queries/professionals";
 import { createClinic } from "../queries/clinics";
 import { getSpecialtyBySlug } from "../queries/specialties";
 import { CAPILAR_SLUG } from "../db/seed-data";
+import { RESERVATION_POLICY_VERSION } from "../policy/reservation";
 
 export async function completeProfileAction(formData: FormData) {
   const current = await requireSession();
@@ -23,6 +24,11 @@ export async function completeProfileAction(formData: FormData) {
   }
   if (typeof fullName !== "string" || fullName.trim().length < 2) {
     throw new Error("Nombre completo requerido (mínimo 2 caracteres)");
+  }
+  // Misma puerta que en el registro por email: hay que aceptar la Política de
+  // Reservas (el alta por Google también pasa por aquí).
+  if (!formData.get("policy_consent")) {
+    throw new Error("Debes aceptar la Política de Reservas para continuar.");
   }
 
   // Si ya existe perfil, no duplicar — solo redirigir
@@ -42,6 +48,8 @@ export async function completeProfileAction(formData: FormData) {
     city: cleanCity,
     avatarUrl: current.auth.avatarUrlFromProvider,
     verified: false,
+    reservationPolicyAcceptedAt: new Date(),
+    reservationPolicyVersion: RESERVATION_POLICY_VERSION,
   });
 
   // Crea la fila del perfil extendido según el rol. Idempotente (onConflictDoNothing).

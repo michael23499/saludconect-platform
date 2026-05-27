@@ -9,6 +9,7 @@ import { NAV_PRO } from "@/lib/dashboard-nav";
 import { dayMonth, formatDateEs } from "@/lib/dates";
 import { formatNeeds } from "@/lib/surgery";
 import { getDict } from "@/lib/i18n-server";
+import { buildDashboardUser } from "@/lib/dashboard-user";
 import { requireRole } from "@backend/auth/guards";
 import { getProfessionalById } from "@backend/queries/professionals";
 import {
@@ -23,11 +24,7 @@ export default async function CirugiasDisponiblesPage() {
   const me = await requireRole("professional");
   const t = (await getDict()).dashboard.surgeries;
   const isAdmin = me.profile.role === "admin";
-  const user = {
-    name: me.profile.fullName,
-    subtitle: isAdmin ? "Administrador" : me.profile.city ? `Técnico capilar · ${me.profile.city}` : "Técnico capilar",
-    avatarUrl: me.profile.avatarUrl,
-  };
+  const user = buildDashboardUser(me.profile, { isAdmin, roleLabel: "Técnico capilar" });
 
   // Normalizamos a una sola forma para renderizar igual en ambos modos.
   let items: SurgeryForProfessional[] = [];
