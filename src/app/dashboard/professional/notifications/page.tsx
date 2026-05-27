@@ -9,10 +9,12 @@ export const metadata = { title: "Notificaciones · Profesional · SaludCoNet" }
 
 export default async function ProNotificationsPage() {
   const pro = await requireRole("professional");
-  const m = (await getDict()).dashboard.misc;
+  const dash = (await getDict()).dashboard;
+  const m = dash.misc;
+  const sh = dash.shell;
   const user = {
     name: pro.profile.fullName,
-    subtitle: pro.profile.city ? `Técnico capilar · ${pro.profile.city}` : "Técnico capilar",
+    subtitle: pro.profile.city ? `${sh.roleTechnician} · ${pro.profile.city}` : sh.roleTechnician,
     avatarUrl: pro.profile.avatarUrl,
   };
 
@@ -28,7 +30,7 @@ export default async function ProNotificationsPage() {
   }));
 
   return (
-    <DashboardShell role="Profesional" user={user} nav={NAV_PRO}>
+    <DashboardShell role={sh.roleProfessional} user={user} nav={NAV_PRO}>
       <PageHeader backHref="/dashboard/professional" backLabel={m.back} title={m.notifTitle} subtitle={m.notifSubPro} />
       <NotificationsCenter initialItems={items} />
     </DashboardShell>

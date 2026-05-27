@@ -16,7 +16,8 @@ export default async function ProfesionalCalendarioPage() {
   const me = await requireRole("professional");
   const c = (await getDict()).dashboard.cal;
   const isAdmin = me.profile.role === "admin";
-  const user = buildDashboardUser(me.profile, { isAdmin, roleLabel: "Técnico capilar" });
+  const sh = (await getDict()).dashboard.shell;
+  const user = buildDashboardUser(me.profile, { isAdmin, roleLabel: sh.roleTechnician, adminLabel: sh.roleAdmin });
 
   // --- Supervisión (admin): ve el calendario global en modo solo lectura ---
   if (isAdmin) {
@@ -34,7 +35,7 @@ export default async function ProfesionalCalendarioPage() {
       proVerified,
     }));
     return (
-      <DashboardShell role="Profesional" user={user} nav={NAV_PRO}>
+      <DashboardShell role={sh.roleProfessional} user={user} nav={NAV_PRO}>
         <SupervisionBanner scope="professional" />
         <PageHeader
           backHref="/dashboard/professional"

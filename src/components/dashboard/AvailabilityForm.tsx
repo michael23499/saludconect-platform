@@ -18,30 +18,15 @@ import {
 
 type Mode = "one" | "range";
 
-// Orden de chips L M X J V S D → getDay() (0=Dom … 6=Sáb).
-const WEEKDAYS: { key: number; label: string }[] = [
-  { key: 1, label: "L" },
-  { key: 2, label: "M" },
-  { key: 3, label: "X" },
-  { key: 4, label: "J" },
-  { key: 5, label: "V" },
-  { key: 6, label: "S" },
-  { key: 0, label: "D" },
-];
+// Orden de chips L M X J V S D → getDay() (0=Dom … 6=Sáb). Las etiquetas se
+// formatean con Intl según el idioma (2024-01-01 fue lunes).
+const WEEKDAY_KEYS = [1, 2, 3, 4, 5, 6, 0];
 
-// Opciones de hora cada 30 min + "sin hora" (día completo) para el selector.
-const HOUR_OPTIONS: SelectOption[] = [
-  { value: "", label: "— Sin hora" },
-  ...Array.from({ length: 48 }, (_, i) => {
-    const v = `${String(Math.floor(i / 2)).padStart(2, "0")}:${i % 2 === 0 ? "00" : "30"}`;
-    return { value: v, label: v };
-  }),
-];
-
-/** "2026-05-26" → "26 may" (mediodía para no saltar de día por timezone). */
-function fmtChip(d: string): string {
-  return new Date(`${d}T12:00:00`).toLocaleDateString("es-ES", { day: "numeric", month: "short" });
-}
+// Horas cada 30 min (numéricas, no traducibles); la opción "sin hora" se añade
+// con su etiqueta traducida dentro del componente.
+const HOUR_VALUES = Array.from({ length: 48 }, (_, i) =>
+  `${String(Math.floor(i / 2)).padStart(2, "0")}:${i % 2 === 0 ? "00" : "30"}`,
+);
 
 /** Días de la semana (getDay) que existen dentro del rango [from, to]. */
 function weekdaysInRange(from: string, to: string): Set<number> {
@@ -82,8 +67,20 @@ function eachDate(from: string, to: string, days: Set<number>): string[] {
  * el cliente y las envía como CSV en `dates`; la action crea un slot por fecha.
  */
 export function AvailabilityForm() {
-  const t = useApp().t;
+  const { t, lang } = useApp();
   const c = t.dashboard.cal;
+  const locale = lang === "en" ? "en-GB" : "es-ES";
+  // Etiquetas de los chips de día (narrow) y formateador del chip de fecha.
+  const weekdays = WEEKDAY_KEYS.map((key) => ({
+    key,
+    label: new Intl.DateTimeFormat(locale, { weekday: "narrow" }).format(new Date(2024, 0, key === 0 ? 7 : key)),
+  }));
+  const HOUR_OPTIONS: SelectOption[] = [
+    { value: "", label: c.avNoHour },
+    ...HOUR_VALUES.map((v) => ({ value: v, label: v })),
+  ];
+  const fmtChip = (d: string) =>
+    new Date(`${d}T12:00:00`).toLocaleDateString(locale, { day: "numeric", month: "short" });
   const [state, formAction] = useActionState<PublishAvailabilityState, FormData>(
     publishAvailabilityAction,
     null,
@@ -170,7 +167,7 @@ export function AvailabilityForm() {
                 </div>
               </div>
               <div className="flex gap-1.5">
-                {WEEKDAYS.map((d) => {
+                {weekdays.map((d) => {
                   const dis = !available.has(d.key);
                   return (
                     <button
@@ -179,7 +176,7 @@ export function AvailabilityForm() {
                       disabled={dis}
                       onClick={() => toggleDay(d.key)}
                       aria-pressed={days.has(d.key)}
-                      title={dis ? "Fuera del rango elegido" : undefined}
+                      title={dis ? c.avOutOfRange : undefined}
                       className={cn(
                         "h-9 flex-1 rounded-lg border text-sm font-semibold transition",
                         dis

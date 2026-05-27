@@ -2,6 +2,34 @@
 
 import { useState } from "react";
 import { SPAIN_COMMUNITIES } from "./spain-communities";
+import { useApp } from "@/components/providers/Providers";
+
+// Copy bilingüe de la sección (los nombres de ciudades/comunidades son
+// topónimos y no se traducen). Mismo patrón que Pricing/Reputation.
+const COPY = {
+  es: {
+    badge: "Cobertura nacional",
+    title1: "Talento sanitario en ",
+    titleHi: "toda España",
+    desc: "Conectamos clínicas y profesionales sanitarios de punta a punta del país: las 17 comunidades, península, Baleares y Canarias. Estés donde estés, la red llega.",
+    statCommunities: "comunidades",
+    statProvinces: "provincias",
+    statArchipelagos: "archipiélagos",
+    canary: "CANARIAS",
+    mapAria: "Mapa de cobertura de España por comunidades autónomas",
+  },
+  en: {
+    badge: "Nationwide coverage",
+    title1: "Healthcare talent across ",
+    titleHi: "all of Spain",
+    desc: "We connect clinics and healthcare professionals from end to end of the country: all 17 regions, the mainland, the Balearic and Canary Islands. Wherever you are, the network reaches you.",
+    statCommunities: "regions",
+    statProvinces: "provinces",
+    statArchipelagos: "archipelagos",
+    canary: "CANARY IS.",
+    mapAria: "Coverage map of Spain by autonomous community",
+  },
+};
 
 /**
  * Mapa de cobertura de España con las 17 comunidades autónomas (fronteras
@@ -106,6 +134,8 @@ function CityLabel({ loc }: { loc: Loc }) {
 }
 
 export function SpainCoverageMap() {
+  const { lang } = useApp();
+  const c = COPY[lang];
   const [hoverCity, setHoverCity] = useState<string | null>(null);
   const [hoverRegion, setHoverRegion] = useState<string | null>(null);
 
@@ -127,19 +157,19 @@ export function SpainCoverageMap() {
               <path d="M12 21s-7-7.5-7-12a7 7 0 0 1 14 0c0 4.5-7 12-7 12z" />
               <circle cx="12" cy="9" r="2.5" />
             </svg>
-            Cobertura nacional
+            {c.badge}
           </div>
           <h2 className="text-balance text-3xl font-semibold tracking-tight text-ink-900 md:text-5xl dark:text-white">
-            Talento sanitario en <span className="text-gradient-brand">toda España</span>
+            {c.title1}<span className="text-gradient-brand">{c.titleHi}</span>
           </h2>
           <p className="mx-auto mt-5 max-w-md text-pretty text-mist-500 md:text-lg lg:mx-0 dark:text-white/70">
-            Conectamos clínicas y profesionales sanitarios de punta a punta del país: las 17 comunidades, península, Baleares y Canarias. Estés donde estés, la red llega.
+            {c.desc}
           </p>
           <div className="mt-8 grid max-w-sm grid-cols-3 gap-4 lg:mx-0">
             {[
-              { v: "17", l: "comunidades" },
-              { v: "50", l: "provincias" },
-              { v: "2", l: "archipiélagos" },
+              { v: "17", l: c.statCommunities },
+              { v: "50", l: c.statProvinces },
+              { v: "2", l: c.statArchipelagos },
             ].map((s) => (
               <div key={s.l} className="rounded-2xl border border-mist-200 bg-white px-3 py-3 shadow-[var(--shadow-soft)] dark:border-white/10 dark:bg-white/5 dark:shadow-none">
                 <div className="text-2xl font-semibold tracking-tight text-ink-900 dark:text-white">{s.v}</div>
@@ -150,7 +180,7 @@ export function SpainCoverageMap() {
         </div>
 
         <div className="relative">
-          <svg viewBox={FOCUS_VB} className="h-auto w-full max-w-[660px] lg:mx-auto" role="img" aria-label="Mapa de cobertura de España por comunidades autónomas">
+          <svg viewBox={FOCUS_VB} className="h-auto w-full max-w-[660px] lg:mx-auto" role="img" aria-label={c.mapAria}>
             <defs>
               <linearGradient id="scn-fill" x1="0" y1="0" x2="1" y2="1">
                 <stop offset="0%" stopColor="#dbeafe" />
@@ -204,7 +234,7 @@ export function SpainCoverageMap() {
                   </path>
                 ))}
               </g>
-              <text x={159} y={218} style={{ fontSize: 8, fontWeight: 600, fill: "#6b7790", letterSpacing: 0.5 }}>CANARIAS</text>
+              <text x={159} y={218} style={{ fontSize: 8, fontWeight: 600, fill: "#6b7790", letterSpacing: 0.5 }}>{c.canary}</text>
             </g>
 
             {/* Marcadores discretos del resto de comunidades */}

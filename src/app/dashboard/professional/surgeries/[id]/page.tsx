@@ -33,10 +33,11 @@ export default async function DetalleCirugiaProfesionalPage({
 
   const app = isAdmin ? null : await getApplicationBySurgeryAndProfessional(id, me.profile.id);
 
-  const user = buildDashboardUser(me.profile, { isAdmin, roleLabel: "Técnico capilar" });
+  const sh = (await getDict()).dashboard.shell;
+  const user = buildDashboardUser(me.profile, { isAdmin, roleLabel: sh.roleTechnician, adminLabel: sh.roleAdmin });
 
   return (
-    <DashboardShell role="Profesional" user={user} nav={NAV_PRO}>
+    <DashboardShell role={sh.roleProfessional} user={user} nav={NAV_PRO}>
       {isAdmin && <SupervisionBanner scope="professional" />}
       <PageHeader
         backHref="/dashboard/professional/surgeries"

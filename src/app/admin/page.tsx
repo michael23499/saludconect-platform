@@ -12,29 +12,24 @@ import { getAdminStats, listPendingApprovals } from "@backend/queries/stats";
 
 export const metadata = { title: "Panel administrador · SaludCoNet" };
 
-const SUPERVISION = [
-  {
-    href: "/dashboard/clinic/surgeries",
-    title: "Vista de clínicas",
-    desc: "Todas las cirugías publicadas por las clínicas y sus candidatos.",
-    icon: (
-      <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12h3l2 5 4-12 2 7h2" /><circle cx="19.5" cy="12" r="1.6" /></svg>
-    ),
-  },
-  {
-    href: "/dashboard/professional/surgeries",
-    title: "Vista de profesionales",
-    desc: "Todas las oportunidades abiertas de la plataforma.",
-    icon: (
-      <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M5 21a7 7 0 0114 0" /></svg>
-    ),
-  },
-];
+const SUP_ICONS = {
+  clinic: (
+    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12h3l2 5 4-12 2 7h2" /><circle cx="19.5" cy="12" r="1.6" /></svg>
+  ),
+  pro: (
+    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M5 21a7 7 0 0114 0" /></svg>
+  ),
+};
 
 export default async function AdminPage() {
   const t = await getDict();
   const d = t.dashboard.admin as Record<string, string>;
   const [stats, pending] = await Promise.all([getAdminStats(), listPendingApprovals(4)]);
+
+  const SUPERVISION = [
+    { href: "/dashboard/clinic/surgeries", title: d.supClinicTitle, desc: d.supClinicDesc, icon: SUP_ICONS.clinic },
+    { href: "/dashboard/professional/surgeries", title: d.supProTitle, desc: d.supProDesc, icon: SUP_ICONS.pro },
+  ];
 
   return (
     <>
@@ -55,7 +50,7 @@ export default async function AdminPage() {
               <div className="flex items-center gap-1.5 text-sm font-semibold text-ink-900">
                 {s.title}
                 <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700 dark:bg-amber-400/25 dark:text-amber-100">
-                  Supervisión
+                  {d.supervision}
                 </span>
               </div>
               <div className="mt-0.5 text-xs text-mist-500">{s.desc}</div>

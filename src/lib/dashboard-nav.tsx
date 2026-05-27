@@ -17,9 +17,9 @@ export const DASH_ICONS = {
 
 export const NAV_PRO: NavItem[] = [
   { href: "/dashboard/professional", labelKey: "overview", icon: DASH_ICONS.home },
-  { href: "/dashboard/professional/surgeries", label: "Cirugías", icon: DASH_ICONS.surgery },
+  { href: "/dashboard/professional/surgeries", labelKey: "surgeries", icon: DASH_ICONS.surgery },
   { href: "/dashboard/professional/calendar", labelKey: "calendar", icon: DASH_ICONS.cal },
-  { href: "/dashboard/professional/notifications", label: "Notificaciones", icon: DASH_ICONS.bell },
+  { href: "/dashboard/professional/notifications", labelKey: "notifications", icon: DASH_ICONS.bell },
   { href: "/dashboard/professional/messages", labelKey: "messages", icon: DASH_ICONS.chat },
   { href: "/dashboard/professional/documents", labelKey: "documents", icon: DASH_ICONS.doc },
   { href: "/dashboard/professional/profile", labelKey: "myProfile", icon: DASH_ICONS.user, hideForAdmin: true },
@@ -28,9 +28,9 @@ export const NAV_PRO: NavItem[] = [
 
 export const NAV_CLINICA: NavItem[] = [
   { href: "/dashboard/clinic", labelKey: "overview", icon: DASH_ICONS.home },
-  { href: "/dashboard/clinic/surgeries", label: "Cirugías", icon: DASH_ICONS.surgery },
+  { href: "/dashboard/clinic/surgeries", labelKey: "surgeries", icon: DASH_ICONS.surgery },
   { href: "/dashboard/clinic/calendar", labelKey: "calendar", icon: DASH_ICONS.cal },
-  { href: "/dashboard/clinic/notifications", label: "Notificaciones", icon: DASH_ICONS.bell },
+  { href: "/dashboard/clinic/notifications", labelKey: "notifications", icon: DASH_ICONS.bell },
   { href: "/dashboard/clinic/messages", labelKey: "messages", icon: DASH_ICONS.chat },
   { href: "/dashboard/clinic/team", labelKey: "team", icon: DASH_ICONS.team },
   { href: "/dashboard/clinic/subscription", labelKey: "subscription", icon: DASH_ICONS.card },

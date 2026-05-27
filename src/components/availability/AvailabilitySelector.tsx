@@ -1,13 +1,47 @@
 "use client";
 import { useState } from "react";
 import { cn } from "@/lib/cn";
+import { useApp } from "@/components/providers/Providers";
+import type { Lang } from "@/lib/i18n";
 
 export type Shift = "off" | "morning" | "afternoon" | "both";
 
-const DAYS = ["L", "M", "X", "J", "V", "S", "D"] as const;
-const DAY_NAMES_ES = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
-
 type Slot = "morning" | "afternoon";
+
+const COPY = {
+  es: {
+    weekly: "Disponibilidad semanal",
+    dayActive: "día activo", daysActive: "días activos",
+    morningWord: "mañana", afternoonWord: "tarde",
+    shiftMorning: "Mañana", shiftAfternoon: "Tarde",
+    removeAll: "Quitar", selectAll: "Todos",
+    weekRemove: "Quitar", weekAdd: "Activar", weekSuffix: "en toda la semana",
+    templates: "Plantillas:",
+    presetLvM: "L-V mañana", presetLvT: "L-V tardes", presetFull: "Día completo", presetWeekend: "Fin de semana",
+    clear: "Limpiar",
+    startTime: "Hora de inicio", endTime: "Hora de fin",
+  },
+  en: {
+    weekly: "Weekly availability",
+    dayActive: "day active", daysActive: "days active",
+    morningWord: "morning", afternoonWord: "afternoon",
+    shiftMorning: "Morning", shiftAfternoon: "Afternoon",
+    removeAll: "Remove", selectAll: "All",
+    weekRemove: "Remove", weekAdd: "Enable", weekSuffix: "for the whole week",
+    templates: "Templates:",
+    presetLvM: "Mon–Fri morning", presetLvT: "Mon–Fri afternoon", presetFull: "Full day", presetWeekend: "Weekend",
+    clear: "Clear",
+    startTime: "Start time", endTime: "End time",
+  },
+};
+
+// Nombres de días formateados con Intl (semana empezando en lunes: 2024-01-01 fue lunes).
+function dayLabels(lang: Lang, fmt: "narrow" | "long"): string[] {
+  const locale = lang === "en" ? "en-GB" : "es-ES";
+  return Array.from({ length: 7 }, (_, i) =>
+    new Intl.DateTimeFormat(locale, { weekday: fmt }).format(new Date(2024, 0, 1 + i)),
+  );
+}
 
 type Props = {
   initial?: Record<number, Shift>;
@@ -42,6 +76,8 @@ export function AvailabilitySelector({
   compact = false,
   onChange,
 }: Props) {
+  const { lang } = useApp();
+  const c = COPY[lang];
   const [week, setWeek] = useState<Record<number, Shift>>(initial);
   const [morning, setMorning] = useState(defaultMorning);
   const [afternoon, setAfternoon] = useState(defaultAfternoon);
@@ -75,23 +111,23 @@ export function AvailabilitySelector({
     emit(week, morning, next);
   };
 
-  const morningCount = DAYS.reduce((n, _, i) => n + (hasSlot(week[i] || "off", "morning") ? 1 : 0), 0);
-  const afternoonCount = DAYS.reduce((n, _, i) => n + (hasSlot(week[i] || "off", "afternoon") ? 1 : 0), 0);
-  const totalDays = DAYS.reduce((n, _, i) => n + ((week[i] || "off") !== "off" ? 1 : 0), 0);
+  const morningCount = [0, 1, 2, 3, 4, 5, 6].reduce((n, i) => n + (hasSlot(week[i] || "off", "morning") ? 1 : 0), 0);
+  const afternoonCount = [0, 1, 2, 3, 4, 5, 6].reduce((n, i) => n + (hasSlot(week[i] || "off", "afternoon") ? 1 : 0), 0);
+  const totalDays = [0, 1, 2, 3, 4, 5, 6].reduce((n, i) => n + ((week[i] || "off") !== "off" ? 1 : 0), 0);
 
   return (
     <div className={cn("rounded-2xl border border-mist-200 bg-white", compact ? "p-3.5" : "p-5")}>
       <header className="mb-3 flex items-end justify-between gap-3">
         <div className="min-w-0">
           <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-mist-500">
-            Disponibilidad semanal
+            {c.weekly}
           </div>
           <div className="mt-1 text-sm text-ink-800">
-            <span className="font-semibold text-ink-900">{totalDays}</span> día{totalDays === 1 ? "" : "s"} activo{totalDays === 1 ? "" : "s"}
+            <span className="font-semibold text-ink-900">{totalDays}</span> {totalDays === 1 ? c.dayActive : c.daysActive}
             <span className="text-mist-500"> · </span>
-            <span className="text-brand-700 font-medium">{morningCount} mañana</span>
+            <span className="text-brand-700 font-medium">{morningCount} {c.morningWord}</span>
             <span className="text-mist-400"> · </span>
-            <span className="text-cyan-700 font-medium">{afternoonCount} tarde</span>
+            <span className="text-cyan-700 font-medium">{afternoonCount} {c.afternoonWord}</span>
           </div>
         </div>
       </header>
@@ -99,7 +135,7 @@ export function AvailabilitySelector({
       <div className={cn("grid gap-2.5", compact ? "" : "gap-3")}>
         <ShiftRow
           tone="morning"
-          label="Mañana"
+          label={c.shiftMorning}
           icon={<SunIcon />}
           count={morningCount}
           time={morning}
@@ -111,7 +147,7 @@ export function AvailabilitySelector({
         />
         <ShiftRow
           tone="afternoon"
-          label="Tarde"
+          label={c.shiftAfternoon}
           icon={<MoonIcon />}
           count={afternoonCount}
           time={afternoon}
@@ -126,16 +162,16 @@ export function AvailabilitySelector({
       {!compact && (() => {
         const EMPTY: Record<number, Shift> = { 0: "off", 1: "off", 2: "off", 3: "off", 4: "off", 5: "off", 6: "off" };
         const PRESETS: Array<{ key: string; label: string; map: Record<number, Shift> }> = [
-          { key: "lv-m", label: "L-V mañana", map: { 0: "morning", 1: "morning", 2: "morning", 3: "morning", 4: "morning", 5: "off", 6: "off" } },
-          { key: "lv-t", label: "L-V tardes", map: { 0: "afternoon", 1: "afternoon", 2: "afternoon", 3: "afternoon", 4: "afternoon", 5: "off", 6: "off" } },
-          { key: "all",  label: "Día completo", map: { 0: "both", 1: "both", 2: "both", 3: "both", 4: "both", 5: "off", 6: "off" } },
-          { key: "fds",  label: "Fin de semana", map: { 0: "off", 1: "off", 2: "off", 3: "off", 4: "off", 5: "both", 6: "both" } },
+          { key: "lv-m", label: c.presetLvM, map: { 0: "morning", 1: "morning", 2: "morning", 3: "morning", 4: "morning", 5: "off", 6: "off" } },
+          { key: "lv-t", label: c.presetLvT, map: { 0: "afternoon", 1: "afternoon", 2: "afternoon", 3: "afternoon", 4: "afternoon", 5: "off", 6: "off" } },
+          { key: "all",  label: c.presetFull, map: { 0: "both", 1: "both", 2: "both", 3: "both", 4: "both", 5: "off", 6: "off" } },
+          { key: "fds",  label: c.presetWeekend, map: { 0: "off", 1: "off", 2: "off", 3: "off", 4: "off", 5: "both", 6: "both" } },
         ];
         const sameAsWeek = (m: Record<number, Shift>) =>
           [0, 1, 2, 3, 4, 5, 6].every((i) => (week[i] || "off") === m[i]);
         return (
           <div className="mt-5 flex flex-wrap items-center gap-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-mist-500">Plantillas:</span>
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-mist-500">{c.templates}</span>
             {PRESETS.map((p) => {
               const active = sameAsWeek(p.map);
               return (
@@ -152,7 +188,7 @@ export function AvailabilitySelector({
               );
             })}
             <Preset
-              label="Limpiar"
+              label={c.clear}
               variant="ghost"
               disabled={totalDays === 0}
               onClick={() => { setWeek(EMPTY); emit(EMPTY); }}
@@ -178,6 +214,10 @@ function ShiftRow({
   onSelectAll: (v: boolean) => void;
   compact?: boolean;
 }) {
+  const { lang } = useApp();
+  const c = COPY[lang];
+  const narrow = dayLabels(lang, "narrow");
+  const long = dayLabels(lang, "long");
   const isBrand = tone === "morning";
   const sectionBorder = isBrand ? "border-brand-100" : "border-cyan-100";
   const sectionBg = isBrand ? "bg-brand-50/40" : "bg-cyan-50/40";
@@ -211,18 +251,18 @@ function ShiftRow({
                 ? "bg-white text-brand-700 ring-1 ring-inset ring-brand-200 hover:bg-brand-50"
                 : "bg-white text-cyan-700 ring-1 ring-inset ring-cyan-200 hover:bg-cyan-50"
           )}
-          aria-label={allOn ? `Quitar ${label.toLowerCase()} en toda la semana` : `Activar ${label.toLowerCase()} en toda la semana`}
+          aria-label={`${allOn ? c.weekRemove : c.weekAdd} ${label.toLowerCase()} ${c.weekSuffix}`}
         >
-          {allOn ? "Quitar" : "Todos"}
+          {allOn ? c.removeAll : c.selectAll}
         </button>
       </div>
 
       <div className={cn("mt-3 grid grid-cols-7", compact ? "gap-1" : "gap-1.5")}>
-        {DAYS.map((d, i) => (
+        {narrow.map((d, i) => (
           <DayToggle
-            key={d}
+            key={i}
             label={d}
-            fullLabel={DAY_NAMES_ES[i]}
+            fullLabel={long[i]}
             active={hasSlot(week[i] || "off", tone)}
             tone={tone}
             onClick={() => onToggleDay(i)}
@@ -244,6 +284,8 @@ function DayToggle({
   onClick: () => void;
   compact?: boolean;
 }) {
+  const { lang } = useApp();
+  const c = COPY[lang];
   const isBrand = tone === "morning";
   const activeCls = isBrand
     ? "bg-brand-600 text-white border-brand-600 shadow-[0_4px_12px_-4px_rgba(37,99,235,0.55)]"
@@ -255,7 +297,7 @@ function DayToggle({
     <button
       type="button"
       onClick={onClick}
-      aria-label={`${fullLabel} · ${tone === "morning" ? "mañana" : "tarde"}`}
+      aria-label={`${fullLabel} · ${tone === "morning" ? c.morningWord : c.afternoonWord}`}
       aria-pressed={active}
       title={fullLabel}
       className={cn(
@@ -276,6 +318,8 @@ function TimeRangeCompact({
   time: { start: string; end: string };
   onChange: (key: "start" | "end", v: string) => void;
 }) {
+  const { lang } = useApp();
+  const c = COPY[lang];
   const ring = tone === "morning"
     ? "focus:border-brand-500 focus:ring-brand-500/20"
     : "focus:border-cyan-500 focus:ring-cyan-500/20";
@@ -289,7 +333,7 @@ function TimeRangeCompact({
           "h-6 rounded-md border border-transparent bg-transparent px-1 font-semibold tabular-nums outline-none transition hover:border-mist-200 hover:bg-white focus:ring-2 [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:cursor-pointer",
           ring
         )}
-        aria-label="Hora de inicio"
+        aria-label={c.startTime}
       />
       <span className="text-mist-400">–</span>
       <input
@@ -300,7 +344,7 @@ function TimeRangeCompact({
           "h-6 rounded-md border border-transparent bg-transparent px-1 font-semibold tabular-nums outline-none transition hover:border-mist-200 hover:bg-white focus:ring-2 [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:cursor-pointer",
           ring
         )}
-        aria-label="Hora de fin"
+        aria-label={c.endTime}
       />
     </div>
   );

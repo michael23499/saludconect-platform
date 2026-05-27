@@ -20,7 +20,8 @@ export default async function ClinicaReservasPage() {
   const me = await requireRole("clinic");
   const c = (await getDict()).dashboard.cal;
   const isAdmin = me.profile.role === "admin";
-  const user = buildDashboardUser(me.profile, { isAdmin, roleLabel: "Clínica" });
+  const sh = (await getDict()).dashboard.shell;
+  const user = buildDashboardUser(me.profile, { isAdmin, roleLabel: sh.roleClinic, adminLabel: sh.roleAdmin });
 
   const all: (SurgeryWithCounts & { clinicName?: string })[] = isAdmin
     ? await listAllSurgeriesWithCounts()
@@ -29,7 +30,7 @@ export default async function ClinicaReservasPage() {
   const reserved = all.filter((s) => s.confirmedCount > 0);
 
   return (
-    <DashboardShell role="Clínica" user={user} nav={NAV_CLINICA}>
+    <DashboardShell role={sh.roleClinic} user={user} nav={NAV_CLINICA}>
       <PageHeader
         backHref="/dashboard/clinic"
         backLabel={c.back}

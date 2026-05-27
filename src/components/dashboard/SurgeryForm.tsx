@@ -44,7 +44,7 @@ export function SurgeryForm({
 
   // Estado local solo para el preview en vivo.
   const [clinicId, setClinicId] = useState("");
-  const [title, setTitle] = useState("Microinjerto capilar");
+  const [title, setTitle] = useState(s.specialtyName);
   const [date, setDate] = useState("");
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("17:00");
@@ -60,7 +60,7 @@ export function SurgeryForm({
     <div className="space-y-5">
       <form action={formAction} className="rounded-2xl border border-mist-200 bg-white p-6 md:p-7">
         <header className="mb-5">
-          <Badge tone="brand">Microinjerto capilar</Badge>
+          <Badge tone="brand">{s.specialtyName}</Badge>
           <h2 className="mt-2 text-lg font-semibold tracking-tight text-ink-900">
             {s.formHeading}
           </h2>
@@ -100,7 +100,7 @@ export function SurgeryForm({
                 name="title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="Microinjerto capilar"
+                placeholder={s.specialtyName}
               />
             </Field>
           </div>
@@ -214,7 +214,7 @@ export function SurgeryForm({
           <div className="flex items-start justify-between gap-3">
             <div>
               <div className="text-[15px] font-semibold text-ink-900">
-                {title || "Microinjerto capilar"}
+                {title || s.specialtyName}
               </div>
               <div className="text-xs text-mist-500">
                 {city || s.previewCity} ·{" "}

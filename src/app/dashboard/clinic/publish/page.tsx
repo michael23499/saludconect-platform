@@ -12,13 +12,14 @@ export default async function PublicarCirugiaPage() {
   const me = await requireRole("clinic");
   const t = (await getDict()).dashboard.surgeries;
   const isAdmin = me.profile.role === "admin";
-  const user = buildDashboardUser(me.profile, { isAdmin, roleLabel: "Clínica" });
+  const sh = (await getDict()).dashboard.shell;
+  const user = buildDashboardUser(me.profile, { isAdmin, roleLabel: sh.roleClinic, adminLabel: sh.roleAdmin });
 
   // El admin publica en nombre de una clínica: le ofrecemos el listado.
   const clinics = isAdmin ? await listClinicUsers() : [];
 
   return (
-    <DashboardShell role="Clínica" user={user} nav={NAV_CLINICA}>
+    <DashboardShell role={sh.roleClinic} user={user} nav={NAV_CLINICA}>
       <PageHeader
         backHref="/dashboard/clinic/surgeries"
         backLabel={isAdmin ? t.detailBackAdmin : t.detailBack}

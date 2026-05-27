@@ -1,6 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useApp } from "@/components/providers/Providers";
+
+// Etiquetas del calendario por idioma (los meses/días los formatea Intl con el
+// locale; esto solo cubre los textos propios del componente).
+const LBL = {
+  es: { ph: "Selecciona una fecha", prev: "Mes anterior", next: "Mes siguiente", today: "Hoy", clear: "Limpiar" },
+  en: { ph: "Select a date", prev: "Previous month", next: "Next month", today: "Today", clear: "Clear" },
+};
 
 /**
  * Selector de UNA fecha con calendario popover. Mismo lenguaje visual que el
@@ -17,8 +25,8 @@ export function DatePicker({
   name,
   minToday = false,
   maxToday = false,
-  placeholder = "Selecciona una fecha",
-  locale = "es-ES",
+  placeholder,
+  locale,
   className,
 }: {
   value: string;
@@ -30,6 +38,10 @@ export function DatePicker({
   locale?: string;
   className?: string;
 }) {
+  const { lang } = useApp();
+  const L = LBL[lang];
+  const loc = locale ?? (lang === "en" ? "en-GB" : "es-ES");
+  const ph = placeholder ?? L.ph;
   const [open, setOpen] = useState(false);
   const ref = useClickOutside<HTMLDivElement>(open, () => setOpen(false));
   const selected = parseISO(value);
@@ -47,9 +59,9 @@ export function DatePicker({
     return Array.from({ length: 7 }, (_, i) => {
       const dd = new Date(base);
       dd.setDate(base.getDate() + i);
-      return new Intl.DateTimeFormat(locale, { weekday: "narrow" }).format(dd);
+      return new Intl.DateTimeFormat(loc, { weekday: "narrow" }).format(dd);
     });
-  }, [locale]);
+  }, [loc]);
 
   const grid = useMemo(() => {
     const first = new Date(view.getFullYear(), view.getMonth(), 1);
@@ -79,9 +91,9 @@ export function DatePicker({
   }
 
   const triggerLabel = selected
-    ? new Intl.DateTimeFormat(locale, { weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(selected)
-    : placeholder;
-  const monthLabel = new Intl.DateTimeFormat(locale, { month: "long", year: "numeric" }).format(view);
+    ? new Intl.DateTimeFormat(loc, { weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(selected)
+    : ph;
+  const monthLabel = new Intl.DateTimeFormat(loc, { month: "long", year: "numeric" }).format(view);
 
   return (
     <div className={`relative ${className ?? ""}`} ref={ref}>
@@ -101,11 +113,11 @@ export function DatePicker({
       {open && (
         <div className="absolute left-0 top-full z-30 mt-2 w-[300px] rounded-xl border border-mist-200 bg-white p-3 shadow-[var(--shadow-card)]">
           <div className="mb-2 flex items-center justify-between">
-            <button type="button" onClick={() => setView(new Date(view.getFullYear(), view.getMonth() - 1, 1))} className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-mist-500 transition hover:bg-mist-100 hover:text-ink-800" aria-label="Mes anterior">
+            <button type="button" onClick={() => setView(new Date(view.getFullYear(), view.getMonth() - 1, 1))} className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-mist-500 transition hover:bg-mist-100 hover:text-ink-800" aria-label={L.prev}>
               <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M15 18l-6-6 6-6" /></svg>
             </button>
             <span className="text-sm font-semibold capitalize text-ink-900">{monthLabel}</span>
-            <button type="button" onClick={() => setView(new Date(view.getFullYear(), view.getMonth() + 1, 1))} className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-mist-500 transition hover:bg-mist-100 hover:text-ink-800" aria-label="Mes siguiente">
+            <button type="button" onClick={() => setView(new Date(view.getFullYear(), view.getMonth() + 1, 1))} className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-mist-500 transition hover:bg-mist-100 hover:text-ink-800" aria-label={L.next}>
               <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M9 18l6-6-6-6" /></svg>
             </button>
           </div>
@@ -147,11 +159,11 @@ export function DatePicker({
 
           <div className="mt-2 flex items-center justify-between border-t border-mist-100 pt-2">
             <button type="button" onClick={() => { onChange(iso(today())); setOpen(false); }} className="rounded-lg px-2.5 py-1.5 text-[13px] font-medium text-brand-700 transition hover:bg-brand-50">
-              Hoy
+              {L.today}
             </button>
             {value && (
               <button type="button" onClick={() => { onChange(""); setOpen(false); }} className="rounded-lg px-2.5 py-1.5 text-[13px] font-medium text-mist-500 transition hover:bg-mist-50">
-                Limpiar
+                {L.clear}
               </button>
             )}
           </div>

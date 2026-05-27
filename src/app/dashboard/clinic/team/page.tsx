@@ -16,11 +16,12 @@ export default async function EquipoPage() {
   const me = await requireRole("clinic");
   const m = (await getDict()).dashboard.misc;
   const isAdmin = me.profile.role === "admin";
-  const user = buildDashboardUser(me.profile, { isAdmin, roleLabel: "Clínica" });
+  const sh = (await getDict()).dashboard.shell;
+  const user = buildDashboardUser(me.profile, { isAdmin, roleLabel: sh.roleClinic, adminLabel: sh.roleAdmin });
 
   if (isAdmin) {
     return (
-      <DashboardShell role="Clínica" user={user} nav={NAV_CLINICA}>
+      <DashboardShell role={sh.roleClinic} user={user} nav={NAV_CLINICA}>
         <PageHeader backHref="/dashboard/clinic" backLabel={m.back} title={m.teamTitle} subtitle={m.teamSub} />
         <EmptyState
           icon={

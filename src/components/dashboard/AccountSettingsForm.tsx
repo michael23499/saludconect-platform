@@ -39,6 +39,49 @@ export type AccountData = {
 const FIELD_INPUT =
   "h-11 w-full rounded-lg border border-mist-200 bg-white px-3 text-sm text-ink-800 transition placeholder:text-mist-400 hover:border-mist-300 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100";
 
+const COPY = {
+  es: {
+    clinicProfile: "Perfil de la clínica", proProfile: "Perfil profesional",
+    clinicIntro: "Estos datos son los que ven los técnicos en tus cirugías y el directorio.",
+    proIntro: "Estos datos son los que ven las clínicas en el directorio y tus postulaciones.",
+    changePhoto: "Cambiar foto", uploading: "Subiendo…", photoHint: "JPG, PNG o WebP · máx. 2 MB",
+    clinicName: "Nombre de la clínica", fullName: "Nombre completo",
+    email: "Email", emailHint: "Ligado a tu inicio de sesión, no se edita aquí.",
+    phone: "Teléfono", city: "Ciudad", address: "Dirección", addressPh: "Escribe la dirección y elige una sugerencia…",
+    contact: "Persona de contacto", contactHint: "El responsable del centro. Te saludamos por su nombre en el panel.", contactPh: "Nombre y apellidos del responsable",
+    specialties: "Especialidades", specialtiesHint: "Las áreas que ofrece tu centro. Puedes elegir varias.",
+    website: "Sitio web", websitePh: "https://tuclinica.com",
+    publicDesc: "Descripción pública", publicDescHint: "Cómo te presentas a los técnicos.", publicDescPh: "Cuenta brevemente quién sois, qué tipo de cirugías hacéis…",
+    specialty: "Especialidad", specialtyHint: "Por ahora solo microinjerto capilar.", defaultTechnician: "Técnico capilar",
+    years: "Años de experiencia",
+    rate: "Tarifa orientativa (€/h)", rateHint: "Déjalo vacío para mostrar 'A convenir'.", ratePh: "A convenir",
+    headline: "Titular", headlinePh: "p. ej. Técnica capilar FUE senior",
+    aboutMe: "Sobre mí", aboutMeHint: "Tu presentación para las clínicas.", aboutMePh: "Cuéntales tu experiencia y qué te diferencia…",
+    saved: "Cambios guardados", remember: "Recuerda guardar los cambios antes de salir.",
+    saving: "Guardando…", save: "Guardar cambios",
+  },
+  en: {
+    clinicProfile: "Clinic profile", proProfile: "Professional profile",
+    clinicIntro: "This is what technicians see in your surgeries and in the directory.",
+    proIntro: "This is what clinics see in the directory and in your applications.",
+    changePhoto: "Change photo", uploading: "Uploading…", photoHint: "JPG, PNG or WebP · max. 2 MB",
+    clinicName: "Clinic name", fullName: "Full name",
+    email: "Email", emailHint: "Linked to your sign-in, not editable here.",
+    phone: "Phone", city: "City", address: "Address", addressPh: "Type the address and pick a suggestion…",
+    contact: "Contact person", contactHint: "The person in charge of the centre. We greet them by name in the panel.", contactPh: "Full name of the person in charge",
+    specialties: "Specialties", specialtiesHint: "The areas your centre offers. You can pick several.",
+    website: "Website", websitePh: "https://yourclinic.com",
+    publicDesc: "Public description", publicDescHint: "How you introduce yourself to technicians.", publicDescPh: "Briefly tell who you are and what kind of surgeries you do…",
+    specialty: "Specialty", specialtyHint: "For now, hair transplant only.", defaultTechnician: "Hair technician",
+    years: "Years of experience",
+    rate: "Indicative rate (€/h)", rateHint: "Leave empty to show 'To be agreed'.", ratePh: "To be agreed",
+    headline: "Headline", headlinePh: "e.g. Senior FUE hair technician",
+    aboutMe: "About me", aboutMeHint: "Your pitch for clinics.", aboutMePh: "Tell them your experience and what sets you apart…",
+    saved: "Changes saved", remember: "Remember to save your changes before leaving.",
+    saving: "Saving…", save: "Save changes",
+  },
+};
+
 /**
  * Formulario REAL del panel "Cuenta" de Ajustes (sustituye la maqueta). Edita
  * los datos del usuario en sesión (users) y su perfil extendido según el rol
@@ -48,7 +91,8 @@ const FIELD_INPUT =
  */
 export function AccountSettingsForm({ account }: { account: AccountData }) {
   const router = useRouter();
-  const { t } = useApp();
+  const { t, lang } = useApp();
+  const c = COPY[lang];
   const isClinic = account.role === "clinic";
 
   const [fullName, setFullName] = useState(account.fullName);
@@ -129,12 +173,10 @@ export function AccountSettingsForm({ account }: { account: AccountData }) {
       <section className="rounded-2xl border border-mist-200 bg-white p-6">
         <header className="mb-5">
           <h3 className="text-base font-semibold tracking-tight text-ink-900">
-            {isClinic ? "Perfil de la clínica" : "Perfil profesional"}
+            {isClinic ? c.clinicProfile : c.proProfile}
           </h3>
           <p className="mt-0.5 text-sm text-mist-500">
-            {isClinic
-              ? "Estos datos son los que ven los técnicos en tus cirugías y el directorio."
-              : "Estos datos son los que ven las clínicas en el directorio y tus postulaciones."}
+            {isClinic ? c.clinicIntro : c.proIntro}
           </p>
         </header>
 
@@ -145,7 +187,7 @@ export function AccountSettingsForm({ account }: { account: AccountData }) {
             onClick={() => fileRef.current?.click()}
             disabled={uploading}
             className="group relative rounded-full disabled:opacity-70"
-            aria-label="Cambiar foto"
+            aria-label={c.changePhoto}
           >
             <Avatar name={fullName || account.email} src={avatarUrl ?? undefined} size="xl" ring="ring-2 ring-mist-200" />
             <span className="absolute inset-0 flex items-center justify-center rounded-full bg-ink-950/50 opacity-0 transition group-hover:opacity-100">
@@ -158,32 +200,32 @@ export function AccountSettingsForm({ account }: { account: AccountData }) {
           <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={onAvatarChange} />
           <div className="flex flex-col gap-2">
             <Button type="button" variant="secondary" size="sm" onClick={() => fileRef.current?.click()} disabled={uploading}>
-              {uploading ? "Subiendo…" : "Cambiar foto"}
+              {uploading ? c.uploading : c.changePhoto}
             </Button>
-            <span className="text-xs text-mist-500">JPG, PNG o WebP · máx. 2 MB</span>
+            <span className="text-xs text-mist-500">{c.photoHint}</span>
           </div>
         </div>
 
         {/* Campos */}
         <div className="mt-6 grid gap-4 md:grid-cols-2">
-          <Field label={isClinic ? "Nombre de la clínica" : "Nombre completo"}>
+          <Field label={isClinic ? c.clinicName : c.fullName}>
             <Input value={fullName} onChange={(e) => setFullName(e.target.value)} />
           </Field>
-          <Field label="Email" hint="Ligado a tu inicio de sesión, no se edita aquí.">
+          <Field label={c.email} hint={c.emailHint}>
             <Input value={account.email} disabled className="opacity-70" />
           </Field>
-          <Field label="Teléfono">
+          <Field label={c.phone}>
             <Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+34 600 000 000" />
           </Field>
-          <Field label="Ciudad">
+          <Field label={c.city}>
             <Input value={city} onChange={(e) => setCity(e.target.value)} />
           </Field>
           <div className="md:col-span-2">
-            <Field label="Dirección">
+            <Field label={c.address}>
               <AddressAutocomplete
                 value={address}
                 inputClassName={FIELD_INPUT}
-                placeholder="Escribe la dirección y elige una sugerencia…"
+                placeholder={c.addressPh}
                 onTextChange={setAddress}
                 onSelect={(r) => {
                   setAddress(r.address);
@@ -198,12 +240,12 @@ export function AccountSettingsForm({ account }: { account: AccountData }) {
           {isClinic ? (
             <>
               <div className="md:col-span-2">
-                <Field label="Persona de contacto" hint="El responsable del centro. Te saludamos por su nombre en el panel.">
-                  <Input value={contactName} onChange={(e) => setContactName(e.target.value)} placeholder="Nombre y apellidos del responsable" />
+                <Field label={c.contact} hint={c.contactHint}>
+                  <Input value={contactName} onChange={(e) => setContactName(e.target.value)} placeholder={c.contactPh} />
                 </Field>
               </div>
               <div className="md:col-span-2">
-                <Field label="Especialidades" hint="Las áreas que ofrece tu centro. Puedes elegir varias.">
+                <Field label={c.specialties} hint={c.specialtiesHint}>
                   <MultiSelectMenu
                     options={t.register.specialties}
                     values={specialties}
@@ -213,13 +255,13 @@ export function AccountSettingsForm({ account }: { account: AccountData }) {
                 </Field>
               </div>
               <div className="md:col-span-2">
-                <Field label="Sitio web">
-                  <Input type="url" value={website} onChange={(e) => setWebsite(e.target.value)} placeholder="https://tuclinica.com" />
+                <Field label={c.website}>
+                  <Input type="url" value={website} onChange={(e) => setWebsite(e.target.value)} placeholder={c.websitePh} />
                 </Field>
               </div>
               <div className="md:col-span-2">
-                <Field label="Descripción pública" hint="Cómo te presentas a los técnicos.">
-                  <Textarea value={about} onChange={(e) => setAbout(e.target.value)} placeholder="Cuenta brevemente quién sois, qué tipo de cirugías hacéis…" />
+                <Field label={c.publicDesc} hint={c.publicDescHint}>
+                  <Textarea value={about} onChange={(e) => setAbout(e.target.value)} placeholder={c.publicDescPh} />
                 </Field>
               </div>
             </>
@@ -235,23 +277,23 @@ export function AccountSettingsForm({ account }: { account: AccountData }) {
                   ]}
                 />
               </Field>
-              <Field label="Especialidad" hint="Por ahora solo microinjerto capilar.">
-                <Input value={account.specialtyName ?? "Técnico capilar"} disabled className="opacity-70" />
+              <Field label={c.specialty} hint={c.specialtyHint}>
+                <Input value={account.specialtyName ?? c.defaultTechnician} disabled className="opacity-70" />
               </Field>
-              <Field label="Años de experiencia">
+              <Field label={c.years}>
                 <Input type="number" min="0" value={years} onChange={(e) => setYears(e.target.value)} placeholder="0" />
               </Field>
-              <Field label="Tarifa orientativa (€/h)" hint="Déjalo vacío para mostrar 'A convenir'.">
-                <Input type="number" min="0" value={rate} onChange={(e) => setRate(e.target.value)} placeholder="A convenir" />
+              <Field label={c.rate} hint={c.rateHint}>
+                <Input type="number" min="0" value={rate} onChange={(e) => setRate(e.target.value)} placeholder={c.ratePh} />
               </Field>
               <div className="md:col-span-2">
-                <Field label="Titular">
-                  <Input value={headline} onChange={(e) => setHeadline(e.target.value)} placeholder="p. ej. Técnica capilar FUE senior" />
+                <Field label={c.headline}>
+                  <Input value={headline} onChange={(e) => setHeadline(e.target.value)} placeholder={c.headlinePh} />
                 </Field>
               </div>
               <div className="md:col-span-2">
-                <Field label="Sobre mí" hint="Tu presentación para las clínicas.">
-                  <Textarea value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Cuéntales tu experiencia y qué te diferencia…" />
+                <Field label={c.aboutMe} hint={c.aboutMeHint}>
+                  <Textarea value={bio} onChange={(e) => setBio(e.target.value)} placeholder={c.aboutMePh} />
                 </Field>
               </div>
             </>
@@ -264,16 +306,16 @@ export function AccountSettingsForm({ account }: { account: AccountData }) {
           {msg?.ok ? (
             <span className="inline-flex items-center gap-1.5 text-emerald-700">
               <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6"><path d="M5 12l4.5 4.5L19 7" /></svg>
-              Cambios guardados
+              {c.saved}
             </span>
           ) : msg?.error ? (
             <span className="text-red-600">{msg.error}</span>
           ) : (
-            <span className="text-mist-500">Recuerda guardar los cambios antes de salir.</span>
+            <span className="text-mist-500">{c.remember}</span>
           )}
         </div>
         <Button type="submit" size="sm" disabled={pending}>
-          {pending ? "Guardando…" : "Guardar cambios"}
+          {pending ? c.saving : c.save}
         </Button>
       </div>
     </form>

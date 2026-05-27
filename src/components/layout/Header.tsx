@@ -126,7 +126,7 @@ export function Header({ user, unread = 0 }: { user: HeaderUser | null; unread?:
           <button
             type="button"
             onClick={() => setOpen((s) => !s)}
-            aria-label={open ? "Cerrar menú" : "Abrir menú"}
+            aria-label={open ? t.common.closeMenu : t.common.openMenu}
             aria-expanded={open}
             aria-controls="mobile-menu"
             className="relative z-10 inline-flex h-10 w-10 items-center justify-center rounded-xl border border-mist-200 text-ink-800 transition hover:bg-mist-50"
@@ -149,7 +149,7 @@ export function Header({ user, unread = 0 }: { user: HeaderUser | null; unread?:
         {/* Backdrop */}
         <button
           type="button"
-          aria-label="Cerrar menú"
+          aria-label={t.common.closeMenu}
           tabIndex={open ? 0 : -1}
           onClick={() => setOpen(false)}
           className={cn(
@@ -202,6 +202,7 @@ export function Header({ user, unread = 0 }: { user: HeaderUser | null; unread?:
 }
 
 function NotificationBell({ href, unread }: { href: string; unread: number }) {
+  const { t } = useApp();
   // `unread` (del servidor) es el valor inicial; a partir de ahí lo mantenemos
   // al día por sondeo, ya que el proyecto no tiene realtime.
   const [count, setCount] = useState(unread);
@@ -246,7 +247,7 @@ function NotificationBell({ href, unread }: { href: string; unread: number }) {
   return (
     <Link
       href={href}
-      aria-label={`Notificaciones${count > 0 ? ` (${count} sin leer)` : ""}`}
+      aria-label={`${t.common.notifications}${count > 0 ? ` (${count} ${t.common.unread})` : ""}`}
       className="relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-mist-200 bg-white text-ink-700 transition hover:bg-mist-50"
     >
       <svg className={cn("h-[18px] w-[18px]", ring && "animate-bell")} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -338,13 +339,14 @@ function LangSwitch({ lang, onChange }: { lang: "es" | "en"; onChange: (l: "es" 
 }
 
 function ThemeSwitch({ theme, onToggle }: { theme: "light" | "dark"; onToggle: () => void }) {
+  const { t } = useApp();
   const isDark = theme === "dark";
   return (
     <button
       type="button"
       role="switch"
       aria-checked={isDark}
-      aria-label={isDark ? "Cambiar a tema claro" : "Cambiar a tema oscuro"}
+      aria-label={isDark ? t.common.toLight : t.common.toDark}
       onClick={onToggle}
       className={cn(
         "relative inline-flex h-9 w-[68px] items-center rounded-full border p-0.5 transition-colors duration-300",

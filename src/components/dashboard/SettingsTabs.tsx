@@ -6,31 +6,93 @@ import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Input";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 import { AccountSettingsForm, type AccountData } from "@/components/dashboard/AccountSettingsForm";
+import { useApp } from "@/components/providers/Providers";
 import { changeMyPasswordAction } from "@backend/actions/settings";
 
 type Role = "clinic" | "professional";
 type Tab = "cuenta" | "notif" | "seguridad" | "integraciones" | "facturacion";
 
-const TABS_BY_ROLE: Record<Role, Array<{ key: Tab; label: string; icon: React.ReactNode }>> = {
-  clinic: [
-    { key: "cuenta", label: "Cuenta", icon: <IconUser /> },
-    { key: "notif", label: "Notificaciones", icon: <IconBell /> },
-    { key: "seguridad", label: "Seguridad", icon: <IconShield /> },
-    { key: "integraciones", label: "Integraciones", icon: <IconPlug /> },
-    { key: "facturacion", label: "Facturación", icon: <IconCard /> },
-  ],
-  professional: [
-    { key: "cuenta", label: "Cuenta", icon: <IconUser /> },
-    { key: "notif", label: "Notificaciones", icon: <IconBell /> },
-    { key: "facturacion", label: "Pagos y cobros", icon: <IconCard /> },
-    { key: "seguridad", label: "Seguridad", icon: <IconShield /> },
-    { key: "integraciones", label: "Integraciones", icon: <IconPlug /> },
-  ],
+const COPY = {
+  es: {
+    tabAccount: "Cuenta", tabNotif: "Notificaciones", tabSecurity: "Seguridad",
+    tabIntegrations: "Integraciones", tabBilling: "Facturación", tabPayments: "Pagos y cobros",
+    comingSoon: "Próximamente",
+    notifTitle: "Cómo te avisamos", notifSubtitle: "Estos son los avisos que SaludCoNet envía hoy.",
+    notifAppBold: "Notificaciones en la app", notifAppRest: " (la campana) por cada evento: nuevas cirugías, postulaciones, confirmaciones, invitaciones y cambios.",
+    notifEmailBold: "Email automático", notifEmailRest: " en los eventos importantes, al correo de tu cuenta.",
+    notifPrefsTitle: "Preferencias por canal, push y SMS", notifPrefsDesc: "Elegir qué recibir por cada vía y un resumen diario.",
+    secPwdTitle: "Cambiar contraseña", secPwdSubtitle: "Mínimo 8 caracteres. No pedimos la actual: tu sesión ya te identifica.",
+    secNewPwd: "Nueva contraseña", secNewPwdPh: "Mínimo 8 caracteres", secRepeat: "Repetir nueva", secRepeatPh: "Repite tu contraseña",
+    secSaving: "Guardando…", secChange: "Cambiar contraseña", secUpdated: "Contraseña actualizada",
+    secErrShort: "La contraseña debe tener al menos 8 caracteres.", secErrMismatch: "Las contraseñas no coinciden.",
+    sec2faTitle: "Autenticación en dos pasos (2FA)", sec2faSubtitle: "Una capa extra de seguridad al iniciar sesión.",
+    sec2faName: "App autenticadora y código por SMS", sec2faDesc: "Pediremos un código adicional al iniciar sesión.",
+    secDelTitle: "Eliminar cuenta", secDelSubtitle: "Si necesitas darte de baja, lo gestionamos contigo.",
+    secDelText: "Por seguridad, la eliminación de cuenta y de tus datos se gestiona con nuestro equipo. Escríbenos y lo tramitamos.",
+    secDelCta: "Solicitar eliminación de cuenta",
+    intTitle: "Integraciones", intSubtitle: "Conectaremos SaludCoNet con las herramientas que ya usas.",
+    intClinicCal: "Sincroniza tus cirugías con tu calendario", intClinicStripe: "Cobro con tarjeta y SEPA",
+    intClinicPaypal: "Pago con PayPal", intClinicWebhooks: "Recibe eventos en tu endpoint HTTP",
+    intProCal: "Sincroniza tu disponibilidad y reservas", intProApple: "Suscripción .ics de solo lectura",
+    intProStripe: "Recibe pagos directamente en tu cuenta", intProWhatsapp: "Notificaciones en tu WhatsApp",
+    billTitle: "Tu plan y facturas", billSubtitle: "La gestión completa está en la sección Suscripción.", billCta: "Ir a Suscripción →",
+    payTitle: "Pagos y cobros", paySubtitle: "Aquí gestionarás tus cobros por las jornadas completadas.",
+    payAutoTitle: "Cobros automáticos",
+    payText: "Cuando habilitemos los pagos podrás añadir tu cuenta bancaria y recibir el cobro tras cada jornada. Mientras tanto, la tarifa se acuerda directamente con la clínica.",
+  },
+  en: {
+    tabAccount: "Account", tabNotif: "Notifications", tabSecurity: "Security",
+    tabIntegrations: "Integrations", tabBilling: "Billing", tabPayments: "Payments",
+    comingSoon: "Coming soon",
+    notifTitle: "How we notify you", notifSubtitle: "These are the alerts SaludCoNet sends today.",
+    notifAppBold: "In-app notifications", notifAppRest: " (the bell) for every event: new surgeries, applications, confirmations, invitations and changes.",
+    notifEmailBold: "Automatic email", notifEmailRest: " for important events, to your account email.",
+    notifPrefsTitle: "Per-channel preferences, push and SMS", notifPrefsDesc: "Choose what to receive on each channel and a daily digest.",
+    secPwdTitle: "Change password", secPwdSubtitle: "At least 8 characters. We don't ask for your current one: your session already identifies you.",
+    secNewPwd: "New password", secNewPwdPh: "At least 8 characters", secRepeat: "Repeat new", secRepeatPh: "Repeat your password",
+    secSaving: "Saving…", secChange: "Change password", secUpdated: "Password updated",
+    secErrShort: "The password must be at least 8 characters.", secErrMismatch: "The passwords don't match.",
+    sec2faTitle: "Two-factor authentication (2FA)", sec2faSubtitle: "An extra layer of security when signing in.",
+    sec2faName: "Authenticator app and SMS code", sec2faDesc: "We'll ask for an additional code when signing in.",
+    secDelTitle: "Delete account", secDelSubtitle: "If you need to close your account, we'll handle it with you.",
+    secDelText: "For security, account and data deletion is handled by our team. Write to us and we'll process it.",
+    secDelCta: "Request account deletion",
+    intTitle: "Integrations", intSubtitle: "We'll connect SaludCoNet with the tools you already use.",
+    intClinicCal: "Sync your surgeries with your calendar", intClinicStripe: "Card and SEPA payments",
+    intClinicPaypal: "Pay with PayPal", intClinicWebhooks: "Receive events on your HTTP endpoint",
+    intProCal: "Sync your availability and bookings", intProApple: "Read-only .ics subscription",
+    intProStripe: "Receive payments directly in your account", intProWhatsapp: "Notifications on your WhatsApp",
+    billTitle: "Your plan and invoices", billSubtitle: "Full management is in the Subscription section.", billCta: "Go to Subscription →",
+    payTitle: "Payments", paySubtitle: "Here you'll manage your payouts for completed shifts.",
+    payAutoTitle: "Automatic payouts",
+    payText: "Once we enable payments you'll be able to add your bank account and get paid after each shift. In the meantime, the rate is agreed directly with the clinic.",
+  },
 };
 
+type Copy = typeof COPY.es;
+
 export function SettingsTabs({ role = "clinic", account }: { role?: Role; account: AccountData }) {
+  const { lang } = useApp();
+  const c = COPY[lang];
   const [active, setActive] = useState<Tab>("cuenta");
-  const tabs = TABS_BY_ROLE[role];
+
+  const tabsByRole: Record<Role, Array<{ key: Tab; label: string; icon: React.ReactNode }>> = {
+    clinic: [
+      { key: "cuenta", label: c.tabAccount, icon: <IconUser /> },
+      { key: "notif", label: c.tabNotif, icon: <IconBell /> },
+      { key: "seguridad", label: c.tabSecurity, icon: <IconShield /> },
+      { key: "integraciones", label: c.tabIntegrations, icon: <IconPlug /> },
+      { key: "facturacion", label: c.tabBilling, icon: <IconCard /> },
+    ],
+    professional: [
+      { key: "cuenta", label: c.tabAccount, icon: <IconUser /> },
+      { key: "notif", label: c.tabNotif, icon: <IconBell /> },
+      { key: "facturacion", label: c.tabPayments, icon: <IconCard /> },
+      { key: "seguridad", label: c.tabSecurity, icon: <IconShield /> },
+      { key: "integraciones", label: c.tabIntegrations, icon: <IconPlug /> },
+    ],
+  };
+  const tabs = tabsByRole[role];
 
   return (
     <div className="grid gap-6 lg:grid-cols-[220px_1fr]">
@@ -63,36 +125,36 @@ export function SettingsTabs({ role = "clinic", account }: { role?: Role; accoun
 
       <div>
         {active === "cuenta" && <AccountSettingsForm account={account} />}
-        {active === "notif" && <NotificationsPanel />}
-        {active === "seguridad" && <SecurityPanel />}
-        {active === "integraciones" && <IntegrationsPanel role={role} />}
-        {active === "facturacion" && (role === "clinic" ? <BillingPanel /> : <PaymentsPanelPro />)}
+        {active === "notif" && <NotificationsPanel c={c} />}
+        {active === "seguridad" && <SecurityPanel c={c} />}
+        {active === "integraciones" && <IntegrationsPanel role={role} c={c} />}
+        {active === "facturacion" && (role === "clinic" ? <BillingPanel c={c} /> : <PaymentsPanelPro c={c} />)}
       </div>
     </div>
   );
 }
 
 /* -------------------- Notificaciones (honesto) -------------------- */
-function NotificationsPanel() {
+function NotificationsPanel({ c }: { c: Copy }) {
   return (
     <div className="space-y-6">
-      <Panel title="Cómo te avisamos" subtitle="Estos son los avisos que SaludCoNet envía hoy.">
+      <Panel title={c.notifTitle} subtitle={c.notifSubtitle}>
         <ul className="space-y-3 text-sm text-ink-800">
           <li className="flex items-start gap-2.5">
             <CheckDot />
-            <span><b>Notificaciones en la app</b> (la campana) por cada evento: nuevas cirugías, postulaciones, confirmaciones, invitaciones y cambios.</span>
+            <span><b>{c.notifAppBold}</b>{c.notifAppRest}</span>
           </li>
           <li className="flex items-start gap-2.5">
             <CheckDot />
-            <span><b>Email automático</b> en los eventos importantes, al correo de tu cuenta.</span>
+            <span><b>{c.notifEmailBold}</b>{c.notifEmailRest}</span>
           </li>
         </ul>
         <div className="mt-5 flex items-center justify-between gap-4 rounded-xl border border-mist-200 bg-mist-50/40 p-4">
           <div className="min-w-0">
-            <div className="text-sm font-semibold text-ink-900">Preferencias por canal, push y SMS</div>
-            <div className="text-xs text-mist-500">Elegir qué recibir por cada vía y un resumen diario.</div>
+            <div className="text-sm font-semibold text-ink-900">{c.notifPrefsTitle}</div>
+            <div className="text-xs text-mist-500">{c.notifPrefsDesc}</div>
           </div>
-          <Badge tone="warning">Próximamente</Badge>
+          <Badge tone="warning">{c.comingSoon}</Badge>
         </div>
       </Panel>
     </div>
@@ -100,7 +162,7 @@ function NotificationsPanel() {
 }
 
 /* -------------------- Seguridad -------------------- */
-function SecurityPanel() {
+function SecurityPanel({ c }: { c: Copy }) {
   const [newPwd, setNewPwd] = useState("");
   const [confirm, setConfirm] = useState("");
   const [pending, startTransition] = useTransition();
@@ -110,11 +172,11 @@ function SecurityPanel() {
     e.preventDefault();
     setMsg(null);
     if (newPwd.length < 8) {
-      setMsg({ error: "La contraseña debe tener al menos 8 caracteres." });
+      setMsg({ error: c.secErrShort });
       return;
     }
     if (newPwd !== confirm) {
-      setMsg({ error: "Las contraseñas no coinciden." });
+      setMsg({ error: c.secErrMismatch });
       return;
     }
     startTransition(async () => {
@@ -131,21 +193,21 @@ function SecurityPanel() {
   return (
     <div className="space-y-6">
       <form onSubmit={changePwd}>
-        <Panel title="Cambiar contraseña" subtitle="Mínimo 8 caracteres. No pedimos la actual: tu sesión ya te identifica.">
+        <Panel title={c.secPwdTitle} subtitle={c.secPwdSubtitle}>
           <div className="grid gap-4 md:grid-cols-2">
-            <Field label="Nueva contraseña">
-              <PasswordInput value={newPwd} onChange={(e) => setNewPwd(e.target.value)} placeholder="Mínimo 8 caracteres" autoComplete="new-password" />
+            <Field label={c.secNewPwd}>
+              <PasswordInput value={newPwd} onChange={(e) => setNewPwd(e.target.value)} placeholder={c.secNewPwdPh} autoComplete="new-password" />
             </Field>
-            <Field label="Repetir nueva">
-              <PasswordInput value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder="Repite tu contraseña" autoComplete="new-password" />
+            <Field label={c.secRepeat}>
+              <PasswordInput value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder={c.secRepeatPh} autoComplete="new-password" />
             </Field>
           </div>
           <div className="mt-4 flex flex-wrap items-center gap-3">
-            <Button type="submit" size="sm" disabled={pending}>{pending ? "Guardando…" : "Cambiar contraseña"}</Button>
+            <Button type="submit" size="sm" disabled={pending}>{pending ? c.secSaving : c.secChange}</Button>
             {msg?.ok && (
               <span className="inline-flex items-center gap-1.5 text-xs text-emerald-700">
                 <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6"><path d="M5 12l4.5 4.5L19 7" /></svg>
-                Contraseña actualizada
+                {c.secUpdated}
               </span>
             )}
             {msg?.error && <span className="text-xs text-red-600">{msg.error}</span>}
@@ -153,25 +215,25 @@ function SecurityPanel() {
         </Panel>
       </form>
 
-      <Panel title="Autenticación en dos pasos (2FA)" subtitle="Una capa extra de seguridad al iniciar sesión.">
+      <Panel title={c.sec2faTitle} subtitle={c.sec2faSubtitle}>
         <div className="flex items-center justify-between gap-4 rounded-xl border border-mist-200 bg-mist-50/40 p-4">
           <div className="min-w-0">
-            <div className="text-sm font-semibold text-ink-900">App autenticadora y código por SMS</div>
-            <div className="text-xs text-mist-500">Pediremos un código adicional al iniciar sesión.</div>
+            <div className="text-sm font-semibold text-ink-900">{c.sec2faName}</div>
+            <div className="text-xs text-mist-500">{c.sec2faDesc}</div>
           </div>
-          <Badge tone="warning">Próximamente</Badge>
+          <Badge tone="warning">{c.comingSoon}</Badge>
         </div>
       </Panel>
 
-      <Panel title="Eliminar cuenta" subtitle="Si necesitas darte de baja, lo gestionamos contigo.">
+      <Panel title={c.secDelTitle} subtitle={c.secDelSubtitle}>
         <p className="mb-4 text-sm text-mist-500">
-          Por seguridad, la eliminación de cuenta y de tus datos se gestiona con nuestro equipo. Escríbenos y lo tramitamos.
+          {c.secDelText}
         </p>
         <a
           href="/contact"
           className="inline-flex h-10 items-center justify-center rounded-xl border border-red-200 bg-red-50 px-4 text-sm font-semibold text-red-700 transition hover:bg-red-100 dark:border-red-400/30 dark:bg-red-500/10 dark:text-red-300"
         >
-          Solicitar eliminación de cuenta
+          {c.secDelCta}
         </a>
       </Panel>
     </div>
@@ -179,24 +241,24 @@ function SecurityPanel() {
 }
 
 /* -------------------- Integraciones (honesto) -------------------- */
-function IntegrationsPanel({ role = "clinic" }: { role?: Role }) {
+function IntegrationsPanel({ role = "clinic", c }: { role?: Role; c: Copy }) {
   const integrations = role === "clinic"
     ? [
-        { name: "Google Calendar", desc: "Sincroniza tus cirugías con tu calendario", status: "proximamente" },
-        { name: "Stripe", desc: "Cobro con tarjeta y SEPA", status: "proximamente" },
-        { name: "PayPal", desc: "Pago con PayPal", status: "proximamente" },
-        { name: "Webhooks", desc: "Recibe eventos en tu endpoint HTTP", status: "proximamente" },
+        { name: "Google Calendar", desc: c.intClinicCal },
+        { name: "Stripe", desc: c.intClinicStripe },
+        { name: "PayPal", desc: c.intClinicPaypal },
+        { name: "Webhooks", desc: c.intClinicWebhooks },
       ]
     : [
-        { name: "Google Calendar", desc: "Sincroniza tu disponibilidad y reservas", status: "proximamente" },
-        { name: "Apple Calendar", desc: "Suscripción .ics de solo lectura", status: "proximamente" },
-        { name: "Stripe Connect", desc: "Recibe pagos directamente en tu cuenta", status: "proximamente" },
-        { name: "WhatsApp Business", desc: "Notificaciones en tu WhatsApp", status: "proximamente" },
+        { name: "Google Calendar", desc: c.intProCal },
+        { name: "Apple Calendar", desc: c.intProApple },
+        { name: "Stripe Connect", desc: c.intProStripe },
+        { name: "WhatsApp Business", desc: c.intProWhatsapp },
       ];
 
   return (
     <div className="space-y-6">
-      <Panel title="Integraciones" subtitle="Conectaremos SaludCoNet con las herramientas que ya usas.">
+      <Panel title={c.intTitle} subtitle={c.intSubtitle}>
         <div className="grid gap-3 md:grid-cols-2">
           {integrations.map((it) => (
             <div key={it.name} className="flex items-start gap-3 rounded-xl border border-mist-200 bg-mist-50/40 p-4">
@@ -206,7 +268,7 @@ function IntegrationsPanel({ role = "clinic" }: { role?: Role }) {
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   <div className="truncate text-sm font-semibold text-ink-900">{it.name}</div>
-                  <span className="text-[10px] font-medium uppercase tracking-wide text-mist-400">Próximamente</span>
+                  <span className="text-[10px] font-medium uppercase tracking-wide text-mist-400">{c.comingSoon}</span>
                 </div>
                 <div className="text-xs text-mist-500">{it.desc}</div>
               </div>
@@ -219,15 +281,15 @@ function IntegrationsPanel({ role = "clinic" }: { role?: Role }) {
 }
 
 /* -------------------- Facturación · Clínica -------------------- */
-function BillingPanel() {
+function BillingPanel({ c }: { c: Copy }) {
   return (
     <div className="space-y-6">
-      <Panel title="Tu plan y facturas" subtitle="La gestión completa está en la sección Suscripción.">
+      <Panel title={c.billTitle} subtitle={c.billSubtitle}>
         <a
           href="/dashboard/clinic/subscription"
           className="inline-flex h-11 items-center justify-center rounded-full bg-brand-600 px-5 text-sm font-semibold text-white shadow-[0_8px_20px_-8px_rgba(37,99,235,0.6)] hover:bg-brand-700"
         >
-          Ir a Suscripción →
+          {c.billCta}
         </a>
       </Panel>
     </div>
@@ -235,21 +297,21 @@ function BillingPanel() {
 }
 
 /* -------------------- Pagos y cobros · Profesional (honesto) -------------------- */
-function PaymentsPanelPro() {
+function PaymentsPanelPro({ c }: { c: Copy }) {
   return (
     <div className="space-y-6">
-      <Panel title="Pagos y cobros" subtitle="Aquí gestionarás tus cobros por las jornadas completadas.">
+      <Panel title={c.payTitle} subtitle={c.paySubtitle}>
         <div className="flex items-start gap-3 rounded-xl border border-brand-100 bg-brand-50/50 p-4 dark:border-brand-400/30 dark:bg-brand-500/10">
           <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-brand-700 ring-1 ring-brand-200 dark:bg-brand-500/20 dark:text-cyan-200 dark:ring-brand-400/30">
             <IconCard />
           </span>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold text-ink-900">Cobros automáticos</span>
-              <Badge tone="warning">Próximamente</Badge>
+              <span className="text-sm font-semibold text-ink-900">{c.payAutoTitle}</span>
+              <Badge tone="warning">{c.comingSoon}</Badge>
             </div>
             <p className="mt-1 text-sm text-mist-500">
-              Cuando habilitemos los pagos podrás añadir tu cuenta bancaria y recibir el cobro tras cada jornada. Mientras tanto, la tarifa se acuerda directamente con la clínica.
+              {c.payText}
             </p>
           </div>
         </div>

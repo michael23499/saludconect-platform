@@ -107,10 +107,25 @@
   @media print {
     body { background: #fff; }
     .toolbar { display: none; }
-    .sheet { box-shadow: none; margin: 0; max-width: none; border-radius: 0; padding: 14px 22px; }
+    .sheet { box-shadow: none; margin: 0; max-width: none; border-radius: 0; padding: 8px 20px; }
     [contenteditable]:hover, [contenteditable]:focus { background: transparent; box-shadow: none; }
     input.amount { border-color: transparent !important; }
-    @page { size: A4; margin: 9mm; }
+    @page { size: A4; margin: 7mm; }
+
+    /* Compactar para que todo quepa en una sola página */
+    .parties { margin-top: 12px; }
+    .party { padding: 8px 12px; }
+    table.items { margin-top: 12px; }
+    table.items thead th { padding: 6px 12px; }
+    table.items tbody td { padding: 3px 12px; }
+    .concept-t { font-size: 11px; }
+    .concept-d { font-size: 9px; margin-top: 1px; }
+    .summary { margin-top: 12px; }
+    .notes { padding: 9px 12px; }
+    .grand { padding: 9px 16px; }
+    .grand .amt { font-size: 19px; }
+    .foot { margin-top: 10px; padding-top: 8px; }
+    .sheet, table.items, table.items tr, .summary { page-break-inside: avoid; }
   }
 </style>
   </head>
@@ -197,16 +212,21 @@
     </div>
 
     <script>
-  // Partidas: [concepto, descripción, importe €] — suman 120 €
+  // Partidas: [concepto, descripción, importe €] — suman 150 €
   var ITEMS = [
-    ["Landing / página de inicio", "Hero, secciones, CTAs y diseño responsive.", 25],
-    ["Base de datos (Supabase + Drizzle)", "Configuración en Supabase, esquema con Drizzle ORM y conexión.", 20],
-    ["Rediseño de la sección de precios", "Plan destacado, cinta “Recomendado”, CTA y animación de características.", 18],
-    ["Corrección y mejora del menú móvil", "Despliegue, fondo oscuro, bloqueo de scroll, Escape y accesibilidad.", 17],
-    ["Plantillas de email transaccional", "Maquetación responsive de los correos de recuperación y magic link.", 15],
-    ["Footer profesional", "Limpieza del pie y corrección de datos de contacto.", 10],
-    ["Favicon con el logo nuevo", "Favicon (16/32/48 px) a partir del logo SC+.", 8],
-    ["Conmutadores de idioma y tema", "Selectores ES/EN y claro/oscuro en el menú.", 7]
+    ["Landing / página web pública", "Hero, secciones, CTAs, sección de precios y diseño responsive completo.", 24],
+    ["Base de datos (Supabase + Drizzle)", "Configuración en Supabase, esquema con Drizzle ORM, migraciones y conexión.", 16],
+    ["Logo, identidad de marca y favicon", "Logo SaludCoNet (navy + cian), paleta de marca y favicon (16/32/48 px).", 14],
+    ["Despliegues e infraestructura", "Puestas en producción, dominios, configuración de correos y entornos.", 14],
+    ["Autenticación y registro", "Alta de cuentas y perfiles por rol, magic link, recuperación y sesión.", 14],
+    ["Panel de administración", "Gestión de usuarios (tabla, filtros, acciones, export) y notificaciones con campana.", 13],
+    ["Internacionalización ES/EN", "Web pública, dashboard, registro, legales y footer traducidos.", 10],
+    ["Modo claro/oscuro y conmutadores", "Tema claro/oscuro y selectores de idioma y tema en el menú.", 8],
+    ["Consentimiento de cookies (RGPD)", "Barra de consentimiento granular y persistencia de preferencias.", 8],
+    ["Formulario de contacto", "Envío de correo a info@ con notificación in-app a administradores.", 8],
+    ["Plantillas de email transaccional", "Maquetación responsive de los correos de recuperación y magic link.", 7],
+    ["Rediseño de la sección de precios", "Plan destacado, cinta “Recomendado”, CTA y animación de características.", 7],
+    ["Menú móvil y mejoras de UI", "Despliegue, bloqueo de scroll, Escape, accesibilidad y footer profesional.", 7]
   ];
 
   var fmt = new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" });

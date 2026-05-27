@@ -21,7 +21,8 @@ export default async function ClinicaCalendarioPage() {
   const me = await requireRole("clinic");
   const c = (await getDict()).dashboard.cal;
   const isAdmin = me.profile.role === "admin";
-  const user = buildDashboardUser(me.profile, { isAdmin, roleLabel: "Clínica" });
+  const sh = (await getDict()).dashboard.shell;
+  const user = buildDashboardUser(me.profile, { isAdmin, roleLabel: sh.roleClinic, adminLabel: sh.roleAdmin });
 
   const specialty = await getSpecialtyBySlug(CAPILAR_SLUG);
   const [openSlots, myBookings] = await Promise.all([
@@ -47,7 +48,7 @@ export default async function ClinicaCalendarioPage() {
   }));
 
   return (
-    <DashboardShell role="Clínica" user={user} nav={NAV_CLINICA}>
+    <DashboardShell role={sh.roleClinic} user={user} nav={NAV_CLINICA}>
       {isAdmin && <SupervisionBanner />}
       <PageHeader
         backHref="/dashboard/clinic"

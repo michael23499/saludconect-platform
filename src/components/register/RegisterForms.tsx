@@ -229,7 +229,7 @@ export function RegisterClinicForm() {
         <TextField name="contact" label={r.cfContact} placeholder="Marta Vives" />
         {/* Dirección primero: al elegir una sugerencia, la ciudad se rellena sola. */}
         <AddressField label={r.cfAddress} />
-        <TextField name="city" label={r.cfCity} placeholder="Se rellena con la dirección" />
+        <TextField name="city" label={r.cfCity} placeholder={r.cfCityPlaceholder} />
         <TextField name="email" label={r.cfEmail} type="email" required autoComplete="email" placeholder="info@clinica.com" />
         <PhoneField field="clinicPhone" label={r.cfPhone} />
         <MultiSelectField

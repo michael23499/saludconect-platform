@@ -24,7 +24,8 @@ export default async function CirugiasDisponiblesPage() {
   const me = await requireRole("professional");
   const t = (await getDict()).dashboard.surgeries;
   const isAdmin = me.profile.role === "admin";
-  const user = buildDashboardUser(me.profile, { isAdmin, roleLabel: "Técnico capilar" });
+  const sh = (await getDict()).dashboard.shell;
+  const user = buildDashboardUser(me.profile, { isAdmin, roleLabel: sh.roleTechnician, adminLabel: sh.roleAdmin });
 
   // Normalizamos a una sola forma para renderizar igual en ambos modos.
   let items: SurgeryForProfessional[] = [];
@@ -39,7 +40,7 @@ export default async function CirugiasDisponiblesPage() {
   }
 
   return (
-    <DashboardShell role="Profesional" user={user} nav={NAV_PRO}>
+    <DashboardShell role={sh.roleProfessional} user={user} nav={NAV_PRO}>
       <PageHeader
         backHref="/dashboard/professional"
         backLabel={t.back}

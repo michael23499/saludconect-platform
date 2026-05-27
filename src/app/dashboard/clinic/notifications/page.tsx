@@ -9,10 +9,12 @@ export const metadata = { title: "Notificaciones · Clínica · SaludCoNet" };
 
 export default async function ClinicNotificationsPage() {
   const clinic = await requireRole("clinic");
-  const m = (await getDict()).dashboard.misc;
+  const dash = (await getDict()).dashboard;
+  const m = dash.misc;
+  const sh = dash.shell;
   const user = {
     name: clinic.profile.fullName,
-    subtitle: clinic.profile.city ? `Clínica · ${clinic.profile.city}` : "Clínica",
+    subtitle: clinic.profile.city ? `${sh.roleClinic} · ${clinic.profile.city}` : sh.roleClinic,
     avatarUrl: clinic.profile.avatarUrl,
   };
 
