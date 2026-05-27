@@ -34,7 +34,7 @@ export default async function ClinicaDashboardPage() {
     cancelled: sg.statusCancelled,
     completed: sg.statusCompleted,
   };
-  const user = buildDashboardUser(me.profile, { isAdmin, roleLabel: "Clínica" });
+  const user = buildDashboardUser(me.profile, { isAdmin, roleLabel: dict.shell.roleClinic, adminLabel: dict.shell.roleAdmin });
 
   const [surgeries, unread, pendingReviews, clinic] = await Promise.all([
     isAdmin
@@ -56,7 +56,7 @@ export default async function ClinicaDashboardPage() {
   const firstName = (clinic?.contactName?.trim() || me.profile.fullName).split(" ")[0];
 
   return (
-    <DashboardShell role="Clínica" user={user} nav={NAV_CLINICA}>
+    <DashboardShell role={dict.shell.roleClinic} user={user} nav={NAV_CLINICA}>
       {isAdmin && <SupervisionBanner />}
 
       {/* Banner de bienvenida */}

@@ -263,7 +263,7 @@ function OAuthOnlyView({
 
       <div className="flex items-center gap-3 text-xs text-mist-400">
         <span className="h-px flex-1 bg-mist-200" />
-        o
+        {a.or}
         <span className="h-px flex-1 bg-mist-200" />
       </div>
 

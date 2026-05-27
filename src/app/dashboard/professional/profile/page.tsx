@@ -19,7 +19,8 @@ export default async function ProfesionalPerfilPage() {
   const me = await requireRole("professional");
   const p = (await getDict()).dashboard.prof;
   const isAdmin = me.profile.role === "admin";
-  const user = buildDashboardUser(me.profile, { isAdmin, roleLabel: "Técnico capilar" });
+  const sh = (await getDict()).dashboard.shell;
+  const user = buildDashboardUser(me.profile, { isAdmin, roleLabel: sh.roleTechnician, adminLabel: sh.roleAdmin });
 
   const professional = isAdmin ? null : await getProfessionalById(me.profile.id);
   const specialty = professional?.specialtyId ? await getSpecialtyById(professional.specialtyId) : null;
@@ -32,7 +33,7 @@ export default async function ProfesionalPerfilPage() {
   const reliability = await getReliability(me.profile.id);
 
   return (
-    <DashboardShell role="Profesional" user={user} nav={NAV_PRO}>
+    <DashboardShell role={sh.roleProfessional} user={user} nav={NAV_PRO}>
       <PageHeader
         backHref="/dashboard/professional"
         backLabel={p.back}

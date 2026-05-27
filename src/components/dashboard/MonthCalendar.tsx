@@ -4,12 +4,6 @@ import { useState } from "react";
 import { cn } from "@/lib/cn";
 import { useApp } from "@/components/providers/Providers";
 
-const WEEKDAYS = ["L", "M", "X", "J", "V", "S", "D"];
-const MONTHS = [
-  "enero", "febrero", "marzo", "abril", "mayo", "junio",
-  "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
-];
-
 export type DayMark = { count: number; tone?: "brand" | "success" | "neutral" | "warning" };
 
 /** Fecha local → "YYYY-MM-DD" (sin saltos de zona horaria). */
@@ -42,7 +36,16 @@ export function MonthCalendar({
   onSelect: (date: string) => void;
   initialMonth?: string;
 }) {
-  const calToday = useApp().t.dashboard.cal.calToday;
+  const { lang, t } = useApp();
+  const cal = t.dashboard.cal;
+  const locale = lang === "en" ? "en-GB" : "es-ES";
+  const aria = lang === "en"
+    ? { prev: "Previous month", next: "Next month" }
+    : { prev: "Mes anterior", next: "Mes siguiente" };
+  // Meses y días los formatea Intl según el idioma (empezando la semana en lunes).
+  const weekdays = Array.from({ length: 7 }, (_, i) =>
+    new Intl.DateTimeFormat(locale, { weekday: "narrow" }).format(new Date(2024, 0, 1 + i)),
+  );
   const [cursor, setCursor] = useState(() => {
     const base = initialMonth ? new Date(`${initialMonth}T12:00:00`) : new Date();
     return new Date(base.getFullYear(), base.getMonth(), 1);
@@ -68,14 +71,14 @@ export function MonthCalendar({
   return (
     <div className="rounded-2xl border border-mist-200 bg-white p-4 md:p-5">
       <div className="mb-3 flex items-center justify-between">
-        <div className="text-sm font-semibold text-ink-900">
-          {MONTHS[month]} {year}
+        <div className="text-sm font-semibold capitalize text-ink-900">
+          {new Intl.DateTimeFormat(locale, { month: "long" }).format(cursor)} {year}
         </div>
         <div className="flex items-center gap-1">
           <button
             type="button"
             onClick={() => shiftMonth(-1)}
-            aria-label="Mes anterior"
+            aria-label={aria.prev}
             className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-mist-200 text-ink-700 transition hover:bg-mist-50"
           >
             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6" /></svg>
@@ -85,12 +88,12 @@ export function MonthCalendar({
             onClick={() => setCursor(new Date(new Date().getFullYear(), new Date().getMonth(), 1))}
             className="inline-flex h-8 items-center rounded-lg border border-mist-200 px-2.5 text-xs font-semibold text-ink-700 transition hover:bg-mist-50"
           >
-            {calToday}
+            {cal.calToday}
           </button>
           <button
             type="button"
             onClick={() => shiftMonth(1)}
-            aria-label="Mes siguiente"
+            aria-label={aria.next}
             className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-mist-200 text-ink-700 transition hover:bg-mist-50"
           >
             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 6l6 6-6 6" /></svg>
@@ -99,8 +102,8 @@ export function MonthCalendar({
       </div>
 
       <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-semibold uppercase tracking-wider text-mist-400">
-        {WEEKDAYS.map((w) => (
-          <div key={w} className="py-1">{w}</div>
+        {weekdays.map((w, i) => (
+          <div key={i} className="py-1">{w}</div>
         ))}
       </div>
 

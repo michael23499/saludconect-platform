@@ -1,6 +1,12 @@
 "use client";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
+import { useApp } from "@/components/providers/Providers";
+
+const LBL = {
+  es: { select: "Selecciona…", search: "Buscar…", noResults: "Sin resultados" },
+  en: { select: "Select…", search: "Search…", noResults: "No results" },
+};
 
 export type SelectOption = string | { value: string; label: string; hint?: string };
 
@@ -27,7 +33,7 @@ export function SelectMenu({
   defaultValue = "",
   value: controlled,
   onChange,
-  placeholder = "Selecciona…",
+  placeholder,
   name,
   searchable,
   searchAfter = 8,
@@ -35,6 +41,9 @@ export function SelectMenu({
   disabled,
   ariaLabel,
 }: Props) {
+  const { lang } = useApp();
+  const L = LBL[lang];
+  const ph = placeholder ?? L.select;
   const normalized = useMemo(() => normalize(options), [options]);
   const [inner, setInner] = useState(defaultValue);
   const value = controlled !== undefined ? controlled : inner;
@@ -159,7 +168,7 @@ export function SelectMenu({
           disabled && "cursor-not-allowed bg-mist-50 opacity-60"
         )}
       >
-        <span className="truncate">{current?.label || placeholder}</span>
+        <span className="truncate">{current?.label || ph}</span>
         <svg
           className={cn("h-4 w-4 shrink-0 text-mist-400 transition-transform", open && "rotate-180")}
           viewBox="0 0 24 24"
@@ -202,7 +211,7 @@ export function SelectMenu({
                     setQuery(e.target.value);
                     setActiveIdx(0);
                   }}
-                  placeholder="Buscar…"
+                  placeholder={L.search}
                   className="h-9 w-full rounded-lg border border-mist-200 bg-white pl-8 pr-3 text-sm outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15"
                 />
               </div>
@@ -216,7 +225,7 @@ export function SelectMenu({
             tabIndex={-1}
           >
             {filtered.length === 0 ? (
-              <li className="px-3.5 py-2.5 text-sm text-mist-400">Sin resultados</li>
+              <li className="px-3.5 py-2.5 text-sm text-mist-400">{L.noResults}</li>
             ) : (
               filtered.map((o, idx) => {
                 const selected = o.value === value;

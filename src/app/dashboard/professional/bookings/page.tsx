@@ -25,7 +25,8 @@ export default async function ProfesionalReservasPage() {
     withdrawn: c.appWithdrawn,
   };
   const isAdmin = me.profile.role === "admin";
-  const user = buildDashboardUser(me.profile, { isAdmin, roleLabel: "Técnico capilar" });
+  const sh = (await getDict()).dashboard.shell;
+  const user = buildDashboardUser(me.profile, { isAdmin, roleLabel: sh.roleTechnician, adminLabel: sh.roleAdmin });
 
   const [upcoming, all] = await Promise.all([
     listConfirmedUpcomingForProfessional(me.profile.id),
@@ -33,7 +34,7 @@ export default async function ProfesionalReservasPage() {
   ]);
 
   return (
-    <DashboardShell role="Profesional" user={user} nav={NAV_PRO}>
+    <DashboardShell role={sh.roleProfessional} user={user} nav={NAV_PRO}>
       <PageHeader
         backHref="/dashboard/professional"
         backLabel={c.back}

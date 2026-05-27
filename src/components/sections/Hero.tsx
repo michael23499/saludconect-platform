@@ -69,17 +69,17 @@ export function Hero() {
                 <Avatar name="Clínica Sanitas Norte" size="lg" />
                 <div>
                   <div className="text-[15px] font-semibold">Clínica Sanitas Norte</div>
-                  <div className="text-sm text-mist-500">Madrid · Centro · Cardiología</div>
+                  <div className="text-sm text-mist-500">Madrid · Centro · {t.hero.demoSpecialty}</div>
                 </div>
               </div>
               <div className="mt-5 grid grid-cols-2 gap-2">
                 <div className="rounded-xl border border-mist-200 bg-mist-50/60 px-3 py-2.5">
-                  <div className="text-[10px] font-semibold uppercase tracking-wider text-mist-500">Fecha</div>
-                  <div className="mt-0.5 text-sm font-semibold text-ink-900">Mié 28 May</div>
+                  <div className="text-[10px] font-semibold uppercase tracking-wider text-mist-500">{t.hero.demoDate}</div>
+                  <div className="mt-0.5 text-sm font-semibold text-ink-900">{t.hero.demoDateValue}</div>
                 </div>
                 <div className="rounded-xl border border-mist-200 bg-mist-50/60 px-3 py-2.5">
-                  <div className="text-[10px] font-semibold uppercase tracking-wider text-mist-500">Turno</div>
-                  <div className="mt-0.5 text-sm font-semibold text-ink-900">Mañana · 8 h</div>
+                  <div className="text-[10px] font-semibold uppercase tracking-wider text-mist-500">{t.hero.demoShift}</div>
+                  <div className="mt-0.5 text-sm font-semibold text-ink-900">{t.hero.demoShiftValue}</div>
                 </div>
               </div>
               <div className="mt-5 flex gap-2">
@@ -111,8 +111,8 @@ export function Hero() {
               </span>
               <Avatar name="Lucía Martín" size="sm" className="ring-2 ring-ink-900" />
               <div>
-                <div className="font-semibold leading-tight">Dra. Lucía Martín</div>
-                <div className="leading-tight text-white/60">Cardiología · 4.9 ★</div>
+                <div className="font-semibold leading-tight">{t.hero.docPrefix} Lucía Martín</div>
+                <div className="leading-tight text-white/60">{t.hero.demoSpecialty} · 4.9 ★</div>
               </div>
             </div>
           </div>

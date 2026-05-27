@@ -24,6 +24,9 @@ export function DashboardShell({
   nav: NavItem[];
   children: ReactNode;
 }) {
+  const { t } = useApp();
+  const sh = t.dashboard.shell;
+  const navDict = t.dashboard.nav as Record<string, string>;
   const eyebrowColor = accent === "admin" ? "text-amber-600" : "text-brand-600";
   const path = usePathname();
   const [open, setOpen] = useState(false);
@@ -50,6 +53,7 @@ export function DashboardShell({
   }, [open]);
 
   const activeItem = nav.find((n) => n.href === path) ?? nav[0];
+  const activeLabel = activeItem.labelKey ? navDict[activeItem.labelKey] ?? activeItem.labelKey : activeItem.label;
 
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-mist-50">
@@ -58,15 +62,15 @@ export function DashboardShell({
         <button
           type="button"
           onClick={() => setOpen(true)}
-          aria-label="Abrir menú del panel"
+          aria-label={sh.openMenu}
           className="inline-flex h-9 items-center gap-2 rounded-lg border border-mist-200 bg-white px-2.5 text-xs font-semibold text-ink-800 hover:bg-mist-50"
         >
           <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
-          Menú
+          {sh.menu}
         </button>
         <div className="min-w-0 flex-1 text-center">
-          <div className={`text-[10px] font-semibold uppercase tracking-[0.16em] ${eyebrowColor}`}>Área {role}</div>
-          <div className="truncate text-[13px] font-semibold text-ink-900">{activeItem.label}</div>
+          <div className={`text-[10px] font-semibold uppercase tracking-[0.16em] ${eyebrowColor}`}>{sh.areaPrefix} {role}</div>
+          <div className="truncate text-[13px] font-semibold text-ink-900">{activeLabel}</div>
         </div>
         <Avatar name={user.name} src={user.avatarUrl ?? undefined} size="sm" />
       </div>
@@ -87,11 +91,11 @@ export function DashboardShell({
           <div className="modal-backdrop absolute inset-0" onClick={() => setOpen(false)} />
           <aside className="scale-in relative ml-0 h-full w-[86%] max-w-xs border-r border-mist-200 bg-white shadow-2xl">
             <div className="flex items-center justify-between border-b border-mist-200 px-4 py-3">
-              <div className={`text-[10px] font-semibold uppercase tracking-[0.16em] ${eyebrowColor}`}>Área {role}</div>
+              <div className={`text-[10px] font-semibold uppercase tracking-[0.16em] ${eyebrowColor}`}>{sh.areaPrefix} {role}</div>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                aria-label="Cerrar"
+                aria-label={sh.close}
                 className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-mist-200 text-ink-700 hover:bg-mist-50"
               >
                 <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M6 6l12 12M18 6l-12 12" /></svg>
@@ -147,7 +151,7 @@ function SidebarBody({
       </div>
       <nav className="space-y-0.5 p-3">
         {nav
-          .filter((n) => !(user.subtitle === "Administrador" && n.hideForAdmin))
+          .filter((n) => !((user.subtitle === t.dashboard.shell.roleAdmin || user.subtitle === "Administrador") && n.hideForAdmin))
           .map((n) => {
           const active = path === n.href;
           const label = n.labelKey

@@ -37,13 +37,13 @@ export default async function ProfesionalDashboardPage() {
     rejected: h.appRejected,
     withdrawn: h.appWithdrawn,
   };
-  const user = buildDashboardUser(me.profile, { isAdmin, roleLabel: "Técnico capilar" });
+  const user = buildDashboardUser(me.profile, { isAdmin, roleLabel: dict.shell.roleTechnician, adminLabel: dict.shell.roleAdmin });
 
   // --- Modo supervisión (admin): oportunidades globales, sin datos propios ---
   if (isAdmin) {
     const open = await listAllOpenSurgeries();
     return (
-      <DashboardShell role="Profesional" user={user} nav={NAV_PRO}>
+      <DashboardShell role={dict.shell.roleProfessional} user={user} nav={NAV_PRO}>
         <SupervisionBanner scope="professional" />
         <PageHeader title={h.proSupTitle} subtitle={h.proSupSubtitle} />
         <div className="grid gap-4 md:grid-cols-3">

@@ -19,8 +19,8 @@ export const ADMIN_ICONS = {
 export const NAV_ADMIN: NavItem[] = [
   { href: "/admin", labelKey: "overview", icon: ADMIN_ICONS.home },
   { href: "/admin/users", labelKey: "users", icon: ADMIN_ICONS.team },
-  { href: "/dashboard/clinic/surgeries", label: "Vista de clínicas", icon: ADMIN_ICONS.surgery },
-  { href: "/dashboard/professional/surgeries", label: "Vista profesional", icon: ADMIN_ICONS.pro },
+  { href: "/dashboard/clinic/surgeries", labelKey: "clinicView", icon: ADMIN_ICONS.surgery },
+  { href: "/dashboard/professional/surgeries", labelKey: "proView", icon: ADMIN_ICONS.pro },
   { href: "/admin/approvals", labelKey: "approvals", icon: ADMIN_ICONS.check },
   { href: "/admin/payments", labelKey: "payments", icon: ADMIN_ICONS.card },
   { href: "/admin/stats", labelKey: "stats", icon: ADMIN_ICONS.chart },

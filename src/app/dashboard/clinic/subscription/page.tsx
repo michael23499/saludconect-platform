@@ -24,10 +24,10 @@ export default async function SuscripcionPage() {
     { ok: false, label: p.feat6 },
     { ok: false, label: p.feat7 },
   ];
-  const user = buildDashboardUser(me.profile, { isAdmin, roleLabel: "Clínica" });
+  const user = buildDashboardUser(me.profile, { isAdmin, roleLabel: dict.shell.roleClinic, adminLabel: dict.shell.roleAdmin });
 
   return (
-    <DashboardShell role="Clínica" user={user} nav={NAV_CLINICA}>
+    <DashboardShell role={dict.shell.roleClinic} user={user} nav={NAV_CLINICA}>
       <PageHeader
         backHref="/dashboard/clinic"
         backLabel={p.back}

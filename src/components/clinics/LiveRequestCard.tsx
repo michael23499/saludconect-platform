@@ -2,22 +2,57 @@
 import { useEffect, useRef, useState } from "react";
 import { Avatar } from "@/components/ui/Avatar";
 import { SelectMenu } from "@/components/ui/SelectMenu";
+import { useApp } from "@/components/providers/Providers";
 import { cn } from "@/lib/cn";
 
-const ESPECIALIDADES = [
-  "Cardiología", "Pediatría", "Odontología", "Fisioterapia", "Psicología",
-  "Dermatología", "Enfermería general", "Ginecología", "Traumatología",
-  "Oftalmología", "Radiología", "Anestesia",
+// El estado guarda índices/ids estables (no los textos traducidos), para que al
+// cambiar de idioma la selección se conserve y los menús no se "desincronicen".
+const SPECIALTIES = [
+  { es: "Cardiología", en: "Cardiology" },
+  { es: "Pediatría", en: "Pediatrics" },
+  { es: "Odontología", en: "Dentistry" },
+  { es: "Fisioterapia", en: "Physiotherapy" },
+  { es: "Psicología", en: "Psychology" },
+  { es: "Dermatología", en: "Dermatology" },
+  { es: "Enfermería general", en: "General nursing" },
+  { es: "Ginecología", en: "Gynecology" },
+  { es: "Traumatología", en: "Orthopedics" },
+  { es: "Oftalmología", en: "Ophthalmology" },
+  { es: "Radiología", en: "Radiology" },
+  { es: "Anestesia", en: "Anesthesia" },
 ];
 
 const SHIFTS = [
-  { id: "morning", label: "Mañana", hours: 8 },
-  { id: "afternoon", label: "Tarde", hours: 8 },
-  { id: "night", label: "Noche", hours: 10 },
-  { id: "full", label: "24 h", hours: 24 },
+  { id: "morning", es: "Mañana", en: "Morning", hours: 8 },
+  { id: "afternoon", es: "Tarde", en: "Afternoon", hours: 8 },
+  { id: "night", es: "Noche", en: "Night", hours: 10 },
+  { id: "full", es: "24 h", en: "24 h", hours: 24 },
 ] as const;
 
 type ShiftId = (typeof SHIFTS)[number]["id"];
+
+const COPY = {
+  es: {
+    newRequest: "Nueva solicitud", location: "Madrid · Centro", live: "En vivo", published: "Publicada",
+    specialty: "Especialidad", date: "Fecha", duration: "Duración", shift: "Turno", rate: "Tarifa orientativa",
+    publishing: "Publicando…", republish: "Editar y volver a publicar", publish: "Publicar solicitud",
+    activeTitle: "Solicitud activa", readyTitle: "Listos para responder",
+    activeSub: "Los profesionales compatibles ya la reciben", readySub: "Pulsa publicar para activar la red",
+    rateMin: "Tarifa mínima por hora", rateMax: "Tarifa máxima por hora",
+    weekdays: ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"],
+    months: ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"],
+  },
+  en: {
+    newRequest: "New request", location: "Madrid · Centro", live: "Live", published: "Published",
+    specialty: "Specialty", date: "Date", duration: "Duration", shift: "Shift", rate: "Indicative rate",
+    publishing: "Publishing…", republish: "Edit and repost", publish: "Post request",
+    activeTitle: "Request active", readyTitle: "Ready to respond",
+    activeSub: "Compatible professionals are already receiving it", readySub: "Hit publish to activate the network",
+    rateMin: "Minimum hourly rate", rateMax: "Maximum hourly rate",
+    weekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    months: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+  },
+};
 
 // Avatares ilustrativos del mockup (solo para animar la tira de "compatibles").
 // No afirman ser usuarios reales: son una demostración visual de la interfaz.
@@ -28,10 +63,13 @@ const CANDIDATES = [
 ];
 
 export function LiveRequestCard() {
-  const [specialty, setSpecialty] = useState("Cardiología");
+  const { lang } = useApp();
+  const c = COPY[lang];
+
+  const [specialtyIdx, setSpecialtyIdx] = useState(0);
   const [shift, setShift] = useState<ShiftId>("morning");
   const [range, setRange] = useState<[number, number]>([75, 95]);
-  const [date, setDate] = useState("Mié 28 May");
+  const [dateOffset, setDateOffset] = useState(8);
 
   const [published, setPublished] = useState(false);
   const [publishing, setPublishing] = useState(false);
@@ -85,8 +123,8 @@ export function LiveRequestCard() {
               </svg>
             </span>
             <div>
-              <div className="text-[13px] font-semibold tracking-tight text-ink-900">Nueva solicitud</div>
-              <div className="text-[11px] text-mist-500">Madrid · Centro</div>
+              <div className="text-[13px] font-semibold tracking-tight text-ink-900">{c.newRequest}</div>
+              <div className="text-[11px] text-mist-500">{c.location}</div>
             </div>
           </div>
           <span
@@ -99,19 +137,18 @@ export function LiveRequestCard() {
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75" />
               <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
             </span>
-            {published ? "Publicada" : "En vivo"}
+            {published ? c.published : c.live}
           </span>
         </div>
 
         {/* Especialidad */}
         <div className="mt-5">
-          <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-mist-500">Especialidad</div>
+          <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-mist-500">{c.specialty}</div>
           <div className="mt-1.5">
             <SelectMenu
-              options={ESPECIALIDADES}
-              defaultValue={specialty}
-              onChange={(v) => { setSpecialty(v); if (published) reset(); }}
-              placeholder="Selecciona…"
+              options={SPECIALTIES.map((s, i) => ({ value: String(i), label: s[lang] }))}
+              value={String(specialtyIdx)}
+              onChange={(v) => { setSpecialtyIdx(Number(v)); if (published) reset(); }}
             />
           </div>
         </div>
@@ -119,11 +156,11 @@ export function LiveRequestCard() {
         {/* Fecha + Duración */}
         <div className="mt-3 grid grid-cols-[1fr_auto] gap-3">
           <div>
-            <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-mist-500">Fecha</div>
-            <DateChip value={date} onChange={(v) => { setDate(v); if (published) reset(); }} />
+            <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-mist-500">{c.date}</div>
+            <DateChip value={dateOffset} onChange={(v) => { setDateOffset(v); if (published) reset(); }} weekdays={c.weekdays} months={c.months} />
           </div>
           <div>
-            <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-mist-500">Duración</div>
+            <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-mist-500">{c.duration}</div>
             <div className="mt-1.5 inline-flex h-11 items-center gap-2 rounded-xl border border-mist-200 bg-white px-3 text-sm font-semibold text-ink-900 tabular-nums">
               <svg viewBox="0 0 24 24" className="h-4 w-4 text-mist-500" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                 <circle cx="12" cy="12" r="9" />
@@ -136,7 +173,7 @@ export function LiveRequestCard() {
 
         {/* Turno chips */}
         <div className="mt-3">
-          <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-mist-500">Turno</div>
+          <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-mist-500">{c.shift}</div>
           <div className="mt-1.5 grid grid-cols-4 gap-1.5">
             {SHIFTS.map((s) => (
               <ShiftChip
@@ -144,7 +181,7 @@ export function LiveRequestCard() {
                 active={shift === s.id}
                 onClick={() => { setShift(s.id); if (published) reset(); }}
               >
-                {s.label}
+                {s[lang]}
               </ShiftChip>
             ))}
           </div>
@@ -153,7 +190,7 @@ export function LiveRequestCard() {
         {/* Tarifa con barra */}
         <div className="mt-4">
           <div className="flex items-center justify-between">
-            <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-mist-500">Tarifa orientativa</div>
+            <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-mist-500">{c.rate}</div>
             <div className="text-[13px] font-bold tabular-nums text-ink-900">
               {range[0]} <span className="text-mist-400">–</span> {range[1]} <span className="font-semibold text-mist-500">€/h</span>
             </div>
@@ -164,6 +201,8 @@ export function LiveRequestCard() {
             step={5}
             value={range}
             onChange={(v) => { setRange(v); if (published) reset(); }}
+            ariaMin={c.rateMin}
+            ariaMax={c.rateMax}
           />
           <div className="mt-1 flex justify-between text-[10px] tabular-nums text-mist-400">
             <span>30 €/h</span>
@@ -185,7 +224,7 @@ export function LiveRequestCard() {
           {publishing ? (
             <>
               <Spinner />
-              Publicando…
+              {c.publishing}
             </>
           ) : published ? (
             <>
@@ -193,14 +232,14 @@ export function LiveRequestCard() {
                 <polyline points="1 4 1 10 7 10" />
                 <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
               </svg>
-              Editar y volver a publicar
+              {c.republish}
             </>
           ) : (
             <>
               <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor" aria-hidden>
                 <path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z" />
               </svg>
-              Publicar solicitud
+              {c.publish}
             </>
           )}
         </button>
@@ -214,25 +253,25 @@ export function LiveRequestCard() {
         >
           <div className="flex items-center gap-3">
             <div className="flex -space-x-2">
-              {CANDIDATES.map((c, i) => (
+              {CANDIDATES.map((cand, i) => (
                 <span
-                  key={c.name}
+                  key={cand.name}
                   className={cn(
                     "inline-block transition-all duration-300 ease-out",
                     i < visibleMatches ? "opacity-100 translate-y-0 scale-100" : "opacity-30 translate-y-1 scale-95"
                   )}
                   style={{ transitionDelay: `${i * 60}ms` }}
                 >
-                  <Avatar name={c.name} size="xs" className="ring-2 ring-white" />
+                  <Avatar name={cand.name} size="xs" className="ring-2 ring-white" />
                 </span>
               ))}
             </div>
             <div className="min-w-0 leading-tight">
               <div className={cn("text-[12px] font-semibold transition-colors", published ? "text-emerald-800" : "text-ink-700")}>
-                {published ? "Solicitud activa" : "Listos para responder"}
+                {published ? c.activeTitle : c.readyTitle}
               </div>
               <div className={cn("text-[11px] transition-colors", published ? "text-emerald-700/70" : "text-mist-500")}>
-                {published ? "Los profesionales compatibles ya la reciben" : "Pulsa publicar para activar la red"}
+                {published ? c.activeSub : c.readySub}
               </div>
             </div>
             <svg
@@ -278,7 +317,7 @@ function ShiftChip({
   );
 }
 
-function DateChip({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+function DateChip({ value, onChange, weekdays, months }: { value: number; onChange: (v: number) => void; weekdays: string[]; months: string[] }) {
   const [open, setOpen] = useState(false);
   const today = new Date(2026, 4, 20);
   const days = Array.from({ length: 14 }, (_, i) => {
@@ -286,11 +325,7 @@ function DateChip({ value, onChange }: { value: string; onChange: (v: string) =>
     d.setDate(today.getDate() + i);
     return d;
   });
-  const fmt = (d: Date) => {
-    const wk = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
-    const m = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
-    return `${wk[d.getDay()]} ${d.getDate()} ${m[d.getMonth()]}`;
-  };
+  const fmt = (d: Date) => `${weekdays[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]}`;
 
   useEffect(() => {
     if (!open) return;
@@ -319,7 +354,7 @@ function DateChip({ value, onChange }: { value: string; onChange: (v: string) =>
             <line x1="8" y1="2" x2="8" y2="6" />
             <line x1="3" y1="10" x2="21" y2="10" />
           </svg>
-          {value}
+          {fmt(days[value] ?? days[0])}
         </span>
         <svg
           className={cn("h-4 w-4 text-mist-400 transition-transform", open && "rotate-180")}
@@ -337,20 +372,19 @@ function DateChip({ value, onChange }: { value: string; onChange: (v: string) =>
       {open && (
         <div className="combobox-pop absolute left-0 right-0 top-[calc(100%+6px)] z-50 overflow-hidden rounded-xl border border-mist-200 bg-white p-2 shadow-[0_20px_50px_-20px_rgba(15,23,42,0.25)]">
           <div className="grid max-h-64 grid-cols-2 gap-1 overflow-y-auto">
-            {days.map((d) => {
-              const label = fmt(d);
-              const selected = label === value;
+            {days.map((d, i) => {
+              const selected = i === value;
               return (
                 <button
-                  key={label}
+                  key={i}
                   type="button"
-                  onClick={() => { onChange(label); setOpen(false); }}
+                  onClick={() => { onChange(i); setOpen(false); }}
                   className={cn(
                     "rounded-lg px-2.5 py-2 text-left text-[13px] font-medium transition",
                     selected ? "bg-brand-600 text-white" : "text-ink-800 hover:bg-brand-50 hover:text-brand-800"
                   )}
                 >
-                  {label}
+                  {fmt(d)}
                 </button>
               );
             })}
@@ -362,13 +396,15 @@ function DateChip({ value, onChange }: { value: string; onChange: (v: string) =>
 }
 
 function DualRange({
-  min, max, step, value, onChange,
+  min, max, step, value, onChange, ariaMin, ariaMax,
 }: {
   min: number;
   max: number;
   step: number;
   value: [number, number];
   onChange: (v: [number, number]) => void;
+  ariaMin: string;
+  ariaMax: string;
 }) {
   const [lo, hi] = value;
   const lowPct = ((lo - min) / (max - min)) * 100;
@@ -396,7 +432,7 @@ function DualRange({
           const v = Math.min(Number(e.target.value), hi - step);
           onChange([v, hi]);
         }}
-        aria-label="Tarifa mínima por hora"
+        aria-label={ariaMin}
         className={cn(
           "pointer-events-none absolute inset-0 z-10 h-6 w-full appearance-none bg-transparent outline-none",
           thumbCls
@@ -412,7 +448,7 @@ function DualRange({
           const v = Math.max(Number(e.target.value), lo + step);
           onChange([lo, v]);
         }}
-        aria-label="Tarifa máxima por hora"
+        aria-label={ariaMax}
         className={cn(
           "pointer-events-none absolute inset-0 z-20 h-6 w-full appearance-none bg-transparent outline-none",
           thumbClsHi

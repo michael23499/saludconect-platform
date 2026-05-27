@@ -11,10 +11,11 @@ export default async function ProfesionalMensajesPage() {
   const me = await requireRole("professional");
   const m = (await getDict()).dashboard.misc;
   const isAdmin = me.profile.role === "admin";
-  const user = buildDashboardUser(me.profile, { isAdmin, roleLabel: "Técnico capilar" });
+  const sh = (await getDict()).dashboard.shell;
+  const user = buildDashboardUser(me.profile, { isAdmin, roleLabel: sh.roleTechnician, adminLabel: sh.roleAdmin });
 
   return (
-    <DashboardShell role="Profesional" user={user} nav={NAV_PRO}>
+    <DashboardShell role={sh.roleProfessional} user={user} nav={NAV_PRO}>
       <PageHeader
         backHref="/dashboard/professional"
         backLabel={m.back}

@@ -1,7 +1,13 @@
 "use client";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
+import { useApp } from "@/components/providers/Providers";
 import type { SelectOption } from "./SelectMenu";
+
+const LBL = {
+  es: { select: "Selecciona…", search: "Buscar…", noResults: "Sin resultados" },
+  en: { select: "Select…", search: "Search…", noResults: "No results" },
+};
 
 type Props = {
   options: SelectOption[];
@@ -30,12 +36,15 @@ export function MultiSelectMenu({
   values,
   onChange,
   name,
-  placeholder = "Selecciona…",
+  placeholder,
   searchable,
   searchAfter = 8,
   className,
   ariaLabel,
 }: Props) {
+  const { lang } = useApp();
+  const L = LBL[lang];
+  const ph = placeholder ?? L.select;
   const normalized = useMemo(() => normalize(options), [options]);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -123,7 +132,7 @@ export function MultiSelectMenu({
             ))}
           </span>
         ) : (
-          <span className="py-1 text-mist-400">{placeholder}</span>
+          <span className="py-1 text-mist-400">{ph}</span>
         )}
         <svg
           className={cn("h-4 w-4 shrink-0 self-center text-mist-400 transition-transform", open && "rotate-180")}
@@ -148,14 +157,14 @@ export function MultiSelectMenu({
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Buscar…"
+                placeholder={L.search}
                 className="h-9 w-full rounded-lg border border-mist-200 bg-white px-3 text-sm outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15"
               />
             </div>
           )}
           <ul id={`${id}-list`} role="listbox" aria-multiselectable className="max-h-64 overflow-y-auto py-1">
             {filtered.length === 0 ? (
-              <li className="px-3.5 py-2.5 text-sm text-mist-400">Sin resultados</li>
+              <li className="px-3.5 py-2.5 text-sm text-mist-400">{L.noResults}</li>
             ) : (
               filtered.map((o) => {
                 const isSel = values.includes(o.value);

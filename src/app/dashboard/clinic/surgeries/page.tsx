@@ -29,14 +29,15 @@ export default async function MisCirugiasPage() {
     cancelled: t.statusCancelled,
     completed: t.statusCompleted,
   };
-  const user = buildDashboardUser(me.profile, { isAdmin, roleLabel: "Clínica" });
+  const sh = (await getDict()).dashboard.shell;
+  const user = buildDashboardUser(me.profile, { isAdmin, roleLabel: sh.roleClinic, adminLabel: sh.roleAdmin });
 
   const surgeries: (SurgeryWithCounts & { clinicName?: string })[] = isAdmin
     ? await listAllSurgeriesWithCounts()
     : await listSurgeriesByClinicWithCounts(me.profile.id);
 
   return (
-    <DashboardShell role="Clínica" user={user} nav={NAV_CLINICA}>
+    <DashboardShell role={sh.roleClinic} user={user} nav={NAV_CLINICA}>
       <PageHeader
         backHref="/dashboard/clinic"
         backLabel={t.back}
@@ -56,7 +57,7 @@ export default async function MisCirugiasPage() {
           <Link
             href="/dashboard/clinic/publish"
             className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-50 text-brand-600 transition hover:bg-brand-100 hover:text-brand-700"
-            aria-label="Publicar cirugía"
+            aria-label={t.publishTitle}
           >
             <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 5v14M5 12h14" /></svg>
           </Link>

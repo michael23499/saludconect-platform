@@ -49,7 +49,8 @@ export default async function DetalleCirugiaPage({
       .filter(Boolean)
       .join(" · ") || `0/${surgery.vacancies}`;
 
-  const user = buildDashboardUser(me.profile, { isAdmin, roleLabel: "Clínica" });
+  const sh = (await getDict()).dashboard.shell;
+  const user = buildDashboardUser(me.profile, { isAdmin, roleLabel: sh.roleClinic, adminLabel: sh.roleAdmin });
 
   const pending = applicants.filter((a) => a.application.status === "applied");
   const decided = applicants.filter((a) => a.application.status !== "applied");
@@ -60,7 +61,7 @@ export default async function DetalleCirugiaPage({
   const ratings = await getRatingSummaries(applicants.map((a) => a.application.professionalId));
 
   return (
-    <DashboardShell role="Clínica" user={user} nav={NAV_CLINICA}>
+    <DashboardShell role={sh.roleClinic} user={user} nav={NAV_CLINICA}>
       <PageHeader
         backHref="/dashboard/clinic/surgeries"
         backLabel={isAdmin ? t.detailBackAdmin : t.detailBack}
