@@ -15,6 +15,7 @@ import {
 import { DatePicker } from "@/components/ui/DatePicker";
 import { AddressAutocomplete } from "@/components/admin/AddressAutocomplete";
 import { useApp } from "@/components/providers/Providers";
+import { errorText } from "@/lib/errors";
 import { updateSurgeryAction, type UpdateSurgeryInput } from "@backend/actions/surgeries";
 import type { Surgery } from "@backend/db";
 
@@ -55,7 +56,8 @@ function EditSurgeryModal({
   asAdmin: boolean;
   onClose: () => void;
 }) {
-  const s = useApp().t.dashboard.surgeries;
+  const t = useApp().t;
+  const s = t.dashboard.surgeries;
   const router = useRouter();
   const [title, setTitle] = useState(surgery.title);
   const [date, setDate] = useState(surgery.date);
@@ -97,7 +99,7 @@ function EditSurgeryModal({
     };
     startTransition(async () => {
       const res = await updateSurgeryAction(surgery.id, data);
-      if ("error" in res) setError(res.error);
+      if ("error" in res) setError(errorText(res.error, t));
       else {
         router.refresh();
         onClose();

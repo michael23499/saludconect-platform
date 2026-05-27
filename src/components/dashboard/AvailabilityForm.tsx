@@ -10,6 +10,7 @@ import { DatePicker } from "@/components/ui/DatePicker";
 import { SPAIN_CITIES } from "@/lib/spain-cities";
 import { cn } from "@/lib/cn";
 import { useApp } from "@/components/providers/Providers";
+import { errorText } from "@/lib/errors";
 import {
   publishAvailabilityAction,
   type PublishAvailabilityState,
@@ -81,7 +82,8 @@ function eachDate(from: string, to: string, days: Set<number>): string[] {
  * el cliente y las envía como CSV en `dates`; la action crea un slot por fecha.
  */
 export function AvailabilityForm() {
-  const c = useApp().t.dashboard.cal;
+  const t = useApp().t;
+  const c = t.dashboard.cal;
   const [state, formAction] = useActionState<PublishAvailabilityState, FormData>(
     publishAvailabilityAction,
     null,
@@ -260,7 +262,7 @@ export function AvailabilityForm() {
 
       {state && "error" in state && (
         <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {state.error}
+          {errorText(state.error, t)}
         </div>
       )}
       {state && "ok" in state && (

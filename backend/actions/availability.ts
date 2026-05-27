@@ -14,15 +14,13 @@ import {
 } from "../queries/availability";
 import { notify } from "../notifications/notify";
 import { renderEmail } from "../notifications/email";
+import { notOwner } from "../lib/authz";
+import { formatDateEs, todayStr } from "@/lib/dates";
+import { formatSchedule } from "@/lib/surgery";
+import { ROUTES } from "@/lib/routes";
 
-const PRO_CAL = "/dashboard/professional/calendar";
-const CLINIC_CAL = "/dashboard/clinic/calendar";
-
-/** Formatea "2026-05-28" → "mar, 28 may". Mediodía para evitar saltos de día por tz. */
-function formatDateEs(dateStr: string): string {
-  const d = new Date(`${dateStr}T12:00:00`);
-  return new Intl.DateTimeFormat("es-ES", { weekday: "short", day: "numeric", month: "short" }).format(d);
-}
+const PRO_CAL = ROUTES.proCalendar;
+const CLINIC_CAL = ROUTES.clinicCalendar;
 
 export type ActionResult = { ok: true } | { error: string };
 export type PublishAvailabilityState = ActionResult | null;
@@ -37,26 +35,26 @@ export async function publishAvailabilityAction(
 ): Promise<PublishAvailabilityState> {
   const pro = await requireRole("professional");
   if (pro.profile.role === "admin") {
-    return { error: "Los administradores solo supervisan. Usa una cuenta de profesional." };
+    return { error: "admin_supervises" };
   }
 
   // Una o varias fechas (CSV): el cliente las calcula (día único o rango con
   // días de la semana). Aceptamos también `date` por compatibilidad.
   const raw = ((formData.get("dates") as string) || (formData.get("date") as string) || "").trim();
   const dates = Array.from(new Set(raw.split(",").map((s) => s.trim()).filter(Boolean)));
-  if (dates.length === 0) return { error: "Indica al menos una fecha." };
-  if (dates.length > 90) return { error: "Demasiadas fechas; reduce el rango." };
+  if (dates.length === 0) return { error: "need_date" };
+  if (dates.length > 90) return { error: "too_many_dates" };
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayStr();
   for (const d of dates) {
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) return { error: "Hay una fecha no válida." };
-    if (d < today) return { error: "Las fechas no pueden ser anteriores a hoy." };
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) return { error: "invalid_date" };
+    if (d < today) return { error: "past_date" };
   }
 
   const startTime = (formData.get("startTime") as string) || null;
   const endTime = (formData.get("endTime") as string) || null;
   if (startTime && endTime && endTime <= startTime) {
-    return { error: "La hora de fin debe ser posterior a la de inicio." };
+    return { error: "end_before_start" };
   }
   const note = ((formData.get("note") as string) || "").trim() || null;
   const city = ((formData.get("city") as string) || "").trim() || null;
@@ -83,19 +81,34 @@ export async function publishAvailabilityAction(
   return { ok: true };
 }
 
-/** El técnico retira una franja. Si estaba reservada, avisa a la clínica. */
-export async function cancelAvailabilityAction(slotId: string): Promise<ActionResult> {
+/**
+ * El técnico retira una franja. Si solo estaba libre/pendiente, es una retirada
+ * sin consecuencias. Si estaba reservada EN FIRME (booked), es una cancelación de
+ * un compromiso: exige motivo, queda registrada (afecta a la fiabilidad según la
+ * antelación 72h/24h) y avisa a la clínica.
+ */
+export async function cancelAvailabilityAction(
+  slotId: string,
+  reason?: string,
+): Promise<ActionResult> {
   const pro = await requireRole("professional");
-  if (pro.profile.role === "admin") return { error: "Los administradores solo supervisan." };
+  if (pro.profile.role === "admin") return { error: "admin_supervises" };
 
   const slot = await getAvailabilitySlotById(slotId);
-  if (!slot) return { error: "Esta disponibilidad ya no existe." };
-  if (slot.professionalId !== pro.profile.id) {
-    return { error: "Esta disponibilidad no es tuya." };
+  if (!slot) return { error: "slot_gone" };
+  if (notOwner(slot.professionalId, pro.profile.id)) {
+    return { error: "not_owner" };
   }
   if (slot.status === "cancelled") return { ok: true };
 
-  await cancelSlot(slotId);
+  // Reserva en firme → cancelación de compromiso: motivo obligatorio y registro.
+  if (slot.status === "booked") {
+    const cleanReason = reason?.trim();
+    if (!cleanReason) return { error: "reason_required" };
+    await cancelSlot(slotId, { cancelledBy: "professional", reason: cleanReason });
+  } else {
+    await cancelSlot(slotId);
+  }
 
   // Si había una reserva (confirmada o pendiente), avisar a la clínica.
   if ((slot.status === "booked" || slot.status === "pending") && slot.bookedByClinicId) {
@@ -128,7 +141,7 @@ export async function cancelAvailabilityAction(slotId: string): Promise<ActionRe
 }
 
 function timeOf(slot: { startTime: string | null; endTime: string | null }): string {
-  return slot.startTime && slot.endTime ? ` (${slot.startTime}–${slot.endTime})` : "";
+  return formatSchedule(slot.startTime, slot.endTime);
 }
 
 /**
@@ -140,16 +153,16 @@ function timeOf(slot: { startTime: string | null; endTime: string | null }): str
 export async function bookSlotAction(slotId: string): Promise<ActionResult> {
   const clinic = await requireRole("clinic");
   if (clinic.profile.role === "admin") {
-    return { error: "Los administradores solo supervisan, no reservan." };
+    return { error: "admin_supervises" };
   }
 
   const slot = await getAvailabilitySlotById(slotId);
-  if (!slot) return { error: "Esta disponibilidad ya no existe." };
-  if (slot.status !== "open") return { error: "Esta disponibilidad ya no está libre." };
+  if (!slot) return { error: "slot_gone" };
+  if (slot.status !== "open") return { error: "slot_not_open" };
 
   // Transición atómica open → pending: si otra clínica se adelantó, falla aquí.
   const ok = await requestSlot(slotId, clinic.profile.id);
-  if (!ok) return { error: "Otra clínica acaba de reservar este hueco. Prueba con otra fecha." };
+  if (!ok) return { error: "slot_taken" };
 
   const pro = await getUserProfileById(slot.professionalId);
   if (pro) {
@@ -182,15 +195,15 @@ export async function bookSlotAction(slotId: string): Promise<ActionResult> {
 /** El técnico ACEPTA una solicitud de reserva: pasa a confirmada. Avisa a la clínica. */
 export async function acceptBookingAction(slotId: string): Promise<ActionResult> {
   const pro = await requireRole("professional");
-  if (pro.profile.role === "admin") return { error: "Los administradores solo supervisan." };
+  if (pro.profile.role === "admin") return { error: "admin_supervises" };
 
   const slot = await getAvailabilitySlotById(slotId);
-  if (!slot) return { error: "Esta solicitud ya no existe." };
-  if (slot.professionalId !== pro.profile.id) return { error: "Esta solicitud no es tuya." };
-  if (slot.status !== "pending") return { error: "Esta solicitud ya no está pendiente." };
+  if (!slot) return { error: "slot_gone" };
+  if (notOwner(slot.professionalId, pro.profile.id)) return { error: "not_owner" };
+  if (slot.status !== "pending") return { error: "slot_not_pending" };
 
   const ok = await acceptBooking(slotId, pro.profile.id);
-  if (!ok) return { error: "No se pudo confirmar; quizá la solicitud cambió de estado." };
+  if (!ok) return { error: "action_failed" };
 
   if (slot.bookedByClinicId) {
     const clinic = await getUserProfileById(slot.bookedByClinicId);
@@ -222,19 +235,28 @@ export async function acceptBookingAction(slotId: string): Promise<ActionResult>
   return { ok: true };
 }
 
-/** El técnico RECHAZA una solicitud: el hueco se libera. Avisa a la clínica. */
-export async function rejectBookingAction(slotId: string): Promise<ActionResult> {
+/**
+ * El técnico RECHAZA una solicitud de reserva: el hueco se libera y la clínica
+ * recibe el aviso CON el motivo. Pedimos motivo a propósito: si un técnico
+ * publica disponibilidad y luego rechaza una solicitud, la clínica merece saber
+ * por qué (cortesía, no penalización: rechazar una solicitud no es romper un
+ * compromiso confirmado).
+ */
+export async function rejectBookingAction(slotId: string, reason?: string): Promise<ActionResult> {
   const pro = await requireRole("professional");
-  if (pro.profile.role === "admin") return { error: "Los administradores solo supervisan." };
+  if (pro.profile.role === "admin") return { error: "admin_supervises" };
 
   const slot = await getAvailabilitySlotById(slotId);
-  if (!slot) return { error: "Esta solicitud ya no existe." };
-  if (slot.professionalId !== pro.profile.id) return { error: "Esta solicitud no es tuya." };
-  if (slot.status !== "pending") return { error: "Esta solicitud ya no está pendiente." };
+  if (!slot) return { error: "slot_gone" };
+  if (notOwner(slot.professionalId, pro.profile.id)) return { error: "not_owner" };
+  if (slot.status !== "pending") return { error: "slot_not_pending" };
+
+  const cleanReason = reason?.trim();
+  if (!cleanReason) return { error: "reason_required" };
 
   const clinicId = slot.bookedByClinicId;
   const ok = await rejectBooking(slotId, pro.profile.id);
-  if (!ok) return { error: "No se pudo rechazar; quizá la solicitud cambió de estado." };
+  if (!ok) return { error: "action_failed" };
 
   if (clinicId) {
     const clinic = await getUserProfileById(clinicId);
@@ -243,7 +265,7 @@ export async function rejectBookingAction(slotId: string): Promise<ActionResult>
         userId: clinic.id,
         type: "booking_declined",
         title: "Reserva rechazada",
-        body: `${pro.profile.fullName} no puede atender tu reserva del ${formatDateEs(slot.date)}. El hueco vuelve a estar disponible para otras clínicas.`,
+        body: `${pro.profile.fullName} no puede atender tu reserva del ${formatDateEs(slot.date)}. Motivo: ${cleanReason}. El hueco vuelve a estar disponible para otras clínicas.`,
         link: CLINIC_CAL,
         email: {
           to: clinic.email,
@@ -251,7 +273,7 @@ export async function rejectBookingAction(slotId: string): Promise<ActionResult>
           html: renderEmail({
             heading: "Reserva no confirmada",
             intro: `${pro.profile.fullName} no puede atender la disponibilidad que reservaste. El hueco vuelve a estar libre.`,
-            lines: [`📅 ${formatDateEs(slot.date)}`],
+            lines: [`📅 ${formatDateEs(slot.date)}`, `Motivo: ${cleanReason}`],
             ctaText: "Buscar otros técnicos",
             ctaPath: CLINIC_CAL,
           }),

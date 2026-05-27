@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Spinner } from "@/components/ui/Spinner";
 import { useApp } from "@/components/providers/Providers";
+import { useActionToast } from "@/lib/use-action-toast";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import {
   confirmApplicationAction,
@@ -16,8 +17,8 @@ type Status = "applied" | "confirmed" | "rejected" | "withdrawn";
 
 /**
  * Acciones de la clínica sobre un candidato. `canConfirm` se apaga cuando ya no
- * quedan plazas (la action lo revalida igualmente en servidor). Cuando lo usa un
- * admin (intervención de soporte), confirma con un diálogo propio.
+ * quedan plazas (la action lo revalida igualmente en servidor). El feedback va
+ * por toast traducido. Como admin (soporte), confirma con un diálogo propio.
  */
 export function ApplicantActions({
   applicationId,
@@ -30,25 +31,43 @@ export function ApplicantActions({
   canConfirm: boolean;
   asAdmin?: boolean;
 }) {
-  const s = useApp().t.dashboard.surgeries;
+  const t = useApp().t;
+  const s = t.dashboard.surgeries;
+  const { report } = useActionToast();
   const [status, setStatus] = useState<Status>(initialStatus);
-  const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
-  const [confirm, setConfirm] = useState<{ fn: () => Promise<ActionResult>; next: Status } | null>(null);
+  const [confirm, setConfirm] = useState<{
+    fn: () => Promise<ActionResult>;
+    next: Status;
+    successMsg?: string;
+  } | null>(null);
 
-  function run(fn: () => Promise<ActionResult>, next: Status) {
-    setError(null);
+  function run(fn: () => Promise<ActionResult>, next: Status, successMsg?: string) {
     startTransition(async () => {
-      const res = await fn();
-      if ("error" in res) setError(res.error);
-      else setStatus(next);
+      if (report(await fn(), successMsg)) setStatus(next);
     });
   }
 
-  function handle(fn: () => Promise<ActionResult>, next: Status) {
-    if (asAdmin) setConfirm({ fn, next });
-    else run(fn, next);
+  function handle(fn: () => Promise<ActionResult>, next: Status, successMsg?: string) {
+    if (asAdmin) setConfirm({ fn, next, successMsg });
+    else run(fn, next, successMsg);
   }
+
+  const adminDialog = (
+    <ConfirmDialog
+      open={!!confirm}
+      title={s.adminActionTitle}
+      message={s.adminConfirmAction}
+      confirmLabel={s.confirm}
+      cancelLabel={s.cancel}
+      pending={pending}
+      onConfirm={() => {
+        if (confirm) run(confirm.fn, confirm.next, confirm.successMsg);
+        setConfirm(null);
+      }}
+      onClose={() => setConfirm(null)}
+    />
+  );
 
   if (status === "confirmed")
     return (
@@ -58,26 +77,13 @@ export function ApplicantActions({
           <button
             type="button"
             disabled={pending}
-            onClick={() => handle(() => unconfirmApplicationAction(applicationId), "applied")}
+            onClick={() => handle(() => unconfirmApplicationAction(applicationId), "applied", t.toasts.done)}
             className="rounded-sm border border-mist-200 px-2.5 py-1 text-xs font-medium text-ink-700 transition hover:bg-mist-50 disabled:opacity-50"
           >
             {s.unconfirm}
           </button>
         </div>
-        {error && <span className="text-[11px] text-red-600">{error}</span>}
-        <ConfirmDialog
-          open={!!confirm}
-          title={s.adminActionTitle}
-          message={s.adminConfirmAction}
-          confirmLabel={s.confirm}
-          cancelLabel={s.cancel}
-          pending={pending}
-          onConfirm={() => {
-            if (confirm) run(confirm.fn, confirm.next);
-            setConfirm(null);
-          }}
-          onClose={() => setConfirm(null)}
-        />
+        {adminDialog}
       </div>
     );
   if (status === "rejected") return <Badge tone="neutral">{s.discardedBadge}</Badge>;
@@ -89,7 +95,7 @@ export function ApplicantActions({
         <button
           type="button"
           disabled={pending}
-          onClick={() => handle(() => rejectApplicationAction(applicationId), "rejected")}
+          onClick={() => handle(() => rejectApplicationAction(applicationId), "rejected", t.toasts.done)}
           className="rounded-sm border border-mist-200 px-3 py-1.5 text-xs font-medium text-ink-800 transition hover:bg-mist-50 disabled:opacity-50"
         >
           {s.discard}
@@ -98,27 +104,14 @@ export function ApplicantActions({
           type="button"
           disabled={pending || !canConfirm}
           title={!canConfirm ? s.noSpots : undefined}
-          onClick={() => handle(() => confirmApplicationAction(applicationId), "confirmed")}
+          onClick={() => handle(() => confirmApplicationAction(applicationId), "confirmed", t.toasts.confirmed)}
           className="inline-flex items-center gap-1.5 rounded-sm bg-brand-600 px-3.5 py-1.5 text-xs font-semibold text-white transition hover:bg-brand-700 disabled:opacity-40"
         >
           {pending ? <Spinner size="sm" solid /> : null}
           {s.confirm}
         </button>
       </div>
-      {error && <span className="text-[11px] text-red-600">{error}</span>}
-      <ConfirmDialog
-        open={!!confirm}
-        title={s.adminActionTitle}
-        message={s.adminConfirmAction}
-        confirmLabel={s.confirm}
-        cancelLabel={s.cancel}
-        pending={pending}
-        onConfirm={() => {
-          if (confirm) run(confirm.fn, confirm.next);
-          setConfirm(null);
-        }}
-        onClose={() => setConfirm(null)}
-      />
+      {adminDialog}
     </div>
   );
 }

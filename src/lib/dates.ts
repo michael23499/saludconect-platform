@@ -26,6 +26,11 @@ export function formatDateLongEs(dateStr: string): string {
   }).format(atNoon(dateStr));
 }
 
+/** Fecha de hoy como "YYYY-MM-DD" (para comparar con columnas `date`). */
+export function todayStr(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
 /** Día y mes corto por separado, para las "tarjetas calendario". */
 export function dayMonth(dateStr: string): { day: string; mon: string } {
   const d = atNoon(dateStr);

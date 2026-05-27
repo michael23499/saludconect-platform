@@ -15,7 +15,7 @@ export const metadata = { title: "Panel administrador · SaludCoNet" };
 const SUPERVISION = [
   {
     href: "/dashboard/clinic/surgeries",
-    title: "Supervisar cirugías",
+    title: "Vista de clínicas",
     desc: "Todas las cirugías publicadas por las clínicas y sus candidatos.",
     icon: (
       <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12h3l2 5 4-12 2 7h2" /><circle cx="19.5" cy="12" r="1.6" /></svg>

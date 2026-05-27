@@ -6,6 +6,16 @@ export async function getUserProfileById(id: string): Promise<User | null> {
   return rows[0] ?? null;
 }
 
+/** IDs de los administradores activos (no suspendidos). Uso: avisar a todos los
+ *  admins de un evento, p.ej. un mensaje del formulario de contacto. */
+export async function listAdminIds(): Promise<string[]> {
+  const rows = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(and(eq(users.role, "admin"), eq(users.suspended, false)));
+  return rows.map((r) => r.id);
+}
+
 export type ClinicOption = { id: string; fullName: string; city: string | null };
 
 /**

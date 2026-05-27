@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { NAV_CLINICA } from "@/lib/dashboard-nav";
 import { getDict } from "@/lib/i18n-server";
+import { buildDashboardUser } from "@/lib/dashboard-user";
 import { requireRole } from "@backend/auth/guards";
 
 export const metadata = { title: "Suscripción · SaludCoNet" };
@@ -23,11 +24,7 @@ export default async function SuscripcionPage() {
     { ok: false, label: p.feat6 },
     { ok: false, label: p.feat7 },
   ];
-  const user = {
-    name: me.profile.fullName,
-    subtitle: isAdmin ? "Administrador" : me.profile.city ? `Clínica · ${me.profile.city}` : "Clínica",
-    avatarUrl: me.profile.avatarUrl,
-  };
+  const user = buildDashboardUser(me.profile, { isAdmin, roleLabel: "Clínica" });
 
   return (
     <DashboardShell role="Clínica" user={user} nav={NAV_CLINICA}>

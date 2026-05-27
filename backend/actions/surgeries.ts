@@ -19,31 +19,25 @@ import {
   getApplicationWithSurgery,
   getApplicationBySurgeryAndProfessional,
   updateApplicationStatus,
+  confirmApplication,
+  recordApplicationCancellation,
+  listConfirmedApplicationsForSurgery,
+  setApplicationAttendance,
   countConfirmedByTypeForSurgery,
   listEngagedRecipientsForSurgery,
 } from "../queries/applications";
 import { notify, notifyMany } from "../notifications/notify";
 import { renderEmail } from "../notifications/email";
 import { CAPILAR_SLUG } from "../db/seed-data";
+import { classifyCancellation, leadHoursUntil } from "../policy/reservation";
+import { notOwner } from "../lib/authz";
+import { formatDateEs, todayStr } from "@/lib/dates";
+import { parseIntOrNull } from "@/lib/form";
+import { formatSchedule } from "@/lib/surgery";
+import { ROUTES } from "@/lib/routes";
 
-const CLINIC_SURGERIES = "/dashboard/clinic/surgeries";
-const PRO_SURGERIES = "/dashboard/professional/surgeries";
-
-/** Formatea "2026-05-28" → "mar, 28 may". Mediodía para evitar saltos de día por tz. */
-function formatDateEs(dateStr: string): string {
-  const d = new Date(`${dateStr}T12:00:00`);
-  return new Intl.DateTimeFormat("es-ES", {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-  }).format(d);
-}
-
-function parseIntOrNull(v: FormDataEntryValue | null): number | null {
-  if (typeof v !== "string" || v.trim() === "") return null;
-  const n = Number.parseInt(v, 10);
-  return Number.isFinite(n) ? n : null;
-}
+const CLINIC_SURGERIES = ROUTES.clinicSurgeries;
+const PRO_SURGERIES = ROUTES.proSurgeries;
 
 export type CreateSurgeryState = { error: string } | null;
 
@@ -67,11 +61,11 @@ export async function createSurgeryAction(
   if (isAdmin) {
     const chosen = formData.get("clinicId");
     if (typeof chosen !== "string" || !chosen) {
-      return { error: "Como administrador, elige a nombre de qué clínica publicas la cirugía." };
+      return { error: "admin_pick_clinic" };
     }
     const clinicUser = await getUserProfileById(chosen);
     if (!clinicUser || clinicUser.role !== "clinic") {
-      return { error: "La clínica seleccionada no es válida." };
+      return { error: "invalid_clinic" };
     }
     clinicId = clinicUser.id;
     clinicName = clinicUser.fullName;
@@ -81,7 +75,7 @@ export async function createSurgeryAction(
   const specialty = await getSpecialtyBySlug(CAPILAR_SLUG);
   if (!specialty) {
     return {
-      error: "La especialidad aún no está disponible. Contacta con soporte (falta sembrar el catálogo).",
+      error: "specialty_unavailable",
     };
   }
 
@@ -91,20 +85,20 @@ export async function createSurgeryAction(
 
   const date = formData.get("date");
   if (typeof date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-    return { error: "Indica una fecha válida para la cirugía." };
+    return { error: "invalid_date" };
   }
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayStr();
   if (date < today) {
-    return { error: "La fecha de la cirugía no puede ser anterior a hoy." };
+    return { error: "past_date" };
   }
 
   const vacancies = parseIntOrNull(formData.get("vacancies")) ?? 0;
   const doctorsNeeded = parseIntOrNull(formData.get("doctorsNeeded")) ?? 0;
   if (vacancies < 0 || vacancies > 20 || doctorsNeeded < 0 || doctorsNeeded > 20) {
-    return { error: "El número de técnicos y de médicos debe estar entre 0 y 20." };
+    return { error: "vacancies_range" };
   }
   if (vacancies + doctorsNeeded < 1) {
-    return { error: "Indica al menos un técnico o un médico para la cirugía." };
+    return { error: "need_one_slot" };
   }
 
   const startTime = (formData.get("startTime") as string) || null;
@@ -136,7 +130,7 @@ export async function createSurgeryAction(
   // de técnico, médicos si hay vacantes de médico. Así la notificación llega a
   // quien corresponde según lo que pide la cirugía.
   const when = formatDateEs(date);
-  const horario = startTime && endTime ? ` (${startTime}–${endTime})` : "";
+  const horario = formatSchedule(startTime, endTime);
   const zona = city ? ` en ${city}` : "";
   const specialtyId = specialty.id;
   async function notifyGroup(
@@ -190,22 +184,22 @@ export async function applyToSurgeryAction(
 ): Promise<ActionResult> {
   const pro = await requireRole("professional");
   if (pro.profile.role === "admin") {
-    return { error: "Los administradores solo supervisan, no se postulan." };
+    return { error: "admin_supervises" };
   }
 
   const surgery = await getSurgeryById(surgeryId);
-  if (!surgery) return { error: "La cirugía ya no existe." };
-  if (surgery.status !== "open") return { error: "Esta cirugía ya no admite postulaciones." };
+  if (!surgery) return { error: "not_found" };
+  if (surgery.status !== "open") return { error: "surgery_closed" };
 
   // ¿Ya existía una postulación de este técnico a esta cirugía? Si la había
   // retirado (withdrawn), la reactivamos; si sigue activa o fue descartada, no.
   const existing = await getApplicationBySurgeryAndProfessional(surgeryId, pro.profile.id);
   if (existing) {
     if (existing.status === "applied" || existing.status === "confirmed") {
-      return { error: "Ya te habías postulado a esta cirugía." };
+      return { error: "already_applied" };
     }
     if (existing.status === "rejected") {
-      return { error: "La clínica ya descartó tu postulación a esta cirugía." };
+      return { error: "already_rejected" };
     }
     // withdrawn → volver a postularse.
     await updateApplicationStatus(existing.id, "applied");
@@ -215,7 +209,7 @@ export async function applyToSurgeryAction(
       professionalId: pro.profile.id,
       message: message?.trim() || null,
     });
-    if (!application) return { error: "Ya te habías postulado a esta cirugía." };
+    if (!application) return { error: "already_applied" };
   }
 
   // Avisar a la clínica.
@@ -245,16 +239,79 @@ export async function applyToSurgeryAction(
   return { ok: true };
 }
 
-/** El técnico retira su postulación. */
-export async function withdrawApplicationAction(applicationId: string): Promise<ActionResult> {
+/**
+ * El técnico retira su postulación. Si solo estaba "postulado" (sin confirmar),
+ * es una retirada sin consecuencias. Si la plaza estaba CONFIRMADA, es una
+ * cancelación de un compromiso: exige motivo, queda registrada (afecta a la
+ * fiabilidad según la antelación 72h/24h), libera la plaza y avisa a la clínica.
+ */
+export async function withdrawApplicationAction(
+  applicationId: string,
+  reason?: string,
+): Promise<ActionResult> {
   const pro = await requireRole("professional");
-  if (pro.profile.role === "admin") return { error: "Los administradores solo supervisan." };
+  if (pro.profile.role === "admin") return { error: "admin_supervises" };
   const row = await getApplicationWithSurgery(applicationId);
-  if (!row) return { error: "La postulación ya no existe." };
-  if (row.application.professionalId !== pro.profile.id) {
-    return { error: "No puedes modificar esta postulación." };
+  if (!row) return { error: "not_found" };
+  if (notOwner(row.application.professionalId, pro.profile.id)) {
+    return { error: "not_owner" };
   }
-  await updateApplicationStatus(applicationId, "withdrawn");
+
+  // Postulación aún no confirmada → retirada simple, sin penalización.
+  if (row.application.status !== "confirmed") {
+    await updateApplicationStatus(applicationId, "withdrawn");
+    revalidatePath(PRO_SURGERIES);
+    revalidatePath(`${CLINIC_SURGERIES}/${row.surgery.id}`);
+    return { ok: true };
+  }
+
+  // Cancelación de una reserva CONFIRMADA: el motivo es obligatorio.
+  const cleanReason = reason?.trim();
+  if (!cleanReason) {
+    return { error: "reason_required" };
+  }
+
+  await recordApplicationCancellation(applicationId, {
+    status: "withdrawn",
+    cancelledBy: "professional",
+    reason: cleanReason,
+  });
+  // Se libera una plaza: si la cirugía estaba cubierta, vuelve a admitir gente.
+  if (row.surgery.status === "filled") {
+    await updateSurgeryStatus(row.surgery.id, "open");
+  }
+
+  // Avisar a la clínica de la baja (con la antelación, que define la gravedad).
+  const lead = leadHoursUntil(row.surgery.date, row.surgery.startTime);
+  const severity = classifyCancellation(lead);
+  const clinic = await getUserProfileById(row.surgery.clinicId);
+  if (clinic) {
+    await notify({
+      userId: clinic.id,
+      type: "reservation_cancelled",
+      title: "Un profesional ha cancelado su reserva",
+      body: `${pro.profile.fullName} ha cancelado su plaza confirmada en «${row.surgery.title}» del ${formatDateEs(row.surgery.date)}. Motivo: ${cleanReason}`,
+      link: `${CLINIC_SURGERIES}/${row.surgery.id}`,
+      email: {
+        to: clinic.email,
+        subject: "Un profesional ha cancelado una reserva confirmada",
+        html: renderEmail({
+          heading: "Reserva cancelada por el profesional",
+          intro: `${pro.profile.fullName} ha cancelado su plaza confirmada en «${row.surgery.title}».`,
+          lines: [
+            `📅 ${formatDateEs(row.surgery.date)}`,
+            `Motivo: ${cleanReason}`,
+            severity === "free"
+              ? "Cancelación con antelación suficiente."
+              : "Cancelación dentro de la ventana: queda registrada en su fiabilidad.",
+          ],
+          ctaText: "Ver la cirugía",
+          ctaPath: `${CLINIC_SURGERIES}/${row.surgery.id}`,
+        }),
+      },
+    });
+  }
+
   revalidatePath(PRO_SURGERIES);
   revalidatePath(`${CLINIC_SURGERIES}/${row.surgery.id}`);
   return { ok: true };
@@ -265,10 +322,10 @@ export async function confirmApplicationAction(applicationId: string): Promise<A
   const clinic = await requireRole("clinic");
   const isAdmin = clinic.profile.role === "admin";
   const row = await getApplicationWithSurgery(applicationId);
-  if (!row) return { error: "La postulación ya no existe." };
+  if (!row) return { error: "not_found" };
   // Propiedad: la clínica dueña de la cirugía, o un admin (intervención de soporte).
-  if (!isAdmin && row.surgery.clinicId !== clinic.profile.id) {
-    return { error: "Esta cirugía no es tuya." };
+  if (notOwner(row.surgery.clinicId, clinic.profile.id, isAdmin)) {
+    return { error: "not_owner" };
   }
   if (row.application.status === "confirmed") return { ok: true };
 
@@ -281,15 +338,10 @@ export async function confirmApplicationAction(applicationId: string): Promise<A
   const limit = proType === "doctor" ? row.surgery.doctorsNeeded : row.surgery.vacancies;
   const already = proType === "doctor" ? doctors : technicians;
   if (already >= limit) {
-    return {
-      error:
-        proType === "doctor"
-          ? "Ya has cubierto todas las plazas de médico de esta cirugía."
-          : "Ya has cubierto todas las plazas de técnico de esta cirugía.",
-    };
+    return { error: proType === "doctor" ? "no_spots_doctor" : "no_spots_tech" };
   }
 
-  await updateApplicationStatus(applicationId, "confirmed");
+  await confirmApplication(applicationId);
 
   // ¿Se cubrieron TODAS las plazas (médicos y técnicos)? → cirugía cubierta.
   const nowDoctors = doctors + (proType === "doctor" ? 1 : 0);
@@ -335,9 +387,9 @@ export async function unconfirmApplicationAction(applicationId: string): Promise
   const clinic = await requireRole("clinic");
   const isAdmin = clinic.profile.role === "admin";
   const row = await getApplicationWithSurgery(applicationId);
-  if (!row) return { error: "La postulación ya no existe." };
-  if (!isAdmin && row.surgery.clinicId !== clinic.profile.id) {
-    return { error: "Esta cirugía no es tuya." };
+  if (!row) return { error: "not_found" };
+  if (notOwner(row.surgery.clinicId, clinic.profile.id, isAdmin)) {
+    return { error: "not_owner" };
   }
   if (row.application.status !== "confirmed") return { ok: true };
 
@@ -363,14 +415,59 @@ export async function unconfirmApplicationAction(applicationId: string): Promise
   return { ok: true };
 }
 
+/**
+ * Tras la cirugía, la clínica marca si un profesional confirmado ASISTIÓ o NO se
+ * presentó. El no-show penaliza la fiabilidad del profesional. Solo la clínica
+ * dueña (o un admin de soporte) y solo cuando la fecha ya pasó.
+ */
+export async function markAttendanceAction(
+  applicationId: string,
+  attended: boolean,
+): Promise<ActionResult> {
+  const clinic = await requireRole("clinic");
+  const isAdmin = clinic.profile.role === "admin";
+  const row = await getApplicationWithSurgery(applicationId);
+  if (!row) return { error: "not_found" };
+  if (notOwner(row.surgery.clinicId, clinic.profile.id, isAdmin)) {
+    return { error: "not_owner" };
+  }
+  if (row.application.status !== "confirmed") {
+    return { error: "attendance_not_confirmed" };
+  }
+  const today = todayStr();
+  if (row.surgery.date > today) {
+    return { error: "attendance_too_early" };
+  }
+
+  await setApplicationAttendance(applicationId, attended);
+
+  // Avisar al profesional solo si se le marca ausencia (afecta a su fiabilidad).
+  if (!attended) {
+    const pro = await getUserProfileById(row.application.professionalId);
+    if (pro) {
+      await notify({
+        userId: pro.id,
+        type: "reservation_cancelled",
+        title: "Se ha registrado una ausencia",
+        body: `La clínica ha indicado que no asististe a «${row.surgery.title}» del ${formatDateEs(row.surgery.date)}. Esto afecta a tu fiabilidad. Si es un error, contacta con la clínica.`,
+        link: `${PRO_SURGERIES}/${row.surgery.id}`,
+      });
+    }
+  }
+
+  revalidatePath(`${CLINIC_SURGERIES}/${row.surgery.id}`);
+  revalidatePath(PRO_SURGERIES);
+  return { ok: true };
+}
+
 /** La clínica descarta a un candidato. */
 export async function rejectApplicationAction(applicationId: string): Promise<ActionResult> {
   const clinic = await requireRole("clinic");
   const isAdmin = clinic.profile.role === "admin";
   const row = await getApplicationWithSurgery(applicationId);
-  if (!row) return { error: "La postulación ya no existe." };
-  if (!isAdmin && row.surgery.clinicId !== clinic.profile.id) {
-    return { error: "Esta cirugía no es tuya." };
+  if (!row) return { error: "not_found" };
+  if (notOwner(row.surgery.clinicId, clinic.profile.id, isAdmin)) {
+    return { error: "not_owner" };
   }
   await updateApplicationStatus(applicationId, "rejected");
 
@@ -417,22 +514,22 @@ export async function updateSurgeryAction(
   const isAdmin = clinic.profile.role === "admin";
 
   const surgery = await getSurgeryById(surgeryId);
-  if (!surgery) return { error: "La cirugía ya no existe." };
-  if (!isAdmin && surgery.clinicId !== clinic.profile.id) {
-    return { error: "Esta cirugía no es tuya." };
+  if (!surgery) return { error: "not_found" };
+  if (notOwner(surgery.clinicId, clinic.profile.id, isAdmin)) {
+    return { error: "not_owner" };
   }
 
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(data.date)) return { error: "Indica una fecha válida." };
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(data.date)) return { error: "invalid_date" };
   if (
     data.vacancies < 0 ||
     data.vacancies > 20 ||
     data.doctorsNeeded < 0 ||
     data.doctorsNeeded > 20
   ) {
-    return { error: "El número de técnicos y de médicos debe estar entre 0 y 20." };
+    return { error: "vacancies_range" };
   }
   if (data.vacancies + data.doctorsNeeded < 1) {
-    return { error: "Indica al menos un técnico o un médico para la cirugía." };
+    return { error: "need_one_slot" };
   }
 
   const newStart = data.startTime || null;
@@ -470,6 +567,19 @@ export async function updateSurgeryAction(
   // Avisar a los técnicos inscritos (postulados/confirmados) si cambian datos
   // que les afectan: fecha, horario, ubicación, tarifa o una cancelación.
   const cancelled = data.status === "cancelled" && surgery.status !== "cancelled";
+
+  // Cancelar la cirugía con profesionales confirmados cuenta como cancelación de
+  // la clínica (queda en su fiabilidad). Solo al pasar a "cancelled".
+  if (cancelled) {
+    const confirmedApps = await listConfirmedApplicationsForSurgery(surgeryId);
+    for (const app of confirmedApps) {
+      await recordApplicationCancellation(app.id, {
+        status: "rejected",
+        cancelledBy: isAdmin ? "admin" : "clinic",
+        reason: "Cirugía cancelada por la clínica",
+      });
+    }
+  }
   const changes: string[] = [];
   if (surgery.date !== data.date) changes.push(`nueva fecha: ${formatDateEs(data.date)}`);
   if (surgery.startTime !== newStart || surgery.endTime !== newEnd) {
@@ -535,18 +645,18 @@ export async function inviteToSurgeryAction(
 ): Promise<ActionResult> {
   const clinic = await requireRole("clinic");
   if (clinic.profile.role === "admin") {
-    return { error: "Los administradores no invitan; usa una cuenta de clínica." };
+    return { error: "admin_no_invite" };
   }
 
   const surgery = await getSurgeryById(surgeryId);
-  if (!surgery) return { error: "La cirugía ya no existe." };
-  if (surgery.clinicId !== clinic.profile.id) return { error: "Esta cirugía no es tuya." };
-  if (surgery.status !== "open") return { error: "Esta cirugía ya no admite inscripciones." };
+  if (!surgery) return { error: "not_found" };
+  if (notOwner(surgery.clinicId, clinic.profile.id)) return { error: "not_owner" };
+  if (surgery.status !== "open") return { error: "surgery_closed" };
 
   const existing = await getApplicationBySurgeryAndProfessional(surgeryId, professionalId);
   if (existing) {
     if (existing.status === "applied" || existing.status === "confirmed") {
-      return { error: "Este técnico ya está inscrito en esta cirugía." };
+      return { error: "already_enrolled" };
     }
     // withdrawn/rejected → reactivar como activo de nuevo.
     await updateApplicationStatus(existing.id, "applied");
@@ -591,13 +701,23 @@ export async function deleteSurgeryAction(surgeryId: string): Promise<ActionResu
   const isAdmin = clinic.profile.role === "admin";
 
   const surgery = await getSurgeryById(surgeryId);
-  if (!surgery) return { error: "La cirugía ya no existe." };
-  if (!isAdmin && surgery.clinicId !== clinic.profile.id) {
-    return { error: "Esta cirugía no es tuya." };
+  if (!surgery) return { error: "not_found" };
+  if (notOwner(surgery.clinicId, clinic.profile.id, isAdmin)) {
+    return { error: "not_owner" };
   }
 
   const engaged = await listEngagedRecipientsForSurgery(surgeryId);
+  // Cancelar una cirugía con profesionales CONFIRMADOS es una cancelación del
+  // lado de la clínica: queda registrada en su fiabilidad (cancelledBy clinic/admin).
+  const confirmedApps = await listConfirmedApplicationsForSurgery(surgeryId);
   await softDeleteSurgery(surgeryId);
+  for (const app of confirmedApps) {
+    await recordApplicationCancellation(app.id, {
+      status: "rejected",
+      cancelledBy: isAdmin ? "admin" : "clinic",
+      reason: "Cirugía retirada por la clínica",
+    });
+  }
 
   if (engaged.length > 0) {
     await notifyMany(

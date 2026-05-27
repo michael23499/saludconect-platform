@@ -26,6 +26,7 @@ export type MyProfileInput = {
   hourlyRate?: number | null;
   // Solo clínica
   clinicName?: string;
+  contactName?: string;
   specialties?: string[];
   about?: string;
   website?: string;
@@ -63,12 +64,14 @@ export async function updateMyProfileAction(data: MyProfileInput): Promise<Updat
     const specialties = (data.specialties ?? []).map((s) => s.trim()).filter(Boolean);
     await updateClinic(me.profile.id, {
       clinicName: data.clinicName?.trim() || null,
+      contactName: data.contactName?.trim() || null,
       specialties: specialties.length ? specialties : null,
       about: data.about?.trim() || null,
       website: data.website?.trim() || null,
     });
   }
 
+  revalidatePath("/dashboard/clinic");
   revalidatePath("/dashboard/clinic/settings");
   revalidatePath("/dashboard/professional/settings");
   revalidatePath("/dashboard/professional/profile");

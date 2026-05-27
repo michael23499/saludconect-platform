@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Logo } from "@/components/ui/Logo";
 import { Button } from "@/components/ui/Button";
@@ -21,11 +21,15 @@ export function Header({ user, unread = 0 }: { user: HeaderUser | null; unread?:
   const path = usePathname();
   const { t, lang, setLang, theme, toggleTheme } = useApp();
 
-  // Campana de notificaciones: solo clínica y profesional (tienen ruta propia).
-  const bellHref =
-    user && (user.role === "clinic" || user.role === "professional")
-      ? `/dashboard/${user.role}/notifications`
-      : null;
+  // Campana de notificaciones: clínica y profesional (ruta de su dashboard) y
+  // admin (mensajes de contacto y avisos de plataforma → /admin/notifications).
+  const bellHref = !user
+    ? null
+    : user.role === "admin"
+      ? "/admin/notifications"
+      : user.role === "clinic" || user.role === "professional"
+        ? `/dashboard/${user.role}/notifications`
+        : null;
 
   // Mientras el menú móvil está abierto: bloquea el scroll del fondo
   // (si no, el gesto de scroll se va a la página de detrás) y permite cerrar con Escape.
@@ -198,19 +202,60 @@ export function Header({ user, unread = 0 }: { user: HeaderUser | null; unread?:
 }
 
 function NotificationBell({ href, unread }: { href: string; unread: number }) {
+  // `unread` (del servidor) es el valor inicial; a partir de ahí lo mantenemos
+  // al día por sondeo, ya que el proyecto no tiene realtime.
+  const [count, setCount] = useState(unread);
+  const [ring, setRing] = useState(false);
+  const prevCountRef = useRef(unread);
+
+  // Sondeo: consulta el conteo real cada 25 s y al volver a la pestaña. Así el
+  // badge sube y la campana suena cuando llega algo, sin tener que recargar.
+  useEffect(() => {
+    let cancelled = false;
+    const check = async () => {
+      try {
+        const res = await fetch("/api/notifications/unread", { cache: "no-store" });
+        if (!res.ok) return;
+        const data = (await res.json()) as { unread?: number };
+        if (!cancelled && typeof data.unread === "number") setCount(data.unread);
+      } catch {}
+    };
+    const id = window.setInterval(check, 25000);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") void check();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      cancelled = true;
+      window.clearInterval(id);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, []);
+
+  // La campana se balancea cuando el conteo SUBE (llegó algo nuevo).
+  useEffect(() => {
+    if (count > prevCountRef.current) {
+      setRing(true);
+      const t = window.setTimeout(() => setRing(false), 1200);
+      prevCountRef.current = count;
+      return () => window.clearTimeout(t);
+    }
+    prevCountRef.current = count;
+  }, [count]);
+
   return (
     <Link
       href={href}
-      aria-label={`Notificaciones${unread > 0 ? ` (${unread} sin leer)` : ""}`}
+      aria-label={`Notificaciones${count > 0 ? ` (${count} sin leer)` : ""}`}
       className="relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-mist-200 bg-white text-ink-700 transition hover:bg-mist-50"
     >
-      <svg className="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <svg className={cn("h-[18px] w-[18px]", ring && "animate-bell")} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
         <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
         <path d="M13.7 21a2 2 0 0 1-3.4 0" />
       </svg>
-      {unread > 0 && (
+      {count > 0 && (
         <span className="absolute -right-0.5 -top-0.5 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-brand-600 px-1 text-[10px] font-semibold leading-none text-white">
-          {unread > 9 ? "9+" : unread}
+          {count > 9 ? "9+" : count}
         </span>
       )}
     </Link>

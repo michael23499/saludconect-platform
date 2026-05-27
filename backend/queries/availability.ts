@@ -8,6 +8,7 @@ import {
   type AvailabilitySlot,
   type NewAvailabilitySlot,
 } from "../db";
+import type { CancelledBy } from "../policy/reservation";
 
 /** Fecha de hoy en formato YYYY-MM-DD para comparar con la columna `date`. */
 function todayStr(): string {
@@ -195,10 +196,23 @@ export async function rejectBooking(id: string, professionalId: string): Promise
   return rows.length > 0;
 }
 
-/** El técnico retira una franja (o se cancela una reserva). */
-export async function cancelSlot(id: string): Promise<void> {
+/**
+ * El técnico retira una franja (o se cancela una reserva). Si la franja estaba
+ * reservada en firme, `opts` deja constancia de quién canceló y por qué (para la
+ * fiabilidad). Retirar una franja libre no penaliza, así que `opts` es opcional.
+ */
+export async function cancelSlot(
+  id: string,
+  opts?: { cancelledBy?: CancelledBy; reason?: string | null },
+): Promise<void> {
   await db
     .update(availabilitySlots)
-    .set({ status: "cancelled", updatedAt: new Date() })
+    .set({
+      status: "cancelled",
+      cancelledBy: opts?.cancelledBy ?? null,
+      cancelledAt: opts?.cancelledBy ? new Date() : null,
+      cancelReason: opts?.reason ?? null,
+      updatedAt: new Date(),
+    })
     .where(eq(availabilitySlots.id, id));
 }

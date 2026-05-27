@@ -6,6 +6,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Providers } from "@/components/providers/Providers";
 import { ChatWidget } from "@/components/chat/ChatWidget";
+import { CookieConsent } from "@/components/cookies/CookieConsent";
 import { TopProgress } from "@/components/ui/TopProgress";
 import { getCurrentUser } from "@backend/auth";
 import { countUnreadNotifications } from "@backend/queries/notifications";
@@ -54,7 +55,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // Conteo de notificaciones sin leer para la campana del header (solo clínica
   // y profesional; el admin no recibe notificaciones del marketplace).
   const unread =
-    current?.profile && (current.profile.role === "clinic" || current.profile.role === "professional")
+    current?.profile &&
+    (current.profile.role === "clinic" ||
+      current.profile.role === "professional" ||
+      current.profile.role === "admin")
       ? await countUnreadNotifications(current.profile.id)
       : 0;
   const userForHeader = current
@@ -83,6 +87,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <main className="min-h-[calc(100vh-4rem)]">{children}</main>
           <Footer />
           <ChatWidget />
+          <CookieConsent />
         </Providers>
       </body>
     </html>

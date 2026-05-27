@@ -36,7 +36,6 @@ export default async function RegistroPage({
               </svg>
             </div>
             <p className="mt-4 text-[15px] font-medium text-ink-900">{r.emptyTitle}</p>
-            <p className="mt-1 text-sm text-mist-500">{r.emptyHint}</p>
           </div>
         }
         footer={

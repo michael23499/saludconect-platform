@@ -10,12 +10,15 @@ import "server-only";
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
 const FROM = process.env.RESEND_FROM ?? "SaludCoNet <info@saludconet.com>";
 
-export type EmailContent = { to: string | string[]; subject: string; html: string };
+export type EmailContent = { to: string | string[]; subject: string; html: string; replyTo?: string };
 
 export async function sendAppEmail(opts: {
   to: string | string[];
   subject: string;
   html: string;
+  /** Responder-a: útil en el formulario de contacto para responder al visitante
+   *  directamente desde el correo que recibe el equipo. */
+  replyTo?: string;
 }): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
@@ -34,6 +37,7 @@ export async function sendAppEmail(opts: {
         to: Array.isArray(opts.to) ? opts.to : [opts.to],
         subject: opts.subject,
         html: opts.html,
+        ...(opts.replyTo ? { reply_to: opts.replyTo } : {}),
       }),
     });
     if (!res.ok) {

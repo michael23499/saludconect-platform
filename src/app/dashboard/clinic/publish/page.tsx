@@ -2,6 +2,7 @@ import { DashboardShell, PageHeader } from "@/components/dashboard/Shell";
 import { SurgeryForm } from "@/components/dashboard/SurgeryForm";
 import { NAV_CLINICA } from "@/lib/dashboard-nav";
 import { getDict } from "@/lib/i18n-server";
+import { buildDashboardUser } from "@/lib/dashboard-user";
 import { requireRole } from "@backend/auth/guards";
 import { listClinicUsers } from "@backend/queries/users";
 
@@ -11,11 +12,7 @@ export default async function PublicarCirugiaPage() {
   const me = await requireRole("clinic");
   const t = (await getDict()).dashboard.surgeries;
   const isAdmin = me.profile.role === "admin";
-  const user = {
-    name: me.profile.fullName,
-    subtitle: isAdmin ? "Administrador" : me.profile.city ? `Clínica · ${me.profile.city}` : "Clínica",
-    avatarUrl: me.profile.avatarUrl,
-  };
+  const user = buildDashboardUser(me.profile, { isAdmin, roleLabel: "Clínica" });
 
   // El admin publica en nombre de una clínica: le ofrecemos el listado.
   const clinics = isAdmin ? await listClinicUsers() : [];

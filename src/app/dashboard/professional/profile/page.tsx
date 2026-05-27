@@ -4,11 +4,14 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Avatar } from "@/components/ui/Avatar";
 import { ProfileVisibilityToggle } from "@/components/dashboard/ProfileVisibilityToggle";
+import { ReliabilityBadge } from "@/components/dashboard/ReliabilityBadge";
 import { NAV_PRO } from "@/lib/dashboard-nav";
 import { getDict } from "@/lib/i18n-server";
+import { buildDashboardUser } from "@/lib/dashboard-user";
 import { requireRole } from "@backend/auth/guards";
 import { getProfessionalById } from "@backend/queries/professionals";
 import { getSpecialtyById } from "@backend/queries/specialties";
+import { getReliability } from "@backend/queries/reliability";
 
 export const metadata = { title: "Mi perfil · Profesional · SaludCoNet" };
 
@@ -16,11 +19,7 @@ export default async function ProfesionalPerfilPage() {
   const me = await requireRole("professional");
   const p = (await getDict()).dashboard.prof;
   const isAdmin = me.profile.role === "admin";
-  const user = {
-    name: me.profile.fullName,
-    subtitle: isAdmin ? "Administrador" : me.profile.city ? `Técnico capilar · ${me.profile.city}` : "Técnico capilar",
-    avatarUrl: me.profile.avatarUrl,
-  };
+  const user = buildDashboardUser(me.profile, { isAdmin, roleLabel: "Técnico capilar" });
 
   const professional = isAdmin ? null : await getProfessionalById(me.profile.id);
   const specialty = professional?.specialtyId ? await getSpecialtyById(professional.specialtyId) : null;
@@ -28,6 +27,9 @@ export default async function ProfesionalPerfilPage() {
 
   // El administrador no tiene perfil de técnico: no es una sección suya.
   if (isAdmin) redirect("/dashboard/professional");
+
+  const r = (await getDict()).dashboard.reliability;
+  const reliability = await getReliability(me.profile.id);
 
   return (
     <DashboardShell role="Profesional" user={user} nav={NAV_PRO}>
@@ -115,6 +117,14 @@ export default async function ProfesionalPerfilPage() {
           <div className="mt-4 border-t border-mist-100 pt-4">
             <ProfileVisibilityToggle initial={me.profile.isPublic} />
           </div>
+        </SectionCard>
+      </div>
+
+      {/* Fiabilidad: puntualidad y compromiso con las reservas confirmadas. */}
+      <div className="mt-5">
+        <SectionCard title={r.label}>
+          <ReliabilityBadge reliability={reliability} />
+          <p className="mt-3 text-sm text-mist-500">{r.profileHint}</p>
         </SectionCard>
       </div>
     </DashboardShell>

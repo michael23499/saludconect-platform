@@ -5,6 +5,7 @@ import { ClinicAvailabilityCalendar, type ClinicSlot } from "@/components/dashbo
 import { SupervisionBanner } from "@/components/dashboard/SupervisionBanner";
 import { NAV_PRO } from "@/lib/dashboard-nav";
 import { getDict } from "@/lib/i18n-server";
+import { buildDashboardUser } from "@/lib/dashboard-user";
 import { requireRole } from "@backend/auth/guards";
 import { listSlotsByProfessional, listOpenSlots } from "@backend/queries/availability";
 import { listConfirmedUpcomingForProfessional } from "@backend/queries/applications";
@@ -15,11 +16,7 @@ export default async function ProfesionalCalendarioPage() {
   const me = await requireRole("professional");
   const c = (await getDict()).dashboard.cal;
   const isAdmin = me.profile.role === "admin";
-  const user = {
-    name: me.profile.fullName,
-    subtitle: isAdmin ? "Administrador" : me.profile.city ? `Técnico capilar · ${me.profile.city}` : "Técnico capilar",
-    avatarUrl: me.profile.avatarUrl,
-  };
+  const user = buildDashboardUser(me.profile, { isAdmin, roleLabel: "Técnico capilar" });
 
   // --- Supervisión (admin): ve el calendario global en modo solo lectura ---
   if (isAdmin) {

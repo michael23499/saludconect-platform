@@ -3,6 +3,7 @@ import { NAV_CLINICA } from "@/lib/dashboard-nav";
 import { SettingsTabs } from "@/components/dashboard/SettingsTabs";
 import type { AccountData } from "@/components/dashboard/AccountSettingsForm";
 import { getDict } from "@/lib/i18n-server";
+import { buildDashboardUser } from "@/lib/dashboard-user";
 import { requireRole } from "@backend/auth/guards";
 import { getClinicById } from "@backend/queries/clinics";
 
@@ -12,11 +13,7 @@ export default async function AjustesPage() {
   const me = await requireRole("clinic");
   const p = (await getDict()).dashboard.prof;
   const isAdmin = me.profile.role === "admin";
-  const user = {
-    name: me.profile.fullName,
-    subtitle: isAdmin ? "Administrador" : me.profile.city ? `Clínica · ${me.profile.city}` : "Clínica",
-    avatarUrl: me.profile.avatarUrl,
-  };
+  const user = buildDashboardUser(me.profile, { isAdmin, roleLabel: "Clínica" });
 
   const clinic = await getClinicById(me.profile.id);
   const account: AccountData = {
@@ -36,6 +33,7 @@ export default async function AjustesPage() {
     yearsExperience: "",
     hourlyRate: "",
     clinicName: clinic?.clinicName ?? "",
+    contactName: clinic?.contactName ?? "",
     specialties: clinic?.specialties ?? [],
     about: clinic?.about ?? "",
     website: clinic?.website ?? "",

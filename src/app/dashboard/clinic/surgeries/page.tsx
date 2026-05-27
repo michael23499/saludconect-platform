@@ -6,6 +6,8 @@ import { MetaIcon } from "@/components/ui/MetaIcon";
 import { SupervisionBanner } from "@/components/dashboard/SupervisionBanner";
 import { NAV_CLINICA } from "@/lib/dashboard-nav";
 import { dayMonth, formatDateEs } from "@/lib/dates";
+import { SURGERY_STATUS_TONE } from "@/lib/status-colors";
+import { buildDashboardUser } from "@/lib/dashboard-user";
 import { getDict } from "@/lib/i18n-server";
 import { requireRole } from "@backend/auth/guards";
 import {
@@ -17,13 +19,6 @@ import type { Surgery } from "@backend/db";
 
 export const metadata = { title: "Cirugías · Clínica · SaludCoNet" };
 
-const STATUS_TONE: Record<Surgery["status"], "success" | "warning" | "neutral" | "brand"> = {
-  open: "brand",
-  filled: "success",
-  cancelled: "neutral",
-  completed: "neutral",
-};
-
 export default async function MisCirugiasPage() {
   const me = await requireRole("clinic");
   const t = (await getDict()).dashboard.surgeries;
@@ -34,11 +29,7 @@ export default async function MisCirugiasPage() {
     cancelled: t.statusCancelled,
     completed: t.statusCompleted,
   };
-  const user = {
-    name: me.profile.fullName,
-    subtitle: isAdmin ? "Administrador" : me.profile.city ? `Clínica · ${me.profile.city}` : "Clínica",
-    avatarUrl: me.profile.avatarUrl,
-  };
+  const user = buildDashboardUser(me.profile, { isAdmin, roleLabel: "Clínica" });
 
   const surgeries: (SurgeryWithCounts & { clinicName?: string })[] = isAdmin
     ? await listAllSurgeriesWithCounts()
@@ -85,7 +76,7 @@ export default async function MisCirugiasPage() {
         <div className="space-y-3">
           {surgeries.map((s) => {
             const { day, mon } = dayMonth(s.date);
-            const tone = STATUS_TONE[s.status];
+            const tone = SURGERY_STATUS_TONE[s.status];
             return (
               <Link
                 key={s.id}

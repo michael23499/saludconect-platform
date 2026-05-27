@@ -5,6 +5,8 @@ import { createProfessional } from "../queries/professionals";
 import { createClinic } from "../queries/clinics";
 import { getSpecialtyBySlug } from "../queries/specialties";
 import { CAPILAR_SLUG } from "../db/seed-data";
+import { RESERVATION_POLICY_VERSION } from "../policy/reservation";
+import { parseStringOrNull, parseFloatOrNull } from "@/lib/form";
 
 /**
  * Materializa el perfil de public.users a partir del user_metadata que guardó
@@ -31,13 +33,17 @@ export async function ensureProfileFromMetadata(user: User | null | undefined): 
     email: user.email ?? "",
     fullName,
     role,
-    phone: str(m.phone),
-    city: str(m.city),
-    address: str(m.address),
-    postalCode: str(m.postal_code),
-    lat: num(m.lat),
-    lng: num(m.lng),
+    phone: parseStringOrNull(m.phone),
+    city: parseStringOrNull(m.city),
+    address: parseStringOrNull(m.address),
+    postalCode: parseStringOrNull(m.postal_code),
+    lat: parseFloatOrNull(m.lat),
+    lng: parseFloatOrNull(m.lng),
     verified: false,
+    // El alta exige aceptar la Política de Reservas (signUpAction lo valida);
+    // sellamos la aceptación con la versión vigente al materializar el perfil.
+    reservationPolicyAcceptedAt: new Date(),
+    reservationPolicyVersion: RESERVATION_POLICY_VERSION,
   });
 
   if (role === "professional") {
@@ -55,19 +61,12 @@ export async function ensureProfileFromMetadata(user: User | null | undefined): 
     const specialties = Array.isArray(m.specialties)
       ? (m.specialties as unknown[]).filter((s): s is string => typeof s === "string" && s.trim().length > 0)
       : [];
-    await createClinic({ id: user.id, clinicName: fullName, specialties: specialties.length ? specialties : null });
+    await createClinic({
+      id: user.id,
+      clinicName: fullName,
+      // Persona de contacto que se dio de alta (para saludarla por su nombre).
+      contactName: parseStringOrNull(m.contact_name),
+      specialties: specialties.length ? specialties : null,
+    });
   }
-}
-
-function str(v: unknown): string | null {
-  return typeof v === "string" && v.trim() ? v.trim() : null;
-}
-
-function num(v: unknown): number | null {
-  if (typeof v === "number" && Number.isFinite(v)) return v;
-  if (typeof v === "string" && v.trim()) {
-    const n = Number.parseFloat(v);
-    return Number.isFinite(n) ? n : null;
-  }
-  return null;
 }

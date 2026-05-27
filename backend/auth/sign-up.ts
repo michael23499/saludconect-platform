@@ -72,6 +72,15 @@ export async function signUpAction(
     };
   }
 
+  // Ambos roles deben aceptar la Política de Reservas (la aceptación se sella en
+  // el perfil al materializarlo, con la versión vigente de la política).
+  if (!formData.get("policy_consent")) {
+    return {
+      kind: "error",
+      message: "Debes leer y aceptar la Política de Reservas para continuar.",
+    };
+  }
+
   // Frena el abuso de creación masiva de cuentas por IP.
   const allowed = await rateLimit("signup", 8, 60_000);
   if (!allowed) {

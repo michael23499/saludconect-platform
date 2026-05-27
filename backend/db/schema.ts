@@ -48,6 +48,11 @@ export const users = pgTable("users", {
   // El profesional decide si aparece en el directorio público (/search). Solo
   // se listan los técnicos con isPublic=true. Default true (opt-out, no opt-in).
   isPublic: boolean("is_public").notNull().default(true),
+  // Aceptación de la Política de Reservas (ver /legal/reservations). Se sella al
+  // registrarse marcando el checkbox. Guardamos también la versión aceptada para
+  // poder volver a pedir aceptación si la política cambia de forma relevante.
+  reservationPolicyAcceptedAt: timestamp("reservation_policy_accepted_at", { withTimezone: true }),
+  reservationPolicyVersion: text("reservation_policy_version"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
@@ -126,6 +131,9 @@ export const clinics = pgTable("clinics", {
     .references(() => users.id, { onDelete: "cascade" }),
   // Nombre comercial del centro (puede diferir del fullName del usuario).
   clinicName: text("clinic_name"),
+  // Persona de contacto / responsable del centro (la que se da de alta). Se usa
+  // para saludar por su nombre en el panel, ya que clinicName es el del centro.
+  contactName: text("contact_name"),
   // Especialidades del centro (lista). Una clínica puede ofrecer varias. Son
   // etiquetas de perfil (las del catálogo de marketing del registro); el motor
   // de cirugías sigue operando por la specialtyId de cada cirugía.
@@ -220,6 +228,20 @@ export const applications = pgTable(
     invitedByClinic: boolean("invited_by_clinic").notNull().default(false),
     // Nota opcional del técnico al postularse.
     message: text("message"),
+    // Momento en que la clínica confirmó la plaza: nace aquí el "compromiso de
+    // colaboración". Sirve para fechar el compromiso y medir la antelación de una
+    // cancelación posterior (ventanas 72h/24h).
+    confirmedAt: timestamp("confirmed_at", { withTimezone: true }),
+    // Quién canceló una reserva YA confirmada y por qué. cancelledBy es texto con
+    // valores conocidos: "clinic" | "professional" | "admin". Se rellena al
+    // retirarse/descartar tras la confirmación; alimenta el registro de fiabilidad.
+    cancelledBy: text("cancelled_by"),
+    cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
+    cancelReason: text("cancel_reason"),
+    // Asistencia tras la fecha: null = sin marcar, true = asistió, false = no se
+    // presentó (no-show). La marca la otra parte. Penaliza la fiabilidad si false.
+    attended: boolean("attended"),
+    attendanceMarkedAt: timestamp("attendance_marked_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
@@ -269,11 +291,20 @@ export const availabilitySlots = pgTable("availability_slots", {
   city: text("city"),
   note: text("note"),
   status: availabilityStatusEnum("status").notNull().default("open"),
-  // Clínica que reservó el hueco (si está "booked").
+  // Clínica que reservó el hueco (si está "booked"). bookedAt fecha el
+  // compromiso (equivalente a confirmedAt de las cirugías).
   bookedByClinicId: uuid("booked_by_clinic_id").references(() => users.id, {
     onDelete: "set null",
   }),
   bookedAt: timestamp("booked_at", { withTimezone: true }),
+  // Cancelación de una reserva YA confirmada (booked) y asistencia posterior.
+  // Mismos campos y semántica que en `applications`. cancelledBy: texto con
+  // "clinic" | "professional" | "admin". attended: null/true/false (no-show).
+  cancelledBy: text("cancelled_by"),
+  cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
+  cancelReason: text("cancel_reason"),
+  attended: boolean("attended"),
+  attendanceMarkedAt: timestamp("attendance_marked_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
@@ -317,7 +348,9 @@ export type NotificationType =
   | "booking_confirmed" // a la clínica: el técnico confirmó la reserva solicitada
   | "booking_declined" // a la clínica: el técnico rechazó la reserva (el hueco se liberó)
   | "surgery_invitation" // al técnico: una clínica le invitó a una cirugía desde el directorio
-  | "review_request"; // a ambos: el trabajo terminó, valora tu experiencia
+  | "reservation_cancelled" // a la otra parte: una reserva YA confirmada fue cancelada (con motivo)
+  | "review_request" // a ambos: el trabajo terminó, valora tu experiencia
+  | "contact_message"; // al admin: alguien envió el formulario de contacto público
 
 // ===========================================================================
 // VALORACIONES — reputación bidireccional tras un trabajo
@@ -382,3 +415,30 @@ export const clinicTeam = pgTable(
 
 export type ClinicTeamRow = typeof clinicTeam.$inferSelect;
 export type NewClinicTeamRow = typeof clinicTeam.$inferInsert;
+
+// ===========================================================================
+// CONTENIDO EDITABLE — textos legales gestionables por el admin
+// ===========================================================================
+// Store genérico de contenido por clave + idioma. Hoy lo usa el admin para
+// sobrescribir los textos legales (cookies, privacidad, etc.) como texto largo;
+// si no hay fila para una (key, lang), la página cae al texto por defecto del
+// i18n. Genérico a propósito: añadir contenido editable = una clave nueva, sin
+// migración.
+
+export const siteContent = pgTable(
+  "site_content",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    // Clave estable del contenido (p.ej. "cookies", "privacy", "terms").
+    key: text("key").notNull(),
+    // Idioma del texto ("es" | "en").
+    lang: text("lang").notNull(),
+    // Cuerpo en texto largo (formato simple: "## " encabezados, "- " listas).
+    body: text("body").notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [unique("site_content_key_lang_uq").on(t.key, t.lang)],
+);
+
+export type SiteContent = typeof siteContent.$inferSelect;
+export type NewSiteContent = typeof siteContent.$inferInsert;

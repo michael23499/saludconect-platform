@@ -4,11 +4,13 @@ import { Badge } from "@/components/ui/Badge";
 import { Avatar } from "@/components/ui/Avatar";
 import { MetaIcon } from "@/components/ui/MetaIcon";
 import { ApplyButton } from "@/components/dashboard/ApplyButton";
+import { CommitmentNotice } from "@/components/dashboard/CommitmentNotice";
 import { SupervisionBanner } from "@/components/dashboard/SupervisionBanner";
 import { NAV_PRO } from "@/lib/dashboard-nav";
 import { formatDateLongEs } from "@/lib/dates";
 import { formatNeeds } from "@/lib/surgery";
 import { getDict } from "@/lib/i18n-server";
+import { buildDashboardUser } from "@/lib/dashboard-user";
 import { requireRole } from "@backend/auth/guards";
 import { getSurgeryWithClinic } from "@backend/queries/surgeries";
 import { getApplicationBySurgeryAndProfessional } from "@backend/queries/applications";
@@ -31,11 +33,7 @@ export default async function DetalleCirugiaProfesionalPage({
 
   const app = isAdmin ? null : await getApplicationBySurgeryAndProfessional(id, me.profile.id);
 
-  const user = {
-    name: me.profile.fullName,
-    subtitle: isAdmin ? "Administrador" : me.profile.city ? `Técnico capilar · ${me.profile.city}` : "Técnico capilar",
-    avatarUrl: me.profile.avatarUrl,
-  };
+  const user = buildDashboardUser(me.profile, { isAdmin, roleLabel: "Técnico capilar" });
 
   return (
     <DashboardShell role="Profesional" user={user} nav={NAV_PRO}>
@@ -98,6 +96,9 @@ export default async function DetalleCirugiaProfesionalPage({
               </div>
             )}
           </div>
+          {app?.status === "confirmed" && (
+            <CommitmentNotice audience="professional" date={surgery.date} startTime={surgery.startTime} />
+          )}
         </aside>
       </div>
     </DashboardShell>
